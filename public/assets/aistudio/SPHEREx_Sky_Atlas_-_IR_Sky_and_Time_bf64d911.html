@@ -1,0 +1,421 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>SFERAvis Sky Atlas · 102-Band SPHEREx Celestial Explorer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;500;600;700&family=Merriweather:wght@400;700&family=Oswald:wght@500;600;700&display=swap">
+<style>
+:root{color-scheme:dark;--bg:#050507;--pn:#0d0d14;--gl:rgba(10,10,16,.90);--ln:rgba(255,255,255,.12);--tx:#f8fafc;--mu:#94a3b8;--band:#A30000;--ice:#f1f5f9;--gal:#e11d48;--star:#f59e0b;--c:#A30000;--sf:"Lexend",system-ui,sans-serif;--se:"Merriweather",Georgia,serif;--hd:"Oswald",sans-serif;box-sizing:border-box}
+@media (prefers-color-scheme:light){:root{--bg:#050507}}
+*,*::before,*::after{box-sizing:inherit;font-style:normal!important}html{height:100%}
+body{position:fixed;inset:0;margin:0;overflow:hidden;background:var(--bg);color:var(--tx);font:14px/1.5 var(--sf);font-style:normal!important}
+#stage{position:absolute;inset:0}
+#sky{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;cursor:grab;outline:none}
+#sky:active{cursor:grabbing}
+.glass{background:var(--gl);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid var(--ln);box-shadow:0 10px 30px #000b}
+
+/* brand + top-right */
+#brand{position:absolute;top:12px;left:50%;transform:translateX(-50%);z-index:4;display:flex;gap:12px;align-items:center;pointer-events:none;white-space:nowrap}
+#brand b{font:700 24px var(--sf);letter-spacing:-0.03em;color:#fff;text-shadow:0 2px 14px rgba(0,0,0,.9);line-height:1}
+.badge{font-size:11px;font-family:var(--sf);letter-spacing:0.06em;text-transform:uppercase;color:#fecdd3;border:1px solid rgba(220,38,38,0.45);background:rgba(163,0,0,0.25);padding:3px 12px;border-radius:99px}
+#tr{position:absolute;top:12px;right:12px;z-index:5;display:flex;gap:4px;padding:4px;border-radius:12px}
+
+/* icon buttons */
+button{font:inherit;color:var(--tx);background:var(--pn);border:1px solid var(--ln);border-radius:8px;padding:6px 10px;cursor:pointer;font-style:normal!important}
+button:hover{border-color:var(--band)}
+button:focus-visible,input:focus-visible,#sky:focus-visible{outline:2px solid var(--band);outline-offset:2px}
+.ib{width:44px;height:44px;padding:0;display:grid;place-items:center;background:transparent;border:1px solid transparent;border-radius:10px;color:var(--tx);flex:none}
+.ib.sm{width:36px;height:36px}
+.ib svg{width:26px;height:26px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}
+.ib.sm svg{width:22px;height:22px}
+.ib:hover{background:#1f1f2e;border-color:var(--ln)}
+.ib[aria-expanded=true],.ib[aria-pressed=true]{background:#220e12;border-color:var(--band);color:var(--c,var(--band))}
+
+/* left rail like Stellarium */
+#rail{position:absolute;left:0;top:12px;z-index:6;display:flex;flex-direction:column;gap:2px;padding:6px;border-left:0;border-radius:0 14px 14px 0;max-height:calc(100% - 24px);overflow:auto}
+
+/* flyout panels */
+.fly{position:absolute;left:66px;top:12px;z-index:5;width:310px;max-height:calc(100% - 12px - 96px);overflow:auto;border-radius:14px;padding:14px 16px}
+.fly[hidden]{display:none}
+#r-insp{width:330px}
+.fly>header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.fly>header b{font:600 16px var(--se)}
+.x{padding:0 8px;font-size:18px;line-height:1.3}
+h2{font:600 15px var(--se);margin:18px 0 8px}
+label.row{display:flex;align-items:center;gap:8px;padding:5px 0;cursor:pointer}
+.sw{width:10px;height:10px;border-radius:50%;flex:none}
+input[type=checkbox]{accent-color:var(--band)}
+input[type=range]{width:100%;accent-color:var(--band)}
+input[type=search]{width:100%;font:inherit;color:var(--tx);background:#0a0a0a;border:1px solid var(--ln);border-radius:8px;padding:7px 10px;margin-bottom:10px}
+p{margin:0 0 10px}.mu{color:var(--mu)}.empty{color:var(--mu)}
+.seg{display:flex;gap:6px}.seg button{flex:1;padding:6px 4px}.seg button[aria-pressed=true]{background:var(--band);color:#fff;border-color:var(--band)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:6px}.grid2 button{padding:7px 6px;font-size:13px;text-align:center}
+.f{display:block;width:100%;text-align:left;margin-bottom:6px;padding:8px 10px}
+.f b{font-weight:600}.f small{display:flex;justify-content:space-between;color:var(--mu)}
+.f[aria-pressed=true]{border-color:var(--band);background:#220e12}
+.cv{width:100%;height:120px;display:block;background:#0a0a0a;border:1px solid var(--ln);border-radius:8px}
+.meter{height:6px;background:#2a2a2a;border-radius:3px;overflow:hidden;margin:4px 0 10px}.meter i{display:block;height:100%;background:var(--band);font-style:normal!important}
+.chip{font-size:12px;padding:1px 8px;border-radius:99px;border:1px solid currentColor}
+.pt{display:flex;align-items:center;gap:8px;padding:4px 0}.pt label{flex:1;display:flex;gap:8px;cursor:pointer}.pt button{padding:2px 10px;font-size:12px}
+kbd{font:12px var(--sf);background:#0a0a0a;border:1px solid var(--ln);border-radius:5px;padding:0 6px}
+.keys p{display:flex;justify-content:space-between;gap:10px;margin-bottom:6px}
+
+/* bottom toolbar with status line */
+#tool{position:absolute;left:66px;bottom:0;z-index:5;max-width:calc(100% - 78px);padding:6px 10px calc(6px + env(safe-area-inset-bottom,0px));border-bottom:0;border-radius:12px 12px 0 0}
+#stat{font-size:12px;color:var(--mu);margin:0 2px 4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#tool .grp{display:flex;align-items:center;gap:2px;overflow-x:auto}
+.sep{width:1px;height:26px;background:var(--ln);margin:0 6px;flex:none}
+
+/* wavelength pop-up */
+#wave,#time{position:absolute;z-index:7;right:12px;bottom:calc(12px + env(safe-area-inset-bottom,0px));width:320px;padding:14px 16px 16px;border-radius:16px;box-shadow:0 18px 50px #000b}
+#wave[hidden],#time[hidden]{display:none}
+#wave>header,#time>header{display:flex;justify-content:space-between;align-items:center;margin-bottom:2px}
+#wave>header b,#time>header b{font:600 16px var(--se)}
+.lam{font:600 34px var(--se);color:var(--band);line-height:1.15;text-align:center;transition:color .15s}
+#chn,#tpass{text-align:center;font-size:12px;margin-bottom:10px}
+#wave .ctl,#time .ctl{display:flex;justify-content:center;gap:6px;margin:10px 0 12px}
+#wave .ctl .ib,#time .ctl .ib{width:42px;height:42px;border-color:var(--ln)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}.chips button{flex:1 1 40%;padding:6px 8px;font-size:13px}
+.ib.lamb{width:auto;padding:0 10px 0 6px;gap:6px;display:inline-flex;align-items:center;font-size:13px}
+.ib.lamb span:first-child{display:grid;place-items:center}
+
+#su{display:none;position:fixed;right:12px;bottom:12px;z-index:9;opacity:.6}
+body.hu #su{display:block}
+body.hu #rail,body.hu #tool,body.hu #wave,body.hu #time,body.hu .fly,body.hu #brand,body.hu #tr{display:none!important}
+
+@media(max-width:1180px){
+ #wave,#time{bottom:calc(98px + env(safe-area-inset-bottom,0px))}
+}
+@media(max-width:860px){
+ .badge{display:none}
+ .fly{left:62px;right:8px;width:auto}#r-insp{width:auto}
+ #wave,#time{right:8px;width:calc(100% - 70px);max-width:340px}#tool{left:62px;right:8px;max-width:none}
+}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style></head><body>
+
+<div id="brand"><b>Sfera<span style="color:#A30000">vis</span></b><span class="badge">SPHEREx 102-Band Sky Atlas</span></div>
+<div id="tr" class="glass"><button class="ib sm" id="exit-btn" aria-label="Exit back to website" title="Exit to SFERAvis" style="width:auto;padding:0 12px;font-family:var(--sf);font-weight:700;font-size:11px;letter-spacing:0.06em;color:#ff6b6b;background:rgba(220,38,38,0.18);border-color:rgba(163,0,0,0.6)">EXIT ✕</button><button class="ib sm" id="fs" data-ic="fs" aria-label="Toggle full screen" title="Full screen (F)"></button><button class="ib sm" id="hu" data-ic="hide" aria-label="Hide interface" title="Hide interface (H)"></button></div>
+<button id="su" aria-label="Show interface">Show UI</button>
+
+<nav id="rail" class="glass" aria-label="Panels">
+ <button class="ib" data-r="layers" data-ic="layers" aria-expanded="false" aria-label="Sky layers" title="Sky layers"></button>
+ <button class="ib" data-r="wave" data-ic="wave" aria-expanded="false" aria-label="Wavelength" title="Wavelength"></button>
+ <button class="ib" data-r="time" data-ic="time" aria-expanded="false" aria-label="Survey time" title="Survey time"></button>
+ <button class="ib" data-r="view" data-ic="view" aria-expanded="false" aria-label="Sky view and guides" title="Sky view and guides"></button>
+ <button class="ib" data-r="search" data-ic="search" aria-expanded="false" aria-label="Findings and search" title="Findings and search"></button>
+ <button class="ib" data-r="insp" data-ic="insp" aria-expanded="false" aria-label="Inspector" title="Inspector"></button>
+ <button class="ib" data-r="set" data-ic="set" aria-expanded="false" aria-label="Settings" title="Settings"></button>
+ <button class="ib" data-r="help" data-ic="help" aria-expanded="false" aria-label="Help" title="Help and shortcuts"></button>
+</nav>
+
+<div id="stage">
+<canvas id="sky" tabindex="0" aria-label="Interactive sky dome. Drag to pan, scroll to zoom."></canvas>
+
+<section class="fly glass" id="r-layers" hidden aria-label="Sky layers"><header><b>Sky layers</b><button class="x" data-x aria-label="Close">×</button></header>
+<label class="row"><input type="checkbox" data-l="stars" checked><span class="sw" style="background:#fff"></span>Stars and Milky Way</label>
+<label class="row"><input type="checkbox" data-l="gal" checked><span class="sw" style="background:var(--gal)"></span>Galaxies</label>
+<label class="row"><input type="checkbox" data-l="ice" checked><span class="sw" style="background:var(--ice)"></span>Ice clouds</label>
+<label class="row"><input type="checkbox" data-l="str" checked><span class="sw" style="background:var(--star)"></span>Stellar anomalies</label>
+<h2>AI confidence</h2>
+<input type="range" id="conf" min="50" max="99" value="60" aria-label="Minimum AI confidence">
+<div class="mu" id="confv">Showing findings at 60% or higher</div></section>
+
+<section class="fly glass" id="r-view" hidden aria-label="Sky view and guides"><header><b>Sky view and guides</b><button class="x" data-x aria-label="Close">×</button></header>
+<div class="seg"><button data-pr="dome" aria-pressed="true">Dome</button><button data-pr="globe" aria-pressed="false">Globe</button><button data-pr="allsky" aria-pressed="false">All-sky map</button></div><p class="mu" id="prd" style="margin-top:10px"></p>
+<h2>Guides</h2>
+<label class="row"><input type="checkbox" data-g="eq" checked><span class="sw" style="background:#ffffff"></span>Celestial equator</label>
+<label class="row"><input type="checkbox" data-g="ecl" checked><span class="sw" style="background:#ffd166"></span>Ecliptic</label>
+<label class="row"><input type="checkbox" data-g="gp" checked><span class="sw" style="background:#ff9db0"></span>Galactic plane</label>
+<label class="row"><input type="checkbox" data-g="eqg"><span class="sw" style="border:1px solid var(--mu)"></span>Equatorial grid (RA and Dec)</label>
+<label class="row"><input type="checkbox" data-g="gg"><span class="sw" style="border:1px solid #ff9db0"></span>Galactic grid (l and b)</label>
+<h2>Poles and points</h2>
+<p class="mu">SPHEREx’s deep fields sit at the ecliptic poles.</p><div id="ptl"></div></section>
+
+<section class="fly glass" id="r-search" hidden aria-label="Findings and search"><header><b>Findings <span class="mu" id="cnt"></span></b><button class="x" data-x aria-label="Close">×</button></header>
+<input type="search" id="q" placeholder="Search findings" aria-label="Search findings" autocomplete="off">
+<div id="list"></div></section>
+
+<section class="fly glass" id="r-insp" hidden aria-label="Inspector"><header><b>Inspector</b><button class="x" data-x aria-label="Close">×</button></header>
+<div id="insp" class="empty">Select a finding in the list or on the sky to see its spectrum and why the AI flagged it.</div></section>
+
+<section class="fly glass" id="r-set" hidden aria-label="Settings"><header><b>Settings</b><button class="x" data-x aria-label="Close">×</button></header>
+<label class="row"><input type="checkbox" id="s-lbl">Always show finding labels</label>
+<label class="row"><input type="checkbox" id="s-stat" checked>Show status line</label>
+<h2>Star brightness</h2>
+<input type="range" id="s-sb" min="40" max="160" value="100" aria-label="Star brightness"></section>
+
+<section class="fly glass keys" id="r-help" hidden aria-label="Help"><header><b>Help and shortcuts</b><button class="x" data-x aria-label="Close">×</button></header>
+<p><span>Pan the sky</span><span>Drag or <kbd>←</kbd><kbd>↑</kbd><kbd>↓</kbd><kbd>→</kbd></span></p>
+<p><span>Zoom</span><span>Wheel, pinch or <kbd>+</kbd><kbd>−</kbd></span></p>
+<p><span>Full screen</span><kbd>F</kbd></p>
+<p><span>Hide interface</span><kbd>H</kbd></p>
+<p><span>Play or pause band sweep</span><kbd>Space</kbd></p>
+<p><span>Step wavelength</span><span><kbd>[</kbd><kbd>]</kbd></span></p>
+<p><span>Step time</span><span><kbd>,</kbd><kbd>.</kbd></span></p>
+<p><span>Close panel</span><kbd>Esc</kbd></p>
+<p class="mu" style="margin-top:12px">All findings here are sample data for design purposes, not real SPHEREx detections.</p></section>
+</div>
+
+<section id="wave" class="glass" hidden role="dialog" aria-label="Wavelength"><header><b>Wavelength</b><button class="x" id="wx" aria-label="Close">×</button></header>
+<div class="lam" id="lam"></div><div class="mu" id="chn"></div>
+<input type="range" id="band" min="75" max="500" value="300" aria-label="Wavelength in micrometres">
+<div class="mu" style="display:flex;justify-content:space-between;font-size:12px"><span>0.75 µm</span><span>5.0 µm</span></div>
+<div class="ctl"><button class="ib" id="wb" data-ic="prev" aria-label="Step wavelength down" title="Step down ( [ )"></button><button class="ib" id="wp" data-ic="play" aria-pressed="false" aria-label="Play band sweep" title="Play sweep (Space)"></button><button class="ib" id="wf" data-ic="next" aria-label="Step wavelength up" title="Step up ( ] )"></button></div>
+<div class="chips"><button data-lam="3.05">Water ice</button><button data-lam="4.27">CO₂ ice</button><button data-lam="4.67">CO ice</button><button data-lam="3.3">Dust</button></div></section>
+
+<section id="time" class="glass" hidden role="dialog" aria-label="Survey time"><header><b>Survey time</b><button class="x" id="tx" aria-label="Close">×</button></header>
+<div class="lam" id="tlam"></div><div class="mu" id="tpass"></div>
+<input type="range" id="tband" min="0" max="240" value="0" aria-label="Survey month">
+<div class="mu" style="display:flex;justify-content:space-between;font-size:12px"><span>Month 0</span><span>Month 24</span></div>
+<div class="ctl"><button class="ib" id="tb" data-ic="prev" aria-label="Back one month" title="Back one month ( , )"></button><button class="ib" id="tp" data-ic="play" aria-pressed="false" aria-label="Play time" title="Play time"></button><button class="ib" id="tf" data-ic="next" aria-label="Forward one month" title="Forward one month ( . )"></button></div>
+<div class="chips"><button data-month="3">Pass 1</button><button data-month="9">Pass 2</button><button data-month="15">Pass 3</button><button data-month="21">Pass 4</button></div>
+<label class="row" style="margin-top:10px"><input type="checkbox" id="varonly">Only show sources that change over time</label></section>
+
+<div id="tool" class="glass"><div id="stat"></div>
+<div class="grp" role="toolbar" aria-label="Sky toggles">
+ <button class="ib sm" data-g="eqg" data-ic="eqg" aria-pressed="false" aria-label="Equatorial grid" title="Equatorial grid"></button>
+ <button class="ib sm" data-g="gg" data-ic="ggrid" aria-pressed="false" aria-label="Galactic grid" title="Galactic grid"></button>
+ <button class="ib sm" data-g="eq" data-ic="eq" aria-pressed="true" aria-label="Celestial equator" title="Celestial equator"></button>
+ <button class="ib sm" data-g="ecl" data-ic="ecl" aria-pressed="true" aria-label="Ecliptic" title="Ecliptic"></button>
+ <button class="ib sm" data-g="gp" data-ic="gp" aria-pressed="true" aria-label="Galactic plane" title="Galactic plane"></button>
+ <span class="sep"></span>
+ <button class="ib sm" data-l="stars" data-ic="stars" style="--c:#fff" aria-pressed="true" aria-label="Stars and Milky Way" title="Stars and Milky Way"></button>
+ <button class="ib sm" data-l="gal" data-ic="gal" style="--c:#8fe3ff" aria-pressed="true" aria-label="Galaxies" title="Galaxies"></button>
+ <button class="ib sm" data-l="ice" data-ic="ice" style="--c:#ffffff" aria-pressed="true" aria-label="Ice clouds" title="Ice clouds"></button>
+ <button class="ib sm" data-l="str" data-ic="str" style="--c:#ffe066" aria-pressed="true" aria-label="Stellar anomalies" title="Stellar anomalies"></button>
+ <span class="sep"></span>
+ <button class="ib sm" data-pr="dome" data-ic="dome" aria-pressed="true" aria-label="Dome view" title="Dome view"></button>
+ <button class="ib sm" data-pr="globe" data-ic="globe" aria-pressed="false" aria-label="Globe view" title="Globe view"></button>
+ <button class="ib sm" data-pr="allsky" data-ic="allsky" aria-pressed="false" aria-label="All-sky map" title="All-sky map"></button>
+ <span class="sep"></span>
+ <button class="ib sm" id="zo" data-ic="zout" aria-label="Zoom out" title="Zoom out"></button>
+ <button class="ib sm" id="zi" data-ic="zin" aria-label="Zoom in" title="Zoom in"></button>
+ <button class="ib sm" id="hm" data-ic="home" aria-label="Reset view" title="Reset view"></button>
+ <span class="sep"></span>
+ <button class="ib sm lamb" id="lamchip" aria-expanded="false" aria-label="Wavelength" title="Wavelength"><span data-ic="wave"></span><span id="lamt"></span></button>
+ <button class="ib sm lamb" id="timechip" aria-expanded="false" aria-label="Survey time" title="Survey time"><span data-ic="time"></span><span id="timet"></span></button>
+</div></div>
+
+<script>
+const R=Math.PI/180,$=s=>document.querySelector(s),$$=s=>document.querySelectorAll(s);
+function rng(a){return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+const rnd=rng(7),gs=()=>Math.sqrt(-2*Math.log(rnd()+1e-9))*Math.cos(6.283*rnd());
+const A=[[-.0548755604,-.8734370902,-.4838350155],[.4941094279,-.44482963,.7469822445],[-.867666149,-.1980763734,.4559837762]];
+function g2e(l,b){l*=R;b*=R;const v=[Math.cos(b)*Math.cos(l),Math.cos(b)*Math.sin(l),Math.sin(b)];
+ const x=A[0][0]*v[0]+A[1][0]*v[1]+A[2][0]*v[2],y=A[0][1]*v[0]+A[1][1]*v[1]+A[2][1]*v[2],z=A[0][2]*v[0]+A[1][2]*v[1]+A[2][2]*v[2];
+ return[(Math.atan2(y,x)/R+360)%360,Math.asin(z)/R]}
+const stars=[],dust=[];
+for(let i=0;i<3400;i++){let l=rnd()*360,b=i%2?Math.asin(2*rnd()-1)/R:gs()*12;const[ra,de]=g2e(l,b);stars.push({ra,de,m:2+rnd()*4.2,h:gs()*14})}
+for(let i=0;i<4200;i++){let l=rnd()<.45?gs()*50:rnd()*360;const[ra,de]=g2e(l,gs()*6);dust.push({ra,de,r:2+rnd()*5})}
+const g=(x,c,w)=>Math.exp(-.5*((x-c)/w)**2);
+const SP={ice:l=>.9*Math.pow(l/.75,-.3)*(1-.55*g(l,3.05,.18)-.7*g(l,4.27,.06)-.4*g(l,4.67,.05)),
+ gal:l=>.25+.08*l+.4*g(l,3.3,.07),str:l=>Math.min(1,.95*Math.pow(l/.75,-1.4))};
+const TY={ice:{c:"#ffffff",n:"Ice cloud",why:"Deep absorption dips near 3.0, 4.27 and 4.67 µm match water, carbon dioxide and carbon monoxide ice."},
+ gal:{c:"#8fe3ff",n:"Galaxy",why:"A bump near 3.3 µm matches dust emission from star formation, and the redshifted continuum fits a distant system."},
+ str:{c:"#ffe066",n:"Stellar anomaly",why:"The infrared excess is stronger than the star’s temperature predicts, so the model flagged it for follow-up."}};
+const VAR=[[0],[0],[0],[0],[0],[0],[.12,14,1],[.05,20,2],[.08,9,.5],[.25,7,3],[.2,5,4],[.45,11,0]];
+const F=[["Ophiuchus L1688 ice field","ice",246.8,-24.5,94],["Serpens core ice field","ice",277.5,1.2,88],["Pipe Nebula core B59","ice",261,-27.4,91],["Galactic bulge ice cloud","ice",270,-30,76],["Taurus TMC-1 ice survey","ice",69,25.9,83],["Chamaeleon I ice cloud","ice",167,-77.2,72],
+["Lensing candidate GC-0412","gal",150.1,2.2,81],["High-z emitter cluster","gal",53.1,-27.8,69],["Starburst SX-2291","gal",189.2,62.2,87],["NEP deep field source","gal",270,66,64],["Cold brown dwarf candidate","str",245,-20,78],["Carbon star excess SX-77","str",285,-15,85]]
+.map(([n,t,ra,de,c],i)=>({id:i,n,t,ra,de,c,v:VAR[i][0],P:VAR[i][1]||1,ph:VAR[i][2]||0}));
+const tf=(f,m)=>f.v?(1+f.v*Math.sin(6.2832*m/f.P+f.ph))/(1+f.v):1;
+const gl=[];for(let i=0;i<70;i++){gl.push({ra:rnd()*360,de:Math.asin(2*rnd()-1)/R,s:1+rnd()*2.5,a:rnd()*3})}
+const st={ra:266,de:-29,z:1,lam:3,sel:null,hov:null,min:60,q:"",lbl:0,sb:1,play:0,t:0,tplay:0,varOnly:0,proj:"dome",L:{stars:1,gal:1,ice:1,str:1},G:{eq:1,ecl:1,gp:1,eqg:0,gg:0},Q:{ncp:1,scp:1,ngp:0,sgp:0,nep:1,sep:1,vern:0,gc:0}};
+
+/* icons */
+const IC={
+ layers:'<path d="M12 3l9 5-9 5-9-5z"/><path d="M3 12l9 5 9-5M3 16l9 5 9-5"/>',
+ time:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+ wave:'<path d="M2 12c2.5-8 5-8 7.5 0s5 8 7.5 0c1-3 2-4 3-4"/>',
+ view:'<path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
+ search:'<circle cx="10" cy="10" r="6"/><path d="M15 15l6 6"/>',
+ insp:'<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M1 12h4M19 12h4"/>',
+ set:'<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/>',
+ help:'<path d="M9 9a3 3 0 116 0c0 2-3 2.5-3 5M12 18.5v.5"/><circle cx="12" cy="12" r="10"/>',
+ eqg:'<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3v18"/><path d="M8 4.5c-2.5 4-2.5 11 0 15M16 4.5c2.5 4 2.5 11 0 15"/>',
+ ggrid:'<circle cx="12" cy="12" r="9"/><path d="M5 17L19 7M5 7l14 10"/>',
+ eq:'<circle cx="12" cy="12" r="9"/><path d="M2 12h20"/>',
+ ecl:'<circle cx="12" cy="12" r="9"/><path d="M3.5 16.5l17-9"/>',
+ gp:'<circle cx="12" cy="12" r="9"/><path d="M5 18L19 6" stroke-dasharray="2 2.5"/>',
+ stars:'<path d="M12 3l2 7 7 2-7 2-2 7-2-7-7-2 7-2z"/>',
+ gal:'<ellipse cx="12" cy="12" rx="9.5" ry="4" transform="rotate(-25 12 12)"/><circle cx="12" cy="12" r="1.4"/>',
+ ice:'<path d="M12 3v18M4.2 7.5l15.6 9M4.2 16.5l15.6-9"/>',
+ str:'<circle cx="12" cy="12" r="3.2"/><path d="M12 3v3.5M12 17.5V21M3 12h3.5M17.5 12H21"/>',
+ dome:'<path d="M3 18a9 9 0 0118 0z"/>',
+ globe:'<circle cx="12" cy="12" r="9"/><ellipse cx="12" cy="12" rx="4" ry="9"/><path d="M3 12h18"/>',
+ allsky:'<ellipse cx="12" cy="12" rx="10" ry="6.5"/><path d="M12 5.5v13M2 12h20"/>',
+ zin:'<path d="M12 5v14M5 12h14"/>',zout:'<path d="M5 12h14"/>',
+ home:'<path d="M4 11l8-7 8 7v9h-5v-6H9v6H4z"/>',
+ fs:'<path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/>',
+ hide:'<path d="M2 12s4-7 10-7c2 0 3.7.6 5.2 1.5M22 12s-4 7-10 7c-2 0-3.7-.6-5.2-1.5M3 3l18 18"/>',
+ prev:'<path d="M19 5v14L8 12zM5 5v14"/>',next:'<path d="M5 5v14l11-7zM19 5v14"/>',
+ play:'<path d="M7 4v16l13-8z"/>',pause:'<path d="M8 4v16M16 4v16"/>'};
+const svg=k=>`<svg viewBox="0 0 24 24" aria-hidden="true">${IC[k]}</svg>`;
+$$("[data-ic]").forEach(e=>e.innerHTML=svg(e.dataset.ic));
+
+const cv=$("#sky"),cx=cv.getContext("2d");let W,H,dpr,hits=[],dirty=1;
+function size(){dpr=devicePixelRatio||1;const r=cv.getBoundingClientRect();W=r.width;H=r.height;cv.width=W*dpr;cv.height=H*dpr;dirty=1}
+function P(ra,de){if(st.proj=="dome")return Pdome(ra,de);
+ if(st.proj=="globe"){const a=(ra-st.ra)*R,d=de*R,d0=st.de*R,x1=Math.cos(d)*Math.cos(a),y1=Math.cos(d)*Math.sin(a),z=Math.sin(d),x2=x1*Math.cos(d0)+z*Math.sin(d0);if(x2<0)return null;
+  const z2=-x1*Math.sin(d0)+z*Math.cos(d0),S=Math.min(W,H)/2*.96*st.z;return[W/2-S*y1,H/2-S*z2]}
+ const lo=((ra-st.ra+540)%360)-180,m=moll(lo,de),S=sc();return[W/2-S*m[0],H/2-S*(m[1]-moll(0,st.de)[1])]}
+// Dome: stereographic, scaled by the larger window side so the sky fills the whole window (about 106 degrees across at 1x).
+function Pdome(ra,de){const a=(ra-st.ra)*R,d=de*R,d0=st.de*R,x1=Math.cos(d)*Math.cos(a),y1=Math.cos(d)*Math.sin(a),z=Math.sin(d);
+ const x2=x1*Math.cos(d0)+z*Math.sin(d0),z2=-x1*Math.sin(d0)+z*Math.cos(d0),k=1+x2;if(k<.2)return null;
+ const S=Math.max(W,H)*st.z/k;return[W/2-S*y1,H/2-S*z2]}
+const tint=()=>6,satv=()=>Math.round(35+(st.lam-.75)/4.25*55);
+const VN={dome:"Dome",globe:"Globe",allsky:"All-sky map"},EP=23.4393*R;
+function sc(){return Math.min(W/5.66,H/2.83)*.95*st.z}
+function moll(lo,la){let t=la*R;if(Math.abs(la)<89.9){for(let i=0;i<6;i++)t-=(2*t+Math.sin(2*t)-Math.PI*Math.sin(la*R))/(2+2*Math.cos(2*t))}else t=Math.sign(la)*Math.PI/2;return[2.828/Math.PI*lo*R*Math.cos(t),1.414*Math.sin(t)]}
+function outline(){cx.beginPath();if(st.proj=="dome")cx.rect(0,0,W,H);else if(st.proj=="allsky"){const S=sc();cx.ellipse(W/2,H/2+S*moll(0,st.de)[1],2.828*S,1.414*S,0,0,7)}else cx.arc(W/2,H/2,Math.min(W,H)/2*.96,0,7)}
+function kdeg(){return st.proj=="allsky"?63.6/sc():(st.proj=="globe"?60/(Math.min(W,H)/2*st.z):114.6/(Math.max(W,H)*st.z))}
+const ecl=(l,b)=>{l*=R;b*=R;const x=Math.cos(b)*Math.cos(l),y=Math.cos(b)*Math.sin(l),z=Math.sin(b),Y=y*Math.cos(EP)-z*Math.sin(EP),Z=y*Math.sin(EP)+z*Math.cos(EP);return[(Math.atan2(Y,x)/R+360)%360,Math.asin(Z)/R]};
+const PT=[{k:"ncp",n:"NCP",f:"North celestial pole (NCP)",ra:0,de:90,c:"#fff"},{k:"scp",n:"SCP",f:"South celestial pole (SCP)",ra:0,de:-90,c:"#fff"},{k:"ngp",n:"NGP",f:"North galactic pole (NGP)",ra:192.86,de:27.13,c:"#ff9db0"},{k:"sgp",n:"SGP",f:"South galactic pole (SGP)",ra:12.86,de:-27.13,c:"#ff9db0"},{k:"nep",n:"NEP",f:"North ecliptic pole (NEP)",ra:270,de:66.56,c:"#ffd166"},{k:"sep",n:"SEP",f:"South ecliptic pole (SEP)",ra:90,de:-66.56,c:"#ffd166"},{k:"vern",n:"Vernal equinox",f:"Vernal equinox",ra:0,de:0,c:"#fff"},{k:"gc",n:"Galactic center",f:"Galactic center",ra:266.4,de:-28.94,c:"#ff9db0"}];
+function line(fn,n,col,w,dash){cx.strokeStyle=col;cx.lineWidth=w;cx.setLineDash(dash||[]);cx.beginPath();let o=null;const lim=Math.max(W,H)*.45;
+ for(let i=0;i<=n;i++){const q=fn(i/n),p=P(q[0],q[1]);if(!p){o=null;continue}if(o&&Math.hypot(p[0]-o[0],p[1]-o[1])<lim)cx.lineTo(...p);else cx.moveTo(...p);o=p}cx.stroke();cx.setLineDash([])}
+function guides(){const G=st.G;
+ if(G.eqg){for(let d=-75;d<=75;d+=15)line(t=>[t*360,d],120,"rgba(255,255,255,.16)",1);for(let r=0;r<360;r+=30)line(t=>[r,-89+t*178],60,"rgba(255,255,255,.16)",1)}
+ if(G.gg){for(let b=-60;b<=60;b+=30)if(b)line(t=>g2e(t*360,b),120,"rgba(255,157,176,.25)",1);for(let l=0;l<360;l+=30)line(t=>g2e(l,-89+t*178),60,"rgba(255,157,176,.25)",1)}
+ if(G.eq)line(t=>[t*360,0],180,"#ffffff",1.6);
+ if(G.ecl)line(t=>ecl(t*360,0),180,"#ffd166",1.8);
+ if(G.gp)line(t=>g2e(t*360,0),180,"#ff9db0",1.6,[6,5]);
+ for(const q of PT){if(!st.Q[q.k])continue;const p=P(q.ra,q.de);if(!p)continue;cx.strokeStyle=q.c;cx.lineWidth=1.5;cx.beginPath();cx.moveTo(p[0]-7,p[1]);cx.lineTo(p[0]+7,p[1]);cx.moveTo(p[0],p[1]-7);cx.lineTo(p[0],p[1]+7);cx.stroke();cx.fillStyle=q.c;cx.font="12px Lexend,sans-serif";cx.fillText(q.n,p[0]+10,p[1]-8)}}
+function draw(){dirty=0;cx.setTransform(dpr,0,0,dpr,0,0);cx.clearRect(0,0,W,H);
+ const rd=st.proj=="dome"?Math.hypot(W,H)/2:Math.min(W,H)/2*.96,hue=tint(),sat=satv();cx.save();outline();cx.clip();
+ const bg=cx.createRadialGradient(W/2,H/2,0,W/2,H/2,rd);bg.addColorStop(0,"#2a0608");bg.addColorStop(1,"#0a0102");cx.fillStyle=bg;cx.fillRect(0,0,W,H);
+ guides();
+ if(st.L.stars){cx.globalCompositeOperation="lighter";
+  for(const s of dust){const p=P(s.ra,s.de);if(!p)continue;cx.fillStyle=`hsla(${hue},${sat}%,55%,${.06*st.sb})`;cx.beginPath();cx.arc(p[0],p[1],s.r*st.z*1.6,0,7);cx.fill()}
+  for(const s of stars){const p=P(s.ra,s.de);if(!p)continue;const r=(.45+(6.2-s.m)*.3)*Math.sqrt(st.z);
+   cx.fillStyle=`hsla(${hue+s.h*.3},${sat}%,${80-s.m*2}%,${Math.min(1,(.35+.6*(1-s.m/6.3))*st.sb)})`;cx.beginPath();cx.arc(p[0],p[1],r,0,7);cx.fill()}
+  cx.globalCompositeOperation="source-over";
+  for(const q of gl){const p=P(q.ra,q.de);if(!p)continue;cx.save();cx.translate(...p);cx.rotate(q.a);cx.scale(1.8,1);cx.fillStyle=`hsla(${hue},${sat*.7}%,75%,${.24*st.sb})`;cx.beginPath();cx.arc(0,0,q.s*st.z*1.4,0,7);cx.fill();cx.restore()}}
+ hits=[];const t=Date.now()/700;
+ for(const f of F){if(!st.L[f.t]||f.c<st.min||(st.varOnly&&!f.v))continue;const p=P(f.ra,f.de);if(!p)continue;hits.push([f,p]);
+  const sig=SP[f.t](st.lam)*tf(f,st.t),on=st.sel===f||st.hov===f,r=7+(f.c-50)/8+(on?3:0)+(on?Math.sin(t)*1.5:0);
+  cx.globalAlpha=.3+.7*sig;cx.strokeStyle=TY[f.t].c;cx.lineWidth=on?2.5:1.5;cx.beginPath();cx.arc(p[0],p[1],r,0,7);cx.stroke();
+  cx.fillStyle=TY[f.t].c;cx.beginPath();cx.arc(p[0],p[1],2.2,0,7);cx.fill();cx.globalAlpha=1;
+  if(on||st.z>1.8||st.lbl){cx.font="12px "+getComputedStyle(document.body).fontFamily;cx.fillStyle="#fff";cx.fillText(f.n,p[0]+r+6,p[1]+4)}}
+ cx.restore();
+ if(st.proj!="dome"){cx.strokeStyle="rgba(255,255,255,.5)";cx.lineWidth=2;outline();cx.stroke()}
+ stat()}
+function stat(){const d=new Date(),o=-d.getTimezoneOffset(),p=n=>String(n).padStart(2,"0"),a=Math.abs(o),
+ tz="UTC"+(o<0?"-":"+")+p(a/60|0)+":"+p(a%60),
+ ts=`${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())} ${tz}`,
+ view=st.proj=="dome"?"Dome, FOV "+Math.round(4*Math.atan(W/(2*Math.max(W,H)*st.z))/R)+"°":VN[st.proj]+" view";
+ $("#stat").textContent=`SFERAvis Sky Atlas · ${view} · RA ${(st.ra%360+360)%360|0}° Dec ${st.de|0}° · ${st.z.toFixed(1)}× · month ${st.t.toFixed(1)} · ${ts}`}
+setInterval(stat,1000);
+let last=performance.now();
+function loop(n){const dt=Math.min(.1,(n-last)/1000);last=n;
+ if(st.play)setLam(st.lam+dt*.4>5?.75:st.lam+dt*.4);
+ if(st.tplay)setTime(st.t+dt*2.5>24?0:st.t+dt*2.5);
+ if(dirty||st.sel||st.hov||st.play||st.tplay)draw();requestAnimationFrame(loop)}
+function setLam(l){st.lam=Math.min(5,Math.max(.75,l));$("#band").value=Math.round(st.lam*100);band()}
+function setTime(m){st.t=Math.min(24,Math.max(0,m));$("#tband").value=Math.round(st.t*10);const p=Math.min(4,Math.floor(st.t/6)+1);
+ $("#tlam").textContent="Month "+st.t.toFixed(1);$("#tpass").textContent="Survey pass "+p+" of 4, 24-month survey";$("#timet").textContent="Month "+st.t.toFixed(1);
+ dirty=1;if(st.sel&&$("#sc")){sig(st.sel);spec(st.sel)}}
+function tplay(on){st.tplay=on?1:0;const b=$("#tp");b.setAttribute("aria-pressed",!!st.tplay);b.innerHTML=svg(st.tplay?"pause":"play");b.setAttribute("aria-label",st.tplay?"Pause time":"Play time");dirty=1}
+function band(){const l=st.lam;$("#lam").textContent=l.toFixed(2)+" µm";$("#lamt").textContent=l.toFixed(2)+" µm";$("#chn").textContent="Channel about "+(Math.round((l-.75)/4.25*101)+1)+" of 102";
+ document.documentElement.style.setProperty("--band","#A30000");dirty=1;if(st.sel&&$("#sc")){sig(st.sel);spec(st.sel)}}
+function play(on){st.play=on?1:0;const b=$("#wp");b.setAttribute("aria-pressed",!!st.play);b.innerHTML=svg(st.play?"pause":"play");b.setAttribute("aria-label",st.play?"Pause band sweep":"Play band sweep");dirty=1}
+function fly(f){st.sel=f;const a=st.ra,b=st.de;let da=((f.ra-a+540)%360)-180;const t0=performance.now();
+ (function s(n){const k=Math.min(1,(n-t0)/800),e=k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2;st.ra=a+da*e;st.de=b+(f.de-b)*e;st.z=st.z+(Math.max(st.z,1.6)-st.z)*e;dirty=1;if(k<1)requestAnimationFrame(s)})(t0);
+ openP("insp",1);insp(f);list()}
+function flyTo(ra,de,z){const a=st.ra,b=st.de,z0=st.z,z1=st.proj=="allsky"?z0:Math.max(z0,z||1),da=((ra-a+540)%360)-180,t0=performance.now();de=Math.max(-89,Math.min(89,de));
+ (function s(n){const k=Math.min(1,(n-t0)/800),e=k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2;st.ra=a+da*e;st.de=b+(de-b)*e;st.z=z0+(z1-z0)*e;dirty=1;if(k<1)requestAnimationFrame(s)})(t0)}
+function vis(){const q=st.q.trim().toLowerCase();return F.filter(f=>st.L[f.t]&&f.c>=st.min&&(!st.varOnly||f.v)&&(!q||f.n.toLowerCase().includes(q)||TY[f.t].n.toLowerCase().includes(q)))}
+function list(){const v=vis();$("#cnt").textContent="("+v.length+")";
+ $("#list").innerHTML=v.map(f=>`<button class="f" data-i="${f.id}" aria-pressed="${st.sel===f}"><b>${f.n}</b><small><span style="color:${TY[f.t].c}">${TY[f.t].n}</span><span>${f.v?"varies · ":""}${f.c}% sure</span></small></button>`).join("")||'<p class="empty">No findings match. Clear the search, lower the confidence or turn on a layer.</p>'}
+function insp(f){const T=TY[f.t];$("#insp").className="";$("#insp").innerHTML=`<p style="font:600 18px var(--se);margin-bottom:2px">${f.n}</p>
+ <p><span class="chip" style="color:${T.c}">${T.n}</span> <span class="mu">RA ${f.ra}°, Dec ${f.de}°</span></p>
+ <div class="mu">AI confidence ${f.c}%</div><div class="meter"><i style="width:${f.c}%"></i></div>
+ <p>${T.why}</p><p class="mu">${f.v?`Variable source: swings about ±${Math.round(f.v*100)}% over a ${f.P}-month cycle.`:"Stable over the survey, no change detected."}</p><div class="mu" style="margin-bottom:4px">Spectrum, 0.75 to 5 µm</div><canvas class="cv" id="sc"></canvas><div class="mu" style="margin:10px 0 4px">Brightness over time, 24 months at this wavelength</div><canvas class="cv" id="lc" style="height:100px"></canvas>
+ <p class="mu" style="margin-top:8px" id="sig"></p>`;sig(f);spec(f)}
+function sig(f){$("#sig").textContent=`Signal at ${st.lam.toFixed(2)} µm, month ${st.t.toFixed(1)}: ${(SP[f.t](st.lam)*tf(f,st.t)*100)|0}% of peak`}
+function spec(f){const c=$("#sc");if(!c)return;const w=c.clientWidth,h=120,d=devicePixelRatio||1;if(!w)return;c.width=w*d;c.height=h*d;const x=c.getContext("2d");x.scale(d,d);
+ x.strokeStyle=TY[f.t].c;x.lineWidth=2;x.beginPath();for(let i=0;i<=200;i++){const l=.75+i*4.25/200,y=h-10-SP[f.t](l)*(h-24);i?x.lineTo(i*w/200,y):x.moveTo(0,y)}x.stroke();
+ const bx=(st.lam-.75)/4.25*w;x.strokeStyle=getComputedStyle(document.documentElement).getPropertyValue("--band");x.lineWidth=1.5;x.beginPath();x.moveTo(bx,0);x.lineTo(bx,h);x.stroke();lc(f)}
+function lc(f){const c=$("#lc");if(!c)return;const w=c.clientWidth,h=100,d=devicePixelRatio||1;if(!w)return;c.width=w*d;c.height=h*d;const x=c.getContext("2d");x.scale(d,d);
+ for(let p=0;p<4;p+=2){x.fillStyle="rgba(255,255,255,.06)";x.fillRect(p*w/4,0,w/4,h)}
+ x.strokeStyle=TY[f.t].c;x.lineWidth=2;x.beginPath();for(let i=0;i<=200;i++){const m=i*24/200,y=h-10-SP[f.t](st.lam)*tf(f,m)*(h-24);i?x.lineTo(i*w/200,y):x.moveTo(0,y)}x.stroke();
+ const bx=st.t/24*w;x.strokeStyle="#fff";x.lineWidth=1.5;x.beginPath();x.moveTo(bx,0);x.lineTo(bx,h);x.stroke()}
+function pick(x,y){let b=null,m=18;for(const[f,p]of hits){const d=Math.hypot(p[0]-x,p[1]-y);if(d<m){m=d;b=f}}return b}
+const ptr=new Map();let moved=0;
+cv.addEventListener("pointerdown",e=>{cv.setPointerCapture(e.pointerId);ptr.set(e.pointerId,[e.clientX,e.clientY]);moved=0});
+cv.addEventListener("pointermove",e=>{const r=cv.getBoundingClientRect(),o=ptr.get(e.pointerId);
+ if(!o){const h=pick(e.clientX-r.left,e.clientY-r.top);if(h!==st.hov){st.hov=h;cv.style.cursor=h?"pointer":"";dirty=1}return}
+ if(ptr.size===2){const[a,b]=[...ptr.values()],d=Math.hypot(a[0]-b[0],a[1]-b[1]);ptr.set(e.pointerId,[e.clientX,e.clientY]);
+  const[a2,b2]=[...ptr.values()],d2=Math.hypot(a2[0]-b2[0],a2[1]-b2[1]);st.z=Math.min(8,Math.max(.6,st.z*d2/d));dirty=1;moved=9;return}
+ const dx=e.clientX-o[0],dy=e.clientY-o[1];moved+=Math.abs(dx)+Math.abs(dy);ptr.set(e.pointerId,[e.clientX,e.clientY]);
+ const k=kdeg();st.ra+=dx*k;st.de=Math.max(-89,Math.min(89,st.de+dy*k));dirty=1});
+cv.addEventListener("pointerup",e=>{ptr.delete(e.pointerId);if(moved<5){const r=cv.getBoundingClientRect(),f=pick(e.clientX-r.left,e.clientY-r.top);if(f)fly(f);else{st.sel=null;list();$("#insp").className="empty";$("#insp").textContent="Select a finding in the list or on the sky to see its spectrum and why the AI flagged it.";dirty=1}}});
+cv.addEventListener("pointercancel",e=>ptr.delete(e.pointerId));
+cv.addEventListener("wheel",e=>{e.preventDefault();st.z=Math.min(8,Math.max(.6,st.z*(e.deltaY<0?1.12:.89)));dirty=1},{passive:false});
+cv.addEventListener("keydown",e=>{const k=8/st.z,m={ArrowLeft:[k,0],ArrowRight:[-k,0],ArrowUp:[0,k],ArrowDown:[0,-k]}[e.key];if(m){st.ra+=m[0];st.de=Math.max(-89,Math.min(89,st.de+m[1]));dirty=1;e.preventDefault()}else if(e.key=="+"||e.key=="="){st.z=Math.min(8,st.z*1.2);dirty=1}else if(e.key=="-"){st.z=Math.max(.6,st.z/1.2);dirty=1}});
+$("#zi").onclick=()=>{st.z=Math.min(8,st.z*1.3);dirty=1};$("#zo").onclick=()=>{st.z=Math.max(.6,st.z/1.3);dirty=1};
+$("#hm").onclick=()=>{Object.assign(st,{ra:266,de:-29,z:1});dirty=1};
+$("#band").oninput=e=>{st.lam=e.target.value/100;band()};
+$("#conf").oninput=e=>{st.min=+e.target.value;$("#confv").textContent=`Showing findings at ${st.min}% or higher`;list();dirty=1};
+$("#list").onclick=e=>{const b=e.target.closest("[data-i]");if(b)fly(F[+b.dataset.i])};
+$("#q").oninput=e=>{st.q=e.target.value;list()};
+$("#q").onkeydown=e=>{if(e.key=="Enter"){const v=vis();if(v.length)fly(v[0])}};
+new ResizeObserver(()=>{size();if(st.sel)spec(st.sel)}).observe(cv);
+
+/* rail and flyout panels */
+const PN=["layers","view","search","insp","set","help"];
+function openP(k,force){for(const p of PN){const el=$("#r-"+p),o=p==k&&(force||el.hidden);el.hidden=!o;const b=$(`[data-r=${p}]`);if(b)b.setAttribute("aria-expanded",o)}if(k=="insp"&&st.sel)spec(st.sel)}
+function popP(k,on){const m={wave:["#wave","[data-r=wave],#lamchip"],time:["#time","[data-r=time],#timechip"]};
+ for(const n in m){const el=$(m[n][0]),o=n==k?(on===undefined?el.hidden:!!on):false;el.hidden=!o;$$(m[n][1]).forEach(b=>b.setAttribute("aria-expanded",o))}}
+const waveP=on=>popP("wave",on),timeP=on=>popP("time",on);
+$$("[data-r]").forEach(b=>b.onclick=()=>b.dataset.r=="wave"?waveP():b.dataset.r=="time"?timeP():openP(b.dataset.r));
+$("#lamchip").onclick=()=>waveP();$("#wx").onclick=()=>waveP(0);
+$("#timechip").onclick=()=>timeP();$("#tx").onclick=()=>timeP(0);
+$$("[data-x]").forEach(b=>b.onclick=()=>openP(""));
+
+/* toggles shared by the toolbar and the panels */
+function sync(){$$("[data-g],[data-l]").forEach(e=>{const on=e.dataset.g?st.G[e.dataset.g]:st.L[e.dataset.l];if(e.type=="checkbox")e.checked=!!on;else e.setAttribute("aria-pressed",!!on)});list();dirty=1}
+document.addEventListener("click",e=>{const b=e.target.closest("button[data-g],button[data-l]");if(!b)return;if(b.dataset.g)st.G[b.dataset.g]^=1;else st.L[b.dataset.l]^=1;sync()});
+document.addEventListener("change",e=>{const i=e.target;if(i.type!="checkbox")return;if(i.dataset.g){st.G[i.dataset.g]=+i.checked;sync()}else if(i.dataset.l){st.L[i.dataset.l]=+i.checked;sync()}});
+
+/* projection */
+const PD={dome:"Fills the whole window like a planetarium dome, looking up at the sky.",globe:"The sky as a sphere seen from outside. Drag to spin it.",allsky:"The whole sky on one flat oval map. Drag sideways to recentre."};
+function proj(k){st.proj=k;$$("[data-pr]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.pr==k));$("#prd").textContent=PD[k];dirty=1}
+$$("[data-pr]").forEach(b=>b.onclick=()=>proj(b.dataset.pr));
+
+/* poles and points */
+$("#ptl").innerHTML=PT.map(q=>`<div class="pt"><label><input type="checkbox" data-q="${q.k}" ${st.Q[q.k]?"checked":""}>${q.f}</label><button data-go="${q.k}">Go</button></div>`).join("");
+$("#ptl").onchange=e=>{const k=e.target.dataset.q;if(k){st.Q[k]=+e.target.checked;dirty=1}};
+$("#ptl").onclick=e=>{const k=e.target.dataset.go;if(k){const q=PT.find(x=>x.k==k);st.Q[k]=1;e.currentTarget.querySelector(`[data-q=${k}]`).checked=true;flyTo(q.ra,q.de)}};
+
+/* wavelength controls */
+$$("[data-lam]").forEach(b=>b.onclick=()=>{play(0);setLam(+b.dataset.lam)});
+$("#wb").onclick=()=>setLam(st.lam-.25);$("#wf").onclick=()=>setLam(st.lam+.25);
+$("#wp").onclick=()=>play(!st.play);
+$("#tband").oninput=e=>{tplay(0);setTime(e.target.value/10)};
+$("#tb").onclick=()=>setTime(st.t-1);$("#tf").onclick=()=>setTime(st.t+1);$("#tp").onclick=()=>tplay(!st.tplay);
+$$("[data-month]").forEach(b=>b.onclick=()=>{tplay(0);setTime(+b.dataset.month)});
+$("#varonly").onchange=e=>{st.varOnly=+e.target.checked;list();dirty=1};
+
+/* settings */
+$("#s-lbl").onchange=e=>{st.lbl=+e.target.checked;dirty=1};
+$("#s-stat").onchange=e=>{$("#stat").style.display=e.target.checked?"":"none"};
+$("#s-sb").oninput=e=>{st.sb=e.target.value/100;dirty=1};
+
+/* full screen and hide interface */
+function toggleFS(){try{document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen()}catch(_){}}
+function toggleUI(){document.body.classList.toggle("hu")}
+$("#fs").onclick=toggleFS;$("#hu").onclick=toggleUI;$("#su").onclick=toggleUI;
+const exitBtn=$("#exit-btn");
+if(exitBtn){exitBtn.onclick=()=>{if(window.parent&&window.parent!==window){window.parent.postMessage({type:"SFERAVIS_CLOSE_STUDIO"},"*")}else{location.href="/"}}};
+addEventListener("keydown",e=>{if(e.key=="Escape"){openP("");waveP(0);return}
+ if(e.ctrlKey||e.metaKey||e.altKey||/^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName))return;
+ const k=e.key;
+ if(k=="f"||k=="F")toggleFS();else if(k=="h"||k=="H")toggleUI();
+ else if(k=="["){setLam(st.lam-.25)}else if(k=="]"){setLam(st.lam+.25)}else if(k==","){setTime(st.t-1)}else if(k=="."){setTime(st.t+1)}
+ else if(k==" "&&e.target.tagName!="BUTTON"){e.preventDefault();play(!st.play)}});
+
+proj("dome");size();band();setTime(0);sync();stat();requestAnimationFrame(loop);
+if(innerWidth>860)openP("search");
+cv.focus({preventScroll:true});
+</script></body></html>

@@ -1,0 +1,82 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --font-sans: 'Lexend', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-lexend: 'Lexend', sans-serif;
+  --font-oswald: 'Oswald', sans-serif;
+  --font-serif: 'Merriweather', Georgia, Cambria, serif;
+  --font-merriweather: 'Merriweather', Georgia, Cambria, serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
+
+  /* SFERAvis Logo Deep Red & Monochrome Palette */
+  --color-sfera-deep-red: #8B0000;
+  --color-sfera-red: #A30000;
+  --color-sfera-crimson: #990000;
+  --color-sfera-black: #050507;
+  --color-sfera-grey-900: #0d0d12;
+  --color-sfera-grey-800: #16161d;
+  --color-sfera-grey-700: #24242e;
+  --color-sfera-grey-500: #71717a;
+  --color-sfera-grey-300: #d1d5db;
+}
+
+html {
+  font-family: var(--font-sans);
+  font-style: normal !important;
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-sans);
+  font-style: normal !important;
+}
+
+*, *::before, *::after {
+  font-style: normal !important;
+}
+
+.font-lexend {
+  font-family: 'Lexend', sans-serif;
+}
+
+.font-oswald {
+  font-family: 'Oswald', sans-serif;
+}
+
+.font-serif, .font-merriweather {
+  font-family: 'Merriweather', Georgia, serif;
+}
+
+/* National Geographic-inspired signature red frame line */
+.natgeo-red-rule {
+  border-left: 4px solid #A30000;
+}
+
+.natgeo-red-border {
+  border: 1px solid rgba(163, 0, 0, 0.4);
+}
+
+.natgeo-red-border:hover {
+  border-color: #A30000;
+}
+
+/* Custom scrollbars */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #08080a;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(160, 160, 160, 0.25);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(163, 0, 0, 0.6);
+}

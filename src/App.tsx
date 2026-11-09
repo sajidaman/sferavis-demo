@@ -1,0 +1,112 @@
+import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
+import { PageId } from './types';
+import { Navbar } from './components/Navbar';
+import { Footer } from './components/Footer';
+import { HomePage } from './pages/HomePage';
+import { SpherexPage } from './pages/SpherexPage';
+import { TutorialsPage } from './pages/TutorialsPage';
+import { DocsPage } from './pages/DocsPage';
+import { TeamPage } from './pages/TeamPage';
+import { LaunchSferavisModal } from './components/LaunchSferavisModal';
+import { CosmicBackground } from './components/CosmicBackground';
+
+export default function App() {
+  // Page state (Atlas excluded as requested)
+  const [currentPage, setCurrentPage] = useState<PageId>('home');
+  const [isDark, setIsDark] = useState<boolean>(true);
+  const [isLaunchModalOpen, setIsLaunchModalOpen] = useState<boolean>(false);
+
+  // Sync dark class on <html> document element
+  useEffect(() => {
+    if (isDark) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [isDark]);
+
+  // Handle URL hash changes if present
+  useEffect(() => {
+    const handleHash = () => {
+      const hash = window.location.hash.replace('#', '') as PageId;
+      if (['home', 'spherex', 'tutorials', 'documentations', 'team'].includes(hash)) {
+        setCurrentPage(hash);
+      }
+    };
+
+    handleHash();
+    window.addEventListener('hashchange', handleHash);
+    return () => window.removeEventListener('hashchange', handleHash);
+  }, []);
+
+  const handleNavigate = (page: PageId) => {
+    setCurrentPage(page);
+    window.location.hash = page;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const toggleTheme = () => {
+    setIsDark((prev) => !prev);
+  };
+
+  return (
+    <div className="min-h-screen flex flex-col bg-white dark:bg-[#050507] text-slate-900 dark:text-white transition-colors duration-200 relative overflow-x-hidden">
+      
+      {/* Live Interactive Cosmic Starfield Particle Canvas */}
+      <CosmicBackground />
+
+      {/* Apple-style Frosted Glass Navigation Bar */}
+      <Navbar
+        currentPage={currentPage}
+        onNavigate={handleNavigate}
+        isDark={isDark}
+        onToggleTheme={toggleTheme}
+        onLaunchSferavis={() => setIsLaunchModalOpen(true)}
+      />
+
+      {/* Main Page View with Animated Cross-Dissolve Transitions */}
+      <main className="flex-1 w-full relative z-10">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={currentPage}
+            initial={{ opacity: 0, y: 14 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.36, ease: [0.16, 1, 0.3, 1] as const }}
+            className="w-full"
+          >
+            {currentPage === 'home' && (
+              <HomePage
+                onNavigate={handleNavigate}
+                onLaunchSferavis={() => setIsLaunchModalOpen(true)}
+              />
+            )}
+            {currentPage === 'spherex' && (
+              <SpherexPage
+                onNavigate={handleNavigate}
+                onLaunchSferavis={() => setIsLaunchModalOpen(true)}
+              />
+            )}
+            {currentPage === 'tutorials' && <TutorialsPage onNavigate={handleNavigate} />}
+            {currentPage === 'documentations' && <DocsPage onNavigate={handleNavigate} />}
+            {currentPage === 'team' && <TeamPage onNavigate={handleNavigate} />}
+          </motion.div>
+        </AnimatePresence>
+      </main>
+
+      {/* Apple-style Quiet Footer */}
+      <Footer
+        onNavigate={handleNavigate}
+        onLaunchSferavis={() => setIsLaunchModalOpen(true)}
+      />
+
+      {/* Interactive Launch Sferavis Modal */}
+      <LaunchSferavisModal
+        isOpen={isLaunchModalOpen}
+        onClose={() => setIsLaunchModalOpen(false)}
+      />
+
+    </div>
+  );
+}

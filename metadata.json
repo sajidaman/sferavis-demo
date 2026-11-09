@@ -1,0 +1,6 @@
+{
+  "name": "SFERAvis - NASA SPHEREx All-Sky Spectral Visualizer",
+  "description": "The official product platform and cosmic spectral atlas for the NASA SPHEREx mission, featuring interactive near-infrared hyperspectral data cubes, tutorials, and developer documentation.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
