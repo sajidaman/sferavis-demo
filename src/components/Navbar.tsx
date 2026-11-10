@@ -46,12 +46,14 @@ export const Navbar: React.FC<NavbarProps> = ({
         </button>
 
         {/* Zone 2: 5 clean single-line nav links using Lexend */}
-        <nav className="hidden md:flex items-center gap-7 font-lexend uppercase text-xs tracking-widest">
+        <nav aria-label="Primary navigation" className="hidden md:flex items-center gap-7 font-lexend uppercase text-xs tracking-widest">
           {navItems.map((item) => {
             const isActive = currentPage === item.id;
             return (
               <button
                 key={item.id}
+                type="button"
+                aria-current={isActive ? "page" : undefined}
                 onClick={() => onNavigate(item.id)}
                 className={`relative py-2 cursor-pointer whitespace-nowrap transition-colors duration-150 ${
                   isActive
@@ -88,8 +90,11 @@ export const Navbar: React.FC<NavbarProps> = ({
 
           {/* Mobile hamburger button */}
           <button
+            type="button"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             aria-label="Toggle navigation menu"
+            aria-expanded={mobileMenuOpen}
+            aria-controls="sferavis-mobile-navigation"
             className="md:hidden p-2 text-zinc-700 dark:text-zinc-300 hover:text-black dark:hover:text-white cursor-pointer"
           >
             {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -99,12 +104,14 @@ export const Navbar: React.FC<NavbarProps> = ({
 
       {/* Mobile Drawer */}
       {mobileMenuOpen && (
-        <div className="md:hidden border-t border-zinc-200 dark:border-zinc-800 bg-white/95 dark:bg-[#0d0d12]/95 backdrop-blur-2xl px-5 py-4 space-y-2">
+        <nav id="sferavis-mobile-navigation" aria-label="Mobile navigation" className="md:hidden border-t border-zinc-200 dark:border-zinc-800 bg-white/95 dark:bg-[#0d0d12]/95 backdrop-blur-2xl px-5 py-4 space-y-2">
           {navItems.map((item) => {
             const isActive = currentPage === item.id;
             return (
               <button
                 key={item.id}
+                type="button"
+                aria-current={isActive ? "page" : undefined}
                 onClick={() => {
                   onNavigate(item.id);
                   setMobileMenuOpen(false);
@@ -131,7 +138,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               <ArrowUpRight className="w-3.5 h-3.5" />
             </button>
           </div>
-        </div>
+        </nav>
       )}
     </header>
   );
