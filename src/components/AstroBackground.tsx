@@ -6,6 +6,7 @@ interface AstroBackgroundProps {
 
 export const AstroBackground: React.FC<AstroBackgroundProps> = ({ isDark = false }) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const projectionRef = useRef<SVGSVGElement | null>(null);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -91,11 +92,17 @@ export const AstroBackground: React.FC<AstroBackgroundProps> = ({ isDark = false
     let mouseX = targetX;
     let mouseY = targetY;
 
-    const handleMouseMove = (e: MouseEvent) => {
+    const handlePointerMove = (e: PointerEvent) => {
+      if (e.pointerType === 'touch') return;
       targetX = e.clientX;
       targetY = e.clientY;
     };
-    window.addEventListener('mousemove', handleMouseMove);
+    const handlePointerLeave = () => {
+      targetX = width / 2;
+      targetY = height / 2;
+    };
+    window.addEventListener('pointermove', handlePointerMove, { passive: true });
+    window.addEventListener('pointerleave', handlePointerLeave);
 
     let frame = 0;
 
@@ -104,10 +111,32 @@ export const AstroBackground: React.FC<AstroBackgroundProps> = ({ isDark = false
       mouseX += (targetX - mouseX) * 0.03;
       mouseY += (targetY - mouseY) * 0.03;
 
-      const parallaxX = (mouseX - width / 2) * 0.025;
-      const parallaxY = (mouseY - height / 2) * 0.025;
+      const normalizedX = (mouseX - width / 2) / Math.max(width / 2, 1);
+      const normalizedY = (mouseY - height / 2) / Math.max(height / 2, 1);
+      const parallaxX = normalizedX * 22;
+      const parallaxY = normalizedY * 22;
+
+      // Move the astronomical projection at a slower depth than the stars.
+      // Direct style updates avoid React renders on every animation frame.
+      if (projectionRef.current) {
+        projectionRef.current.style.transform =
+          `translate3d(${normalizedX * 12}px, ${normalizedY * 12}px, 0) scale(1.018)`;
+      }
 
       ctx.clearRect(0, 0, width, height);
+
+      // A restrained cursor-following nebula glow gives the background depth
+      // without obscuring page content.
+      const glowRadius = Math.min(width, height) * 0.34;
+      const cursorGlow = ctx.createRadialGradient(
+        mouseX, mouseY, 0,
+        mouseX, mouseY, Math.max(glowRadius, 150)
+      );
+      cursorGlow.addColorStop(0, isDark ? 'rgba(163, 0, 0, 0.105)' : 'rgba(163, 0, 0, 0.055)');
+      cursorGlow.addColorStop(0.42, isDark ? 'rgba(59, 130, 246, 0.035)' : 'rgba(59, 130, 246, 0.018)');
+      cursorGlow.addColorStop(1, 'rgba(0, 0, 0, 0)');
+      ctx.fillStyle = cursorGlow;
+      ctx.fillRect(0, 0, width, height);
 
       // Draw faint constellation alignment lines
       const lineColor = isDark ? 'rgba(148, 163, 184, 0.16)' : 'rgba(100, 116, 139, 0.18)';
@@ -184,7 +213,8 @@ export const AstroBackground: React.FC<AstroBackgroundProps> = ({ isDark = false
 
     return () => {
       window.removeEventListener('resize', handleResize);
-      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('pointermove', handlePointerMove);
+      window.removeEventListener('pointerleave', handlePointerLeave);
       cancelAnimationFrame(animId);
     };
   }, [isDark]);
@@ -193,7 +223,9 @@ export const AstroBackground: React.FC<AstroBackgroundProps> = ({ isDark = false
     <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden select-none" aria-hidden="true">
       {/* 1. Deep Celestial Coordinate Projection Grid (SVG Astronomical Chart) */}
       <svg
-        className="absolute inset-0 w-full h-full opacity-60 dark:opacity-40 transition-opacity duration-500"
+        ref={projectionRef}
+        className="absolute inset-0 w-full h-full opacity-60 dark:opacity-40 transition-opacity duration-500 will-change-transform"
+        style={{ transform: 'translate3d(0, 0, 0) scale(1.018)' }}
         viewBox="0 0 1600 1000"
         preserveAspectRatio="xMidYMid slice"
       >
