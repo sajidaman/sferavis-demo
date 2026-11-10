@@ -9,12 +9,11 @@ import { TutorialsPage } from './pages/TutorialsPage';
 import { DocsPage } from './pages/DocsPage';
 import { TeamPage } from './pages/TeamPage';
 import { LaunchSferavisModal } from './components/LaunchSferavisModal';
-import { CosmicBackground } from './components/CosmicBackground';
 
 export default function App() {
   // Page state (Atlas excluded as requested)
   const [currentPage, setCurrentPage] = useState<PageId>('home');
-  const [isDark, setIsDark] = useState<boolean>(true);
+  const [isDark, setIsDark] = useState<boolean>(false);
   const [isLaunchModalOpen, setIsLaunchModalOpen] = useState<boolean>(false);
 
   // Sync dark class on <html> document element
@@ -53,9 +52,6 @@ export default function App() {
   return (
     <div className="min-h-screen flex flex-col bg-white dark:bg-[#050507] text-slate-900 dark:text-white transition-colors duration-200 relative overflow-x-hidden">
       
-      {/* Live Interactive Cosmic Starfield Particle Canvas */}
-      <CosmicBackground />
-
       {/* Apple-style Frosted Glass Navigation Bar */}
       <Navbar
         currentPage={currentPage}
