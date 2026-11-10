@@ -1,4 +1,5 @@
 import { GoogleGenAI } from '@google/genai';
+import { generateText, type ModelMessage } from 'ai';
 
 type ChatMessage = { role: 'user' | 'model'; content: string };
 type ApiRequest = { method?: string; body?: unknown };
@@ -8,15 +9,27 @@ type ApiResponse = {
   json: (body: unknown) => void;
 };
 
-const systemInstruction = `You are Redium, the official AI assistant on the Sferavis website.
+const instructions = `You are Redium, the official AI assistant on the Sferavis website.
 Sferavis is an independent, broad science-focused organization exploring astronomy, astrophysics, particle physics, and other scientific fields. It is not NASA and does not operate the SPHEREx mission.
 Help visitors understand Sferavis, its website sections, astronomy, astrophysics, and NASA's SPHEREx mission. Be welcoming, clear, scientifically careful, and concise.
 Never claim to have live access to the website, private databases, current SPHEREx observations, or user accounts. Do not invent project capabilities, scientific measurements, team details, or links. If you do not know a Sferavis-specific fact, say so and direct the visitor to the relevant website section or official contact channel.
 Distinguish established science from hypotheses. For medical, legal, financial, or safety-critical questions, provide general information and recommend an appropriate qualified source.`;
 
-const PRIMARY_MODEL = 'gemini-3.8-flash';
-const FALLBACK_MODEL = 'gemini-3.6-flash';
-const FALLBACK_STATUSES = new Set([404, 429, 500, 503]);
+const MODELS = ['google/gemini-3.8-flash', 'google/gemini-3.5-flash'];
+const PER_MODEL_TIMEOUT_MS = 15000;
+
+function parseMessages(body: unknown): ChatMessage[] {
+  const raw = (body && typeof body === 'object' ? (body as { messages?: unknown }).messages : undefined);
+  if (!Array.isArray(raw)) return [];
+  return raw.slice(-12)
+    .filter((item): item is ChatMessage =>
+      !!item &&
+      typeof item === 'object' &&
+      ((item as ChatMessage).role === 'user' || (item as ChatMessage).role === 'model') &&
+      typeof (item as ChatMessage).content === 'string')
+    .map(item => ({ role: item.role, content: item.content.trim().slice(0, 2000) }))
+    .filter(item => item.content.length > 0);
+}
 
 export default async function handler(req: ApiRequest, res: ApiResponse) {
   res.setHeader('Cache-Control', 'no-store');
@@ -26,120 +39,53 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
     return res.status(405).json({ error: 'Method not allowed.' });
   }
 
-  const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
-  if (!apiKey) {
-    return res.status(503).json({ error: 'Redium is missing its server-side Gemini API key. Set GEMINI_API_KEY or GOOGLE_API_KEY in the hosting environment, then redeploy.' });
-  }
-
-  const body = (req.body && typeof req.body === 'object' ? req.body : {}) as { messages?: unknown };
-  if (!Array.isArray(body.messages) || body.messages.length === 0) {
+  const messages = parseMessages(req.body);
+  if (!messages.length || messages[messages.length - 1].role !== 'user') {
     return res.status(400).json({ error: 'Please send a message to Redium.' });
   }
 
-  const messages = body.messages.slice(-12)
-    .filter((item): item is ChatMessage =>
-      !!item &&
-      typeof item === 'object' &&
-      ((item as ChatMessage).role === 'user' || (item as ChatMessage).role === 'model') &&
-      typeof (item as ChatMessage).content === 'string'
-    )
-    .map(item => ({ role: item.role, content: item.content.trim().slice(0, 2000) }))
-    .filter(item => item.content.length > 0);
-
-  if (!messages.length || messages[messages.length - 1].role !== 'user') {
-    return res.status(400).json({ error: 'Your latest message could not be read. Please try again.' });
-  }
-
-  const ai = new GoogleGenAI({
-    apiKey,
-    httpOptions: {
-      // Bound each upstream attempt so a temporary Gemini outage cannot
-      // leave the Vercel function waiting for several minutes.
-      timeout: 20000,
-      retryOptions: {
-        attempts: 2,
-        initialDelay: 0.7,
-        maxDelay: 1.5,
-        expBase: 2,
-        jitter: 0.2,
-        httpStatusCodes: [408, 429, 500, 502, 503, 504],
-      },
-    },
-  });
-
-  const contents = messages.map(message => ({
-    role: message.role,
-    parts: [{ text: message.content }],
+  const modelMessages: ModelMessage[] = messages.map(m => ({
+    role: m.role === 'model' ? 'assistant' : 'user',
+    content: m.content,
   }));
 
-  const generationConfig = {
-    systemInstruction,
-    maxOutputTokens: 700,
-    temperature: 0.45,
-    automaticContinuation: false,
-  };
-
-  try {
-    let result;
+  for (const model of MODELS) {
     try {
-      result = await ai.models.generateContent({
-        model: PRIMARY_MODEL,
-        contents,
-        config: generationConfig,
+      const { text } = await generateText({
+        model,
+        instructions,
+        messages: modelMessages,
+        maxOutputTokens: 700,
+        temperature: 0.45,
+        maxRetries: 1,
+        timeout: PER_MODEL_TIMEOUT_MS,
       });
-    } catch (primaryError) {
-      const status = Number((primaryError as { status?: number; code?: number })?.status ||
-        (primaryError as { code?: number })?.code || 0);
-
-      // Capacity, quota, or model-availability errors are often specific to
-      // one model, so retry once on the previous stable Flash generation.
-      if (!FALLBACK_STATUSES.has(status)) throw primaryError;
-
-      console.warn(`Redium primary model failed with ${status}; trying ${FALLBACK_MODEL}.`);
-      result = await ai.models.generateContent({
-        model: FALLBACK_MODEL,
-        contents,
-        config: generationConfig,
-      });
+      const reply = text.trim();
+      if (reply) return res.status(200).json({ reply });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      console.error(`Redium: AI Gateway ${model} failed:`, message);
+      if (/credit card|unauthori[sz]ed|authentication/i.test(message)) break;
     }
-
-    const reply = result.text?.trim();
-    if (!reply) return res.status(502).json({ error: 'Redium could not generate a reply. Please try again.' });
-    return res.status(200).json({ reply });
-  } catch (error) {
-    const apiError = error as { status?: number; code?: number; message?: string };
-    const upstreamStatus = Number(apiError?.status || apiError?.code || 0);
-    console.error('Redium API error:', {
-      status: upstreamStatus || 'unknown',
-      message: apiError?.message || String(error),
-    });
-
-    if (upstreamStatus === 401 || upstreamStatus === 403) {
-      return res.status(502).json({
-        error: 'Gemini rejected the server API key or its project permissions. Check that the key is valid and that the Gemini API is enabled for its Google project.',
-      });
-    }
-
-    if (upstreamStatus === 429) {
-      return res.status(503).json({
-        error: 'Redium has reached the Gemini API usage limit. Please wait a little and try again.',
-      });
-    }
-
-    if (upstreamStatus === 400 || upstreamStatus === 404) {
-      return res.status(502).json({
-        error: 'Gemini rejected the request or model configuration. The server log contains the diagnostic details.',
-      });
-    }
-
-    if (upstreamStatus >= 500 && upstreamStatus <= 599) {
-      return res.status(503).json({
-        error: 'The Gemini service is temporarily unavailable. Please try again shortly.',
-      });
-    }
-
-    return res.status(502).json({
-      error: 'Redium could not reach Gemini. Check the Vercel function logs for the underlying API error.',
-    });
   }
+
+  const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
+  if (apiKey) {
+    try {
+      const ai = new GoogleGenAI({ apiKey, httpOptions: { timeout: PER_MODEL_TIMEOUT_MS } });
+      const result = await ai.models.generateContent({
+        model: MODELS[0].replace('google/', ''),
+        contents: messages.map(m => ({ role: m.role, parts: [{ text: m.content }] })),
+        config: { systemInstruction: instructions, maxOutputTokens: 700, temperature: 0.45 },
+      });
+      const reply = result.text?.trim();
+      if (reply) return res.status(200).json({ reply });
+    } catch (error) {
+      console.error('Redium: direct Gemini fallback failed:', error instanceof Error ? error.message : String(error));
+    }
+  }
+
+  return res.status(503).json({
+    error: 'Redium is having trouble answering right now. Please try again in a moment.',
+  });
 }
