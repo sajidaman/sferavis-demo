@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
+import { Analytics } from '@vercel/analytics/react';
 import { PageId } from './types';
 import { Navbar } from './components/Navbar';
 import { Footer } from './components/Footer';
@@ -115,6 +116,7 @@ export default function App() {
 
       <AccessibilityControls />
       <RediumChat />
+      <Analytics />
     </div>
   );
 }
