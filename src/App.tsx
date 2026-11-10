@@ -68,7 +68,7 @@ export default function App() {
       />
 
       {/* Main Page View with Animated Cross-Dissolve Transitions */}
-            <main id="main-content" tabIndex={-1} aria-label="Main content" className="sferavis-site flex-1 w-full relative z-10">
+      <main id="main-content" tabIndex={-1} aria-label="Main content" className="sferavis-site flex-1 w-full relative z-10">
         <AnimatePresence mode="wait">
           <motion.div
             key={currentPage}
