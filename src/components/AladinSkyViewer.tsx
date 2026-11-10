@@ -164,7 +164,7 @@ export const AladinSkyViewer: React.FC<AladinSkyViewerProps> = ({ className = ''
       setStatus('ready');
 
       // Load SPHEREx using its published HiPS URL and known metadata.
-      checkSurveyConnectivity(targetSurvey);
+      loadSurveyLayer(targetSurvey);
     } catch (err) {
       console.error('[Sferavis Aladin Lite Init Error]', err);
       const message = err instanceof Error ? err.message : String(err);
@@ -179,7 +179,7 @@ export const AladinSkyViewer: React.FC<AladinSkyViewerProps> = ({ className = ''
   // Load the survey directly through Aladin Lite. The SPHEREx registry confirms
   // order 7, 512px tiles, equatorial frame, and PNG availability. Passing these
   // values to A.HiPS prevents a fragile browser-side properties fetch.
-  const checkSurveyConnectivity = (surveyUrl: string) => {
+  const loadSurveyLayer = (surveyUrl: string) => {
     const aladin = aladinRef.current;
     if (!aladin) return;
 
@@ -230,7 +230,7 @@ export const AladinSkyViewer: React.FC<AladinSkyViewerProps> = ({ className = ''
     const surveyUrl = nextSurvey === 'spherex' ? SPHEREX_HIPS_URL : DSS2_HIPS_URL;
 
     try {
-      checkSurveyConnectivity(surveyUrl);
+      loadSurveyLayer(surveyUrl);
       if (nextSurvey === 'spherex' && aladinRef.current) {
         aladinRef.current.gotoRaDec(INITIAL_RA, INITIAL_DEC);
         aladinRef.current.setFoV(INITIAL_FOV);
@@ -365,7 +365,7 @@ export const AladinSkyViewer: React.FC<AladinSkyViewerProps> = ({ className = ''
             <span>{surveyErrorMsg}</span>
           </div>
           <button
-            onClick={() => checkSurveyConnectivity(survey === 'spherex' ? SPHEREX_HIPS_URL : DSS2_HIPS_URL)}
+            onClick={() => loadSurveyLayer(survey === 'spherex' ? SPHEREX_HIPS_URL : DSS2_HIPS_URL)}
             className="shrink-0 underline hover:text-white"
           >
             Recheck service
