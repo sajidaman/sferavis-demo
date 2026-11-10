@@ -206,10 +206,12 @@ export const AladinSkyViewer: React.FC<AladinSkyViewerProps> = ({ className = ''
 
         const properties = await response.text();
         const propertyLines = properties.split(/\r?\n/).map((line) => line.trim());
-        const formatLine = propertyLines.find((line) => line.startsWith('hips_tile_format'));
-        const orderLine = propertyLines.find((line) => line.startsWith('hips_order'));
-        const hasPngTiles = Boolean(formatLine?.split('=').slice(1).join('=').includes('png'));
-        const hasExpectedOrder = Number(orderLine?.split('=').slice(1).join('=').trim()) === 7;
+        const readProperty = (key: string) => {
+          const line = propertyLines.find((item) => item.split('=')[0]?.trim() === key);
+          return line ? line.slice(line.indexOf('=') + 1).trim() : '';
+        };
+        const hasPngTiles = readProperty('hips_tile_format').split(/\s+/).includes('png');
+        const hasExpectedOrder = Number(readProperty('hips_order')) === 7;
 
         if (surveyUrl === SPHEREX_HIPS_URL && (!hasPngTiles || !hasExpectedOrder)) {
           continue;
