@@ -266,3 +266,81 @@ html:not(.dark) .sferavis-site [class~="hover:bg-zinc-900"]:hover {
 .planetarium-controls p {
   text-wrap: pretty;
 }
+
+
+/* Homepage spectral explorer: clearly separated control and visualization surfaces. */
+.sferavis-spectral-console {
+  border-radius: 1rem;
+}
+.sferavis-spectral-controls {
+  border-radius: 0.8rem;
+  padding: 1.15rem;
+  background: rgba(255, 255, 255, 0.018);
+  border: 1px solid rgba(148, 163, 184, 0.16);
+}
+.sferavis-visualizer-stage {
+  margin-top: 1.5rem;
+  padding: 1.25rem;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 0.85rem;
+  background: linear-gradient(145deg, rgba(20, 30, 47, 0.78), rgba(12, 18, 30, 0.88));
+}
+.sferavis-diagnostic-panel,
+.sferavis-sed-panel {
+  border-radius: 0.65rem;
+  background: #101827;
+}
+.sferavis-sed-plot {
+  border-radius: 0.45rem;
+}
+.sferavis-sed-gradient stop:last-child {
+  stop-color: #101827;
+}
+
+/* Light mode: the lower visualization deck is a distinct pale surface, not a black block. */
+html:not(.dark) .sferavis-site .sferavis-spectral-console {
+  background: #ffffff !important;
+  border-color: #cbd5e1 !important;
+  box-shadow: 0 20px 48px -30px rgba(31, 41, 55, 0.34) !important;
+}
+html:not(.dark) .sferavis-site .sferavis-spectral-controls {
+  background: #ffffff;
+  border-color: #d7dee8;
+  box-shadow: 0 4px 14px rgba(31, 41, 55, 0.045);
+}
+html:not(.dark) .sferavis-site .sferavis-visualizer-stage {
+  background: linear-gradient(145deg, #e9eef5 0%, #f1f4f8 100%);
+  border-color: #cbd5e1;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+html:not(.dark) .sferavis-site .sferavis-diagnostic-panel,
+html:not(.dark) .sferavis-site .sferavis-sed-panel {
+  background: #ffffff !important;
+  border-color: #cbd5e1;
+  box-shadow: 0 8px 22px -16px rgba(31, 41, 55, 0.3);
+}
+html:not(.dark) .sferavis-site .sferavis-sed-plot {
+  background: #f8fafc !important;
+  border-color: #cbd5e1;
+}
+html:not(.dark) .sferavis-site .sferavis-sed-gradient stop:last-child {
+  stop-color: #f8fafc;
+}
+html:not(.dark) .sferavis-site .sferavis-sed-plot [class~="text-red-300"] {
+  color: #8b0000 !important;
+}
+
+/* A minimal crimson instrument-reticle cursor; only enabled on precise pointers. */
+@media (hover: hover) and (pointer: fine) {
+  .sferavis-site,
+  .sferavis-site * {
+    cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Ccircle cx='14' cy='14' r='4' fill='%23A30000'/%3E%3Ccircle cx='14' cy='14' r='9' fill='none' stroke='%23A30000' stroke-width='1.35'/%3E%3Cpath d='M14 1.5v5M14 21.5v5M1.5 14h5M21.5 14h5' stroke='%23A30000' stroke-width='1.25' stroke-linecap='round'/%3E%3C/svg%3E") 14 14, auto;
+  }
+  .sferavis-site a,
+  .sferavis-site button,
+  .sferavis-site [role="button"],
+  .sferavis-site input[type="range"],
+  .sferavis-site label {
+    cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Ccircle cx='14' cy='14' r='3' fill='%23A30000'/%3E%3Ccircle cx='14' cy='14' r='9' fill='none' stroke='%23A30000' stroke-width='1.6'/%3E%3C/svg%3E") 14 14, pointer;
+  }
+}
