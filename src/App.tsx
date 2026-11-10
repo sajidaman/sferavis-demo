@@ -51,6 +51,8 @@ export default function App() {
 
   return (
     <div className="min-h-screen flex flex-col bg-white dark:bg-[#050507] text-slate-900 dark:text-white transition-colors duration-200 relative overflow-x-hidden">
+      {/* Lightweight, static astronomy-inspired page backdrop */}
+      <div className="sferavis-cosmic-backdrop" aria-hidden="true" />
       
       {/* Apple-style Frosted Glass Navigation Bar */}
       <Navbar
