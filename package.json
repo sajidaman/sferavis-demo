@@ -1,14 +1,38 @@
 {
-  "name": "react-example",
+  "name": "sferavis",
   "private": true,
-  "version": "0.0.0",
+  "version": "2.4.0",
+  "description": "Interactive NASA SPHEREx All-Sky Hyperspectral Atlas & Planetarium",
   "type": "module",
+  "license": "BSD-3-Clause",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sferavis/sferavis.git"
+  },
+  "homepage": "https://sferavis.org",
+  "bugs": {
+    "url": "https://github.com/sferavis/sferavis/issues"
+  },
+  "keywords": [
+    "astronomy",
+    "spherex",
+    "nasa",
+    "planetarium",
+    "aladin-lite",
+    "hyperspectral",
+    "fits",
+    "astrophysics",
+    "react",
+    "vite",
+    "gemini-ai"
+  ],
   "scripts": {
     "dev": "vite --port=3000 --host=0.0.0.0",
     "build": "vite build",
     "preview": "vite preview",
     "clean": "rm -rf dist server.js",
-    "lint": "tsc --noEmit"
+    "lint": "tsc --noEmit",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",

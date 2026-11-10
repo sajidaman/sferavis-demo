@@ -85,22 +85,22 @@ Delta-chi2: 142.8 (High confidence z-break match)`);
   };
 
   return (
-    <div className="w-full bg-[#050507] text-white min-h-screen selection:bg-[#A30000] selection:text-white">
+    <div className="w-full text-slate-900 dark:text-slate-100 min-h-screen selection:bg-[#A30000] selection:text-white">
       
       {/* HEADER */}
-      <section className="pt-12 pb-14 border-b border-zinc-800 bg-[#08080a]">
+      <section className="pt-12 pb-14 border-b border-zinc-200 dark:border-slate-800 bg-white/70 dark:bg-[#090f1d]/70">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="inline-flex items-center gap-3 text-xs font-lexend uppercase tracking-widest text-zinc-400 border-b border-zinc-800 pb-2 mb-4">
+          <div className="inline-flex items-center gap-3 text-xs font-lexend uppercase tracking-widest text-slate-600 dark:text-zinc-400 border-b border-zinc-200 dark:border-slate-800 pb-2 mb-4">
             <span className="w-2 h-2 bg-[#A30000]"></span>
             <span className="text-[#A30000] font-bold">SCIENCE & NOTEBOOK WORKSPACE</span>
-            <span className="text-zinc-600">/</span>
-            <span className="text-zinc-300">INTERACTIVE DATA REDUCTION</span>
+            <span className="text-zinc-400 dark:text-zinc-600">/</span>
+            <span className="text-slate-700 dark:text-zinc-300">INTERACTIVE DATA REDUCTION</span>
           </div>
 
-          <h1 className="text-4xl sm:text-6xl font-oswald uppercase font-black tracking-tight text-white">
+          <h1 className="text-4xl sm:text-6xl font-oswald uppercase font-black tracking-tight text-slate-950 dark:text-white">
             Astrophysics Tutorials.
           </h1>
-          <p className="mt-4 text-base sm:text-xl font-merriweather text-zinc-300 max-w-2xl leading-relaxed">
+          <p className="mt-4 text-base sm:text-xl font-merriweather text-slate-600 dark:text-zinc-300 max-w-2xl leading-relaxed">
             Step-by-step guides for processing SPHEREx 102-band data cubes, fitting prebiotic ice chemistry, and measuring galaxy redshift distributions with Python and SFERAvis.
           </p>
         </div>
@@ -112,7 +112,7 @@ Delta-chi2: 142.8 (High confidence z-break match)`);
           
           {/* LEFT: TUTORIAL CURRICULUM SELECTION (4 COLS) */}
           <div className="lg:col-span-4 space-y-4">
-            <h3 className="text-xs font-lexend font-bold text-zinc-400 uppercase tracking-widest mb-2">
+            <h3 className="text-xs font-lexend font-bold text-slate-500 dark:text-zinc-400 uppercase tracking-widest mb-2">
               Curriculum Modules
             </h3>
 
@@ -125,27 +125,27 @@ Delta-chi2: 142.8 (High confidence z-break match)`);
                     onClick={() => handleSelectTutorial(tutorial)}
                     className={`w-full text-left p-5 transition-all cursor-pointer border ${
                       isSelected
-                        ? 'bg-[#0e0e14] border-[#A30000] border-l-4 shadow-lg'
-                        : 'bg-[#08080a] border-zinc-800 hover:border-zinc-700 text-zinc-400 hover:text-white'
+                        ? 'bg-white dark:bg-[#152038] border-[#A30000] border-l-4 shadow-md'
+                        : 'bg-white dark:bg-[#0e1628] border-zinc-200 dark:border-slate-800 hover:border-zinc-400 dark:hover:border-slate-700 text-slate-700 dark:text-zinc-400 hover:text-slate-950 dark:hover:text-white shadow-sm'
                     }`}
                   >
                     <div className="flex items-center justify-between text-xs mb-2">
                       <span className="text-[#A30000] font-lexend uppercase font-bold tracking-wider">{tutorial.category}</span>
-                      <div className="flex items-center gap-1 text-zinc-400">
+                      <div className="flex items-center gap-1 text-slate-500 dark:text-zinc-400">
                         <Clock className="w-3 h-3" />
                         <span className="font-mono text-xs">{tutorial.durationMin}m</span>
                       </div>
                     </div>
 
-                    <h4 className="text-base font-bold font-oswald uppercase text-white mb-2 leading-snug">
+                    <h4 className="text-base font-bold font-oswald uppercase text-slate-950 dark:text-white mb-2 leading-snug">
                       {tutorial.title}
                     </h4>
 
-                    <p className="text-xs text-zinc-400 font-merriweather line-clamp-2 leading-relaxed">
+                    <p className="text-xs text-slate-600 dark:text-zinc-400 font-merriweather line-clamp-2 leading-relaxed">
                       {tutorial.summary}
                     </p>
 
-                    <div className="mt-3 pt-3 border-t border-zinc-800 flex items-center justify-between text-[11px] text-zinc-500 font-lexend uppercase">
+                    <div className="mt-3 pt-3 border-t border-zinc-200 dark:border-slate-800 flex items-center justify-between text-[11px] text-slate-500 dark:text-zinc-500 font-lexend uppercase">
                       <span>Level: {tutorial.level}</span>
                       <span>{tutorial.steps.length} Steps</span>
                     </div>
@@ -155,14 +155,14 @@ Delta-chi2: 142.8 (High confidence z-break match)`);
             </div>
 
             {/* Documentation Cross-link */}
-            <div className="bg-[#0e0e14] border border-zinc-800 border-l-4 border-l-[#A30000] p-5 mt-6">
-              <span className="text-xs font-lexend uppercase tracking-wider font-bold text-white block mb-1">Need the full Python SDK reference?</span>
-              <p className="text-xs text-zinc-400 font-merriweather mb-4">
+            <div className="bg-white dark:bg-[#0e1628] border border-zinc-200 dark:border-slate-800 border-l-4 border-l-[#A30000] p-5 mt-6 shadow-sm">
+              <span className="text-xs font-lexend uppercase tracking-wider font-bold text-slate-950 dark:text-white block mb-1">Need the full Python SDK reference?</span>
+              <p className="text-xs text-slate-600 dark:text-zinc-400 font-merriweather mb-4">
                 Explore function signatures, REST parameters, and IAU FITS cube header standards.
               </p>
               <button
                 onClick={() => onNavigate('documentations')}
-                className="text-xs font-lexend uppercase tracking-wider font-bold text-[#A30000] hover:text-white flex items-center gap-1 cursor-pointer"
+                className="text-xs font-lexend uppercase tracking-wider font-bold text-[#A30000] hover:text-[#8B0000] flex items-center gap-1 cursor-pointer"
               >
                 <span>Browse Documentation</span>
                 <ChevronRight className="w-3.5 h-3.5" />
@@ -176,30 +176,30 @@ Delta-chi2: 142.8 (High confidence z-break match)`);
           <div className="lg:col-span-8 space-y-6">
             
             {/* Tutorial Header Card */}
-            <div className="bg-[#0e0e14] border border-zinc-800 border-l-4 border-l-[#A30000] p-6 sm:p-8">
-              <div className="flex items-center gap-2 text-xs text-zinc-400 font-lexend uppercase tracking-wider mb-2">
+            <div className="bg-white dark:bg-[#0e1628] border border-zinc-200 dark:border-slate-800 border-l-4 border-l-[#A30000] p-6 sm:p-8 shadow-sm">
+              <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-zinc-400 font-lexend uppercase tracking-wider mb-2">
                 <span className="text-[#A30000] font-bold">{currentTutorial.category}</span>
                 <span>·</span>
-                <span className="text-white font-semibold">{currentTutorial.level}</span>
+                <span className="text-slate-900 dark:text-white font-semibold">{currentTutorial.level}</span>
                 <span>·</span>
                 <span>{currentTutorial.durationMin} mins</span>
               </div>
 
-              <h2 className="text-2xl sm:text-3xl font-oswald uppercase font-bold text-white">
+              <h2 className="text-2xl sm:text-3xl font-oswald uppercase font-bold text-slate-950 dark:text-white">
                 {currentTutorial.title}
               </h2>
 
-              <p className="mt-3 text-sm sm:text-base text-zinc-300 font-merriweather leading-relaxed">
+              <p className="mt-3 text-sm sm:text-base text-slate-600 dark:text-zinc-300 font-merriweather leading-relaxed">
                 {currentTutorial.summary}
               </p>
 
               {/* Prerequisites */}
               <div className="mt-5 flex flex-wrap items-center gap-2">
-                <span className="text-xs text-zinc-400 font-lexend uppercase tracking-wider">Prerequisites:</span>
+                <span className="text-xs text-slate-500 dark:text-zinc-400 font-lexend uppercase tracking-wider">Prerequisites:</span>
                 {currentTutorial.prerequisites.map((p) => (
                   <span
                     key={p}
-                    className="px-2.5 py-1 text-xs font-mono bg-black border border-zinc-800 text-zinc-300"
+                    className="px-2.5 py-1 text-xs font-mono bg-slate-100 dark:bg-black/60 border border-zinc-200 dark:border-slate-800 text-slate-800 dark:text-zinc-300"
                   >
                     {p}
                   </span>
@@ -209,7 +209,7 @@ Delta-chi2: 142.8 (High confidence z-break match)`);
 
             {/* Interactive Steps Accordion */}
             <div className="space-y-3">
-              <h3 className="text-xs font-lexend font-bold text-zinc-400 uppercase tracking-widest">
+              <h3 className="text-xs font-lexend font-bold text-slate-500 dark:text-zinc-400 uppercase tracking-widest">
                 Tutorial Progression
               </h3>
               {currentTutorial.steps.map((step, idx) => {
@@ -218,7 +218,9 @@ Delta-chi2: 142.8 (High confidence z-break match)`);
                   <div
                     key={step.stepNumber}
                     className={`border transition-all ${
-                      isActive ? 'bg-[#0e0e14] border-zinc-700' : 'bg-[#08080a] border-zinc-800'
+                      isActive 
+                        ? 'bg-white dark:bg-[#152038] border-zinc-300 dark:border-slate-700 shadow-sm' 
+                        : 'bg-white dark:bg-[#0e1628] border-zinc-200 dark:border-slate-800 shadow-sm'
                     }`}
                   >
                     <button
@@ -230,29 +232,29 @@ Delta-chi2: 142.8 (High confidence z-break match)`);
                           className={`w-6 h-6 flex items-center justify-center text-xs font-oswald font-bold ${
                             isActive
                               ? 'bg-[#A30000] text-white'
-                              : 'bg-zinc-800 text-zinc-400'
+                              : 'bg-slate-200 dark:bg-zinc-800 text-slate-700 dark:text-zinc-400'
                           }`}
                         >
                           {step.stepNumber}
                         </span>
-                        <span className="text-sm font-oswald uppercase font-bold text-white tracking-wide">
+                        <span className="text-sm font-oswald uppercase font-bold text-slate-950 dark:text-white tracking-wide">
                           {step.title}
                         </span>
                       </div>
                       <ChevronRight
-                        className={`w-4 h-4 text-zinc-400 transition-transform ${
+                        className={`w-4 h-4 text-slate-400 dark:text-zinc-400 transition-transform ${
                           isActive ? 'rotate-90 text-[#A30000]' : ''
                         }`}
                       />
                     </button>
 
                     {isActive && (
-                      <div className="px-5 pb-5 pt-1 border-t border-zinc-800/80 space-y-3">
-                        <p className="text-sm text-zinc-300 font-merriweather leading-relaxed">
+                      <div className="px-5 pb-5 pt-1 border-t border-zinc-200 dark:border-slate-800/80 space-y-3">
+                        <p className="text-sm text-slate-600 dark:text-zinc-300 font-merriweather leading-relaxed">
                           {step.explanation}
                         </p>
                         {step.codeSnippet && (
-                          <div className="bg-black border border-zinc-800 p-3 font-mono text-xs text-zinc-200 overflow-x-auto">
+                          <div className="bg-slate-950 border border-slate-800 p-3 font-mono text-xs text-slate-200 overflow-x-auto">
                             <code>{step.codeSnippet}</code>
                           </div>
                         )}
@@ -264,11 +266,11 @@ Delta-chi2: 142.8 (High confidence z-break match)`);
             </div>
 
             {/* Interactive Code Playground */}
-            <div className="bg-[#0e0e14] border border-zinc-800 overflow-hidden shadow-2xl">
-              <div className="px-5 py-3 bg-[#08080a] border-b border-zinc-800 flex items-center justify-between">
+            <div className="bg-white dark:bg-[#0e1628] border border-zinc-200 dark:border-slate-800 overflow-hidden shadow-2xl">
+              <div className="px-5 py-3 bg-slate-100 dark:bg-[#090f1d] border-b border-zinc-200 dark:border-slate-800 flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <span className="w-2.5 h-2.5 bg-[#A30000]"></span>
-                  <span className="text-xs font-lexend uppercase tracking-wider text-white font-bold">
+                  <span className="text-xs font-lexend uppercase tracking-wider text-slate-900 dark:text-white font-bold">
                     Interactive Python Terminal
                   </span>
                 </div>
@@ -281,14 +283,14 @@ Delta-chi2: 142.8 (High confidence z-break match)`);
                   )}
                   <button
                     onClick={handleCopyCode}
-                    className="p-1.5 text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors cursor-pointer"
+                    className="p-1.5 text-slate-500 dark:text-zinc-400 hover:text-slate-950 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
                     title="Copy Code"
                   >
                     <Copy className="w-4 h-4" />
                   </button>
                   <button
                     onClick={handleResetCode}
-                    className="p-1.5 text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors cursor-pointer"
+                    className="p-1.5 text-slate-500 dark:text-zinc-400 hover:text-slate-950 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
                     title="Reset to Default"
                   >
                     <RotateCcw className="w-4 h-4" />
@@ -305,24 +307,24 @@ Delta-chi2: 142.8 (High confidence z-break match)`);
               </div>
 
               {/* Code Editor Area */}
-              <div className="p-4 bg-black font-mono text-xs text-zinc-200">
+              <div className="p-4 bg-slate-950 font-mono text-xs text-slate-100">
                 <textarea
                   value={codeContent}
                   onChange={(e) => setCodeContent(e.target.value)}
                   rows={9}
-                  className="w-full bg-transparent border-none outline-none resize-none font-mono text-xs leading-relaxed text-zinc-200 selection:bg-[#A30000]"
+                  className="w-full bg-transparent border-none outline-none resize-none font-mono text-xs leading-relaxed text-slate-100 selection:bg-[#A30000]"
                   spellCheck={false}
                 />
               </div>
 
               {/* Terminal Output */}
               {executionOutput && (
-                <div className="border-t border-zinc-800 bg-[#060608] p-4 font-mono text-xs">
-                  <div className="flex items-center gap-1.5 text-zinc-400 mb-2 font-lexend uppercase tracking-wider text-[11px]">
+                <div className="border-t border-slate-800 bg-[#060a14] p-4 font-mono text-xs">
+                  <div className="flex items-center gap-1.5 text-slate-400 mb-2 font-lexend uppercase tracking-wider text-[11px]">
                     <Terminal className="w-3.5 h-3.5 text-[#A30000]" />
                     <span>Standard Output</span>
                   </div>
-                  <pre className="text-zinc-200 whitespace-pre-wrap leading-relaxed">
+                  <pre className="text-slate-200 whitespace-pre-wrap leading-relaxed">
                     {executionOutput}
                   </pre>
                 </div>

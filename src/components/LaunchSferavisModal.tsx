@@ -100,32 +100,32 @@ ICE_TAU =                ${currentTarget.iceAbsorptionDepth.toFixed(3)} / H2O Ic
   return (
     <div
       onClick={onClose}
-      className={`fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-2xl transition-all duration-300 ${
+      className={`fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-2xl transition-all duration-300 ${
         isFullscreen ? 'p-0' : 'p-2 sm:p-4 lg:p-6'
       }`}
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className={`dark relative w-full bg-[#08080a] border border-zinc-800 shadow-2xl flex flex-col overflow-hidden transition-all duration-300 ${
+        className={`dark relative w-full bg-[#070b14] border border-slate-700/80 shadow-2xl flex flex-col overflow-hidden transition-all duration-300 ${
           isFullscreen
             ? 'h-screen w-screen rounded-none border-none'
             : 'max-w-7xl h-[94vh] rounded-2xl'
         }`}
       >
         {/* National Geographic Editorial Studio Header */}
-        <header className="px-5 py-3.5 border-b border-zinc-800 bg-[#0d0d12] flex items-center justify-between gap-4 shrink-0 z-20">
+        <header className="px-5 py-3.5 border-b border-slate-800 bg-[#0e1628] flex items-center justify-between gap-4 shrink-0 z-20">
           
           {/* Logo & Mode Selector */}
           <div className="flex items-center gap-4 sm:gap-6">
             <div className="flex items-center gap-3">
               <Logo size="md" />
-              <span className="hidden md:inline-block text-[11px] font-lexend uppercase tracking-widest text-zinc-400 border-l border-zinc-700 pl-3">
+              <span className="hidden md:inline-block text-[11px] font-lexend uppercase tracking-widest text-slate-300 border-l border-slate-700 pl-3">
                 SPHEREx Planetarium & Analysis
               </span>
             </div>
 
             {/* Mode Navigation Tabs */}
-            <div className="flex items-center bg-black p-1 rounded-none border border-zinc-800">
+            <div className="flex items-center bg-slate-950 p-1 rounded-none border border-slate-800">
               <button
                 onClick={() => setActiveTab('atlas')}
                 className={`flex items-center gap-2 px-3.5 py-1.5 text-xs font-lexend uppercase tracking-wider transition-all cursor-pointer ${
@@ -200,15 +200,15 @@ ICE_TAU =                ${currentTarget.iceAbsorptionDepth.toFixed(3)} / H2O Ic
 
         {/* Tab 2: Target Hyperspectral Analyzer */}
         {activeTab === 'analyzer' && (
-          <div className="flex-1 overflow-y-auto p-5 sm:p-7 space-y-6 bg-[#08080a]">
+          <div className="flex-1 overflow-y-auto p-5 sm:p-7 space-y-6 bg-[#070b14]">
             
             {/* Target Ribbon */}
             <div>
               <div className="flex items-center justify-between mb-2.5">
-                <span className="text-xs font-lexend uppercase tracking-widest text-zinc-400 font-bold">
+                <span className="text-xs font-lexend uppercase tracking-widest text-slate-300 font-bold">
                   Select Astronomical Target
                 </span>
-                <span className="text-[11px] font-mono text-zinc-500">
+                <span className="text-[11px] font-mono text-slate-400">
                   Calibrated across 102 Near-IR Channels (0.75 – 5.0 µm)
                 </span>
               </div>
@@ -222,14 +222,14 @@ ICE_TAU =                ${currentTarget.iceAbsorptionDepth.toFixed(3)} / H2O Ic
                       onClick={() => setSelectedTargetId(target.id)}
                       className={`p-3 text-left transition-all cursor-pointer border ${
                         isSelected
-                          ? 'bg-[#14141c] border-[#A30000] border-l-4 shadow-md'
-                          : 'bg-[#0f0f15] border-zinc-800 hover:border-zinc-700 text-zinc-400 hover:text-white'
+                          ? 'bg-[#152038] border-[#A30000] border-l-4 shadow-md'
+                          : 'bg-[#0e1628] border-slate-800 hover:border-slate-700 text-slate-400 hover:text-white'
                       }`}
                     >
                       <div className="text-xs font-bold text-white truncate font-oswald tracking-wide uppercase">
                         {target.name}
                       </div>
-                      <div className="text-[10px] text-zinc-400 font-lexend truncate mt-0.5">
+                      <div className="text-[10px] text-slate-400 font-lexend truncate mt-0.5">
                         {target.category}
                       </div>
                     </button>
@@ -239,12 +239,12 @@ ICE_TAU =                ${currentTarget.iceAbsorptionDepth.toFixed(3)} / H2O Ic
             </div>
 
             {/* Target Banner with National Geographic-inspired red rule */}
-            <div className="bg-[#0e0e14] border border-zinc-800 border-l-4 border-l-[#A30000] p-6 flex flex-col md:flex-row md:items-center justify-between gap-5">
+            <div className="bg-[#0e1628] border border-slate-800 border-l-4 border-l-[#A30000] p-6 flex flex-col md:flex-row md:items-center justify-between gap-5 shadow-lg">
               <div>
-                <div className="flex items-center gap-2 mb-1.5 text-xs text-zinc-400 font-lexend">
+                <div className="flex items-center gap-2 mb-1.5 text-xs text-slate-400 font-lexend">
                   <span className="text-[#A30000] font-bold uppercase tracking-wider">{currentTarget.category}</span>
                   <span>·</span>
-                  <span className="font-mono text-zinc-400">{currentTarget.designation}</span>
+                  <span className="font-mono text-slate-300">{currentTarget.designation}</span>
                 </div>
                 <h3 className="text-2xl sm:text-3xl font-bold font-oswald uppercase text-white tracking-tight">
                   {currentTarget.name}
@@ -257,9 +257,9 @@ ICE_TAU =                ${currentTarget.iceAbsorptionDepth.toFixed(3)} / H2O Ic
               <div className="flex items-center gap-2 shrink-0">
                 <button
                   onClick={handleCopyFits}
-                  className="px-3.5 py-2 bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-xs font-lexend uppercase tracking-wider text-zinc-200 flex items-center gap-2 transition-colors cursor-pointer"
+                  className="px-3.5 py-2 bg-slate-900 hover:bg-slate-800 border border-slate-700 text-xs font-lexend uppercase tracking-wider text-slate-200 flex items-center gap-2 transition-colors cursor-pointer"
                 >
-                  <Copy className="w-3.5 h-3.5 text-zinc-400" />
+                  <Copy className="w-3.5 h-3.5 text-slate-400" />
                   <span>Copy FITS</span>
                 </button>
                 <button
@@ -273,7 +273,7 @@ ICE_TAU =                ${currentTarget.iceAbsorptionDepth.toFixed(3)} / H2O Ic
             </div>
 
             {/* Hyperspectral Profile Chart */}
-            <div className="bg-[#0e0e14] border border-zinc-800 p-6">
+            <div className="bg-[#0e1628] border border-slate-800 p-6 shadow-lg">
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4">
                 <div>
                   <span className="text-xs font-lexend text-[#A30000] uppercase tracking-widest block font-bold">
@@ -375,23 +375,23 @@ ICE_TAU =                ${currentTarget.iceAbsorptionDepth.toFixed(3)} / H2O Ic
             </div>
 
             {/* Astrophysical Metadata Grid */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs bg-[#0e0e14] p-5 border border-zinc-800">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs bg-[#0e1628] p-5 border border-slate-800 shadow-md">
               <div>
-                <span className="text-zinc-500 uppercase block text-[10px] font-lexend tracking-widest mb-1">RA (ICRS)</span>
+                <span className="text-slate-400 uppercase block text-[10px] font-lexend tracking-widest mb-1">RA (ICRS)</span>
                 <span className="text-white font-bold font-mono text-sm">{currentTarget.ra}</span>
               </div>
               <div>
-                <span className="text-zinc-500 uppercase block text-[10px] font-lexend tracking-widest mb-1">DEC (ICRS)</span>
+                <span className="text-slate-400 uppercase block text-[10px] font-lexend tracking-widest mb-1">DEC (ICRS)</span>
                 <span className="text-white font-bold font-mono text-sm">{currentTarget.dec}</span>
               </div>
               <div>
-                <span className="text-zinc-500 uppercase block text-[10px] font-lexend tracking-widest mb-1">Distance / Redshift</span>
+                <span className="text-slate-400 uppercase block text-[10px] font-lexend tracking-widest mb-1">Distance / Redshift</span>
                 <span className="text-white font-bold font-mono text-sm">
                   {currentTarget.redshift ? `z = ${currentTarget.redshift}` : currentTarget.distanceLightYears}
                 </span>
               </div>
               <div>
-                <span className="text-zinc-500 uppercase block text-[10px] font-lexend tracking-widest mb-1">H₂O Ice Optical Depth</span>
+                <span className="text-slate-400 uppercase block text-[10px] font-lexend tracking-widest mb-1">H₂O Ice Optical Depth</span>
                 <span className="text-[#A30000] font-bold font-mono text-sm">
                   {currentTarget.iceAbsorptionDepth > 0 ? `τ = ${currentTarget.iceAbsorptionDepth.toFixed(2)}` : 'N/A'}
                 </span>
@@ -402,22 +402,22 @@ ICE_TAU =                ${currentTarget.iceAbsorptionDepth.toFixed(3)} / H2O Ic
         )}
 
         {/* Footer Bar */}
-        <footer className="px-5 py-3 bg-[#0d0d12] border-t border-zinc-800 flex items-center justify-between text-xs text-zinc-400 shrink-0">
+        <footer className="px-5 py-3 bg-[#0e1628] border-t border-slate-800 flex items-center justify-between text-xs text-slate-400 shrink-0">
           <div className="flex items-center gap-2">
             <span className="w-2 h-2 bg-[#A30000]"></span>
-            <span className="font-lexend text-[11px] uppercase tracking-wider text-zinc-300">SPHEREx QR2 HiPS Quicklook · IRSA Data Access</span>
+            <span className="font-lexend text-[11px] uppercase tracking-wider text-slate-300">SPHEREx QR2 HiPS Quicklook · IRSA Data Access</span>
           </div>
 
           <div className="flex items-center gap-3">
             <button
               onClick={() => setActiveTab(activeTab === 'atlas' ? 'analyzer' : 'atlas')}
-              className="text-xs font-lexend uppercase tracking-wider text-zinc-300 hover:text-white transition-colors cursor-pointer"
+              className="text-xs font-lexend uppercase tracking-wider text-slate-300 hover:text-white transition-colors cursor-pointer"
             >
               Switch to {activeTab === 'atlas' ? 'Spectral Analyzer' : 'Sky Atlas'} →
             </button>
             <button
               onClick={onClose}
-              className="px-3.5 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-white transition-colors cursor-pointer font-lexend uppercase tracking-wider text-xs"
+              className="px-3.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-white transition-colors cursor-pointer font-lexend uppercase tracking-wider text-xs"
             >
               Close Studio
             </button>

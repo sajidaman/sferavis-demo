@@ -10,11 +10,11 @@ interface FooterProps {
 
 export const Footer: React.FC<FooterProps> = ({ onNavigate, onLaunchSferavis }) => {
   return (
-    <footer className="sferavis-site sferavis-footer relative z-10 w-full bg-white dark:bg-[#08080a] border-t border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 text-xs transition-colors duration-200 font-lexend selection:bg-[#A30000] selection:text-white">
+    <footer className="sferavis-site sferavis-footer relative z-10 w-full bg-white dark:bg-[#070b14] border-t border-zinc-200 dark:border-slate-800 text-zinc-600 dark:text-zinc-400 text-xs transition-colors duration-200 font-lexend selection:bg-[#A30000] selection:text-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
         
         {/* Top Disclaimer / Mission Heritage strip */}
-        <div className="pb-8 mb-8 border-b border-zinc-200 dark:border-zinc-800 text-xs leading-relaxed space-y-2 text-zinc-700 dark:text-zinc-400 font-merriweather border-l-4 border-l-[#A30000] pl-4">
+        <div className="pb-8 mb-8 border-b border-zinc-200 dark:border-slate-800 text-xs leading-relaxed space-y-2 text-zinc-700 dark:text-zinc-400 font-merriweather border-l-4 border-l-[#A30000] pl-4">
           <p>
             1. SPHEREx (Spectro-Photometer for the History of the Universe, Epoch of Reionization and Ices Explorer) is a NASA Astrophysics Medium-Class Explorer (MIDEX) mission led by the California Institute of Technology (Caltech) and the Jet Propulsion Laboratory (JPL).
           </p>
@@ -193,7 +193,7 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate, onLaunchSferavis }) 
         </div>
 
         {/* Bottom Wordmark & Legal Bar */}
-        <div className="pt-8 border-t border-zinc-200 dark:border-zinc-800 flex flex-col md:flex-row items-center justify-between gap-6">
+        <div className="pt-8 border-t border-zinc-200 dark:border-slate-800 flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-4">
             <Logo size="md" />
             <span className="text-xs text-zinc-500">

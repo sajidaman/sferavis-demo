@@ -30,7 +30,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   ];
 
   return (
-    <header className="sferavis-cursor-area sticky top-0 z-50 w-full backdrop-blur-xl bg-white/95 dark:bg-[#08080a]/95 border-b border-zinc-200 dark:border-zinc-800 transition-colors duration-200">
+    <header className="sferavis-cursor-area sticky top-0 z-50 w-full backdrop-blur-xl bg-white/90 dark:bg-[#070b14]/90 border-b border-zinc-200 dark:border-slate-800 transition-colors duration-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-18 flex items-center justify-between gap-8">
         
         {/* Zone 1: Big prominent text Logo without icon */}
@@ -41,7 +41,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             setMobileMenuOpen(false);
           }}
           className="flex items-center cursor-pointer text-left shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#A30000] rounded py-1"
-          aria-label="SFERAvis Home"
+          aria-label="Sferavis Home"
         >
           <Logo size="md" />
         </button>

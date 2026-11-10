@@ -62,24 +62,6 @@ body {
   border-color: #A30000;
 }
 
-/* Custom scrollbars */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-
-::-webkit-scrollbar-track {
-  background: #08080a;
-}
-
-::-webkit-scrollbar-thumb {
-  background: rgba(160, 160, 160, 0.25);
-  border-radius: 9999px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(163, 0, 0, 0.6);
-}
 
 /* SFERAvis theme system: coordinated light and dark palettes. */
 :root {

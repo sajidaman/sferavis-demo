@@ -12,6 +12,8 @@ import { LaunchSferavisModal } from './components/LaunchSferavisModal';
 import { AccessibilityControls } from './components/AccessibilityControls';
 import { RediumChat } from './components/RediumChat';
 
+import { AstroBackground } from './components/AstroBackground';
+
 export default function App() {
   // Page state (Atlas excluded as requested)
   const [currentPage, setCurrentPage] = useState<PageId>('home');
@@ -52,9 +54,9 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-white dark:bg-[#050507] text-slate-900 dark:text-white transition-colors duration-200 relative overflow-x-hidden">
-      {/* Lightweight, static astronomy-inspired page backdrop */}
-      <div className="sferavis-cosmic-backdrop" aria-hidden="true" />
+    <div className="min-h-screen flex flex-col bg-[#f8fafc] dark:bg-[#070b14] text-slate-900 dark:text-slate-100 transition-colors duration-300 relative overflow-x-hidden">
+      {/* Dynamic Astro Background with celestial grid, constellations, and starfield */}
+      <AstroBackground isDark={isDark} />
       
       <a className="sferavis-skip-link" href="#main-content">Skip to main content</a>
 
