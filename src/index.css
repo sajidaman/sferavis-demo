@@ -132,3 +132,70 @@ html:not(.dark) main [class~="shadow-xl"] {
 html:not(.dark) main [class~="bg-[#A30000]"] {
   color: #ffffff !important;
 }
+
+/* Lightweight astronomy atmosphere: static CSS only, no canvas or animation. */
+.sferavis-cosmic-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+  background-color: #f7f8fa;
+  background-image:
+    radial-gradient(ellipse at 13% 18%, rgba(163, 0, 0, 0.055) 0, transparent 34%),
+    radial-gradient(ellipse at 84% 26%, rgba(93, 120, 180, 0.075) 0, transparent 38%),
+    radial-gradient(ellipse at 58% 88%, rgba(139, 92, 190, 0.045) 0, transparent 34%),
+    radial-gradient(circle, rgba(65, 78, 112, 0.22) 0.65px, transparent 0.9px);
+  background-size: auto, auto, auto, 38px 38px;
+  background-position: center, center, center, 7px 11px;
+}
+
+.sferavis-cosmic-backdrop::before,
+.sferavis-cosmic-backdrop::after {
+  content: "";
+  position: absolute;
+  border: 1px solid rgba(110, 125, 160, 0.10);
+  border-radius: 50%;
+  transform: rotate(-24deg);
+}
+
+.sferavis-cosmic-backdrop::before {
+  width: min(78vw, 980px);
+  height: min(30vw, 380px);
+  min-height: 220px;
+  top: 12%;
+  right: -18%;
+}
+
+.sferavis-cosmic-backdrop::after {
+  width: min(66vw, 820px);
+  height: min(26vw, 320px);
+  min-height: 190px;
+  bottom: 7%;
+  left: -22%;
+  transform: rotate(31deg);
+  border-color: rgba(163, 0, 0, 0.075);
+}
+
+.dark .sferavis-cosmic-backdrop {
+  background-color: #050507;
+  background-image:
+    radial-gradient(ellipse at 13% 18%, rgba(163, 0, 0, 0.13) 0, transparent 34%),
+    radial-gradient(ellipse at 84% 26%, rgba(93, 120, 180, 0.12) 0, transparent 38%),
+    radial-gradient(ellipse at 58% 88%, rgba(139, 92, 190, 0.09) 0, transparent 34%),
+    radial-gradient(circle, rgba(210, 220, 245, 0.35) 0.65px, transparent 0.9px);
+}
+
+.dark .sferavis-cosmic-backdrop::before,
+.dark .sferavis-cosmic-backdrop::after {
+  border-color: rgba(190, 200, 225, 0.09);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sferavis-cosmic-backdrop,
+  .sferavis-cosmic-backdrop::before,
+  .sferavis-cosmic-backdrop::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}
