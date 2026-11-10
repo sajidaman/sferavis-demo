@@ -187,7 +187,8 @@ export const AladinSkyViewer: React.FC<AladinSkyViewerProps> = ({ className = ''
         : [surveyUrl];
 
     for (const candidate of candidates) {
-      const propertiesUrl = `${candidate.replace(/\\/+$/, '')}/properties`;
+      const rootUrl = candidate.endsWith('/') ? candidate.slice(0, -1) : candidate;
+      const propertiesUrl = `${rootUrl}/properties`;
       const controller = new AbortController();
       const timeoutId = window.setTimeout(() => controller.abort(), 8000);
 
@@ -204,8 +205,11 @@ export const AladinSkyViewer: React.FC<AladinSkyViewerProps> = ({ className = ''
         }
 
         const properties = await response.text();
-        const hasPngTiles = /^\\s*hips_tile_format\\s*=.*\\bpng\\b/im.test(properties);
-        const hasExpectedOrder = /^\\s*hips_order\\s*=\\s*7\\b/im.test(properties);
+        const propertyLines = properties.split(/\r?\n/).map((line) => line.trim());
+        const formatLine = propertyLines.find((line) => line.startsWith('hips_tile_format'));
+        const orderLine = propertyLines.find((line) => line.startsWith('hips_order'));
+        const hasPngTiles = Boolean(formatLine?.split('=').slice(1).join('=').includes('png'));
+        const hasExpectedOrder = Number(orderLine?.split('=').slice(1).join('=').trim()) === 7;
 
         if (surveyUrl === SPHEREX_HIPS_URL && (!hasPngTiles || !hasExpectedOrder)) {
           continue;
