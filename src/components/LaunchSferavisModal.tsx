@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { CELESTIAL_TARGETS } from '../data/mockData';
 import { Logo } from './Logo';
+import { AladinSkyViewer } from './AladinSkyViewer';
 import {
   X,
   Download,
@@ -94,7 +95,7 @@ ICE_TAU =                ${currentTarget.iceAbsorptionDepth.toFixed(3)} / H2O Ic
     setIsFullscreen((prev) => !prev);
   };
 
-  const atlasUrl = '/assets/aistudio/SPHEREx_Sky_Atlas_-_IR_Sky_and_Time_bf64d911.html';
+  const atlasUrl = 'https://aladin.cds.unistra.fr/AladinLite/';
 
   return (
     <div
@@ -193,12 +194,7 @@ ICE_TAU =                ${currentTarget.iceAbsorptionDepth.toFixed(3)} / H2O Ic
         {/* Tab 1: Interactive Themed Sky Atlas */}
         {activeTab === 'atlas' && (
           <div className="relative flex-1 w-full h-full overflow-hidden bg-black">
-            <iframe
-              src={atlasUrl}
-              title="SFERAvis Sky Atlas"
-              className="w-full h-full border-none select-none"
-              allow="fullscreen"
-            />
+            <AladinSkyViewer className="h-full" />
           </div>
         )}
 
