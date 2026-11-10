@@ -65,7 +65,39 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
     if (!reply) return res.status(502).json({ error: 'Redium could not generate a reply. Please try again.' });
     return res.status(200).json({ reply });
   } catch (error) {
-    console.error('Redium API error:', error);
-    return res.status(502).json({ error: 'Redium is having trouble responding. Please try again shortly.' });
+    const apiError = error as { status?: number; code?: number; message?: string };
+    const upstreamStatus = Number(apiError?.status || apiError?.code || 0);
+    console.error('Redium API error:', {
+      status: upstreamStatus || 'unknown',
+      message: apiError?.message || String(error),
+    });
+
+    if (upstreamStatus === 401 || upstreamStatus === 403) {
+      return res.status(502).json({
+        error: 'Gemini rejected the server API key or its project permissions. Check that the key is valid and that the Gemini API is enabled for its Google project.',
+      });
+    }
+
+    if (upstreamStatus === 429) {
+      return res.status(503).json({
+        error: 'Redium has reached the Gemini API usage limit. Please wait a little and try again.',
+      });
+    }
+
+    if (upstreamStatus === 400 || upstreamStatus === 404) {
+      return res.status(502).json({
+        error: 'Gemini rejected the request or model configuration. The server log contains the diagnostic details.',
+      });
+    }
+
+    if (upstreamStatus >= 500 && upstreamStatus <= 599) {
+      return res.status(503).json({
+        error: 'The Gemini service is temporarily unavailable. Please try again shortly.',
+      });
+    }
+
+    return res.status(502).json({
+      error: 'Redium could not reach Gemini. Check the Vercel function logs for the underlying API error.',
+    });
   }
 }
