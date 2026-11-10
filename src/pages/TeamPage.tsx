@@ -22,12 +22,10 @@ const SocialIcon = ({platform}:{platform:Social['platform']}) => platform==='lin
 export const TeamPage: React.FC<TeamPageProps> = () => {
  const [selected,setSelected] = useState<Member|null>(null);
  useEffect(()=>{ if(!selected)return; const old=document.body.style.overflow; document.body.style.overflow='hidden'; const key=(e:KeyboardEvent)=>{if(e.key==='Escape')setSelected(null)}; window.addEventListener('keydown',key); return ()=>{document.body.style.overflow=old;window.removeEventListener('keydown',key)}; },[selected]);
- return <div className="relative min-h-[75vh] w-full overflow-hidden bg-[#f7f8fa] text-[#15191f] dark:bg-[#080a0e] dark:text-white">
-  <div aria-hidden="true" className="pointer-events-none absolute inset-0 opacity-60 dark:opacity-30"><div className="absolute -top-48 left-1/2 h-[34rem] w-[48rem] -translate-x-1/2 rounded-full bg-[radial-gradient(ellipse_at_center,rgba(120,150,190,0.15),transparent_68%)]"/><div className="absolute right-[-12rem] top-[35rem] h-[28rem] w-[28rem] rounded-full bg-[radial-gradient(circle,rgba(163,0,0,0.07),transparent_70%)]"/></div>
+ return <div className="relative min-h-[75vh] w-full overflow-hidden bg-transparent text-[#15191f] dark:bg-transparent dark:text-white">
   <div className="relative mx-auto max-w-[1440px] px-5 pb-24 pt-20 sm:px-8 sm:pt-28 lg:px-14">
    <header className="mx-auto mb-14 max-w-3xl text-center sm:mb-20">
-    <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-black/10 bg-white/70 px-4 py-2 text-[10px] font-semibold uppercase tracking-[0.24em] text-[#777f8a] shadow-sm dark:border-white/10 dark:bg-white/[0.04] dark:text-zinc-400"><span className="h-1.5 w-1.5 rounded-full bg-[#a30000]"/>The people behind the work</div>
-    <h1 className="text-4xl font-semibold tracking-[-0.055em] text-[#171b22] sm:text-6xl lg:text-7xl dark:text-white">The People Behind <span className="text-[#a30000]">Sferavis.</span></h1>
+    <h1 className="text-4xl font-semibold tracking-[-0.055em] text-[#171b22] sm:text-6xl lg:text-7xl dark:text-white">The Minds Behind <span className="text-[#a30000]">Sferavis.</span></h1>
     <p className="mx-auto mt-6 max-w-xl text-sm leading-7 text-[#68717d] sm:text-base dark:text-zinc-400">Different perspectives. Shared curiosity. A collective pursuit of discovery.</p>
    </header>
    <section aria-label="Sferavis team members" className="grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3 lg:gap-x-8 lg:gap-y-14">
