@@ -80,3 +80,55 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(163, 0, 0, 0.6);
 }
+
+/* SFERAvis light-first visual refinement.
+   Keep the planetarium modal untouched; these overrides apply to site pages only. */
+html:not(.dark) body {
+  background: #f7f8fa;
+  color: #20232b;
+}
+
+html:not(.dark) main [class~="bg-[#050507]"],
+html:not(.dark) main [class~="bg-black"] {
+  background-color: #f8f9fb !important;
+}
+
+html:not(.dark) main [class~="bg-[#08080a]"],
+html:not(.dark) main [class~="bg-zinc-900"] {
+  background-color: #f0f2f5 !important;
+}
+
+html:not(.dark) main [class~="bg-[#0e0e14]"],
+html:not(.dark) main [class~="bg-zinc-800"] {
+  background-color: #ffffff !important;
+}
+
+html:not(.dark) main [class~="text-white"],
+html:not(.dark) main [class~="text-zinc-100"],
+html:not(.dark) main [class~="text-zinc-200"],
+html:not(.dark) main [class~="text-zinc-300"] {
+  color: #20232b !important;
+}
+
+html:not(.dark) main [class~="text-zinc-400"],
+html:not(.dark) main [class~="text-zinc-500"],
+html:not(.dark) main [class~="text-zinc-600"] {
+  color: #667085 !important;
+}
+
+html:not(.dark) main [class~="border-zinc-800"],
+html:not(.dark) main [class~="border-zinc-700"],
+html:not(.dark) main [class~="border-zinc-600"] {
+  border-color: #e3e6eb !important;
+}
+
+html:not(.dark) main [class~="shadow-2xl"],
+html:not(.dark) main [class~="shadow-xl"] {
+  --tw-shadow: 0 12px 32px -18px rgb(31 41 55 / 18%);
+  box-shadow: var(--tw-shadow) !important;
+}
+
+/* Retain the SFERAvis crimson as the single strong accent. */
+html:not(.dark) main [class~="bg-[#A30000]"] {
+  color: #ffffff !important;
+}
