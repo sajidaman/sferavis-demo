@@ -10,12 +10,12 @@ type Member = { id: string; name: string; role: string; institution: string; loc
 // Replace these clearly marked placeholders with the six real members.
 // Add portraits under /public/team/ and set image to e.g. /team/member-name.jpg.
 const TEAM_MEMBERS: Member[] = [
- {id:'01',name:'Sajid Aman',role:'Project Co-lead and Front end developer',institution:'Notre Dame College',location:'Dhaka, Bangladesh',image:'',biography:'Biography to be added.',expertise:['Frontend development','Project coordination'],socialLinks:[]},
- {id:'02',name:'Member Two',role:'UI/UX Designer',image:'',biography:'Add this member’s biography, design interests and contribution to Sferavis.',expertise:['Interface design','User experience','Visual communication'],socialLinks:[]},
- {id:'03',name:'Member Three',role:'Frontend Developer',image:'',biography:'Add this member’s biography, development interests and contribution to Sferavis.',expertise:['React','TypeScript','Web development'],socialLinks:[]},
- {id:'04',name:'Member Four',role:'Backend & Integration Developer',image:'',biography:'Add this member’s biography, technical interests and contribution to Sferavis.',expertise:['Backend systems','APIs','Database design'],socialLinks:[]},
- {id:'05',name:'Member Five',role:'AI & Machine Learning Engineer',image:'',biography:'Add this member’s biography, AI/ML interests and contribution to Sferavis.',expertise:['Machine learning','AI integration','Data analysis'],socialLinks:[]},
- {id:'06',name:'Member Six',role:'Research, Content & Quality Lead',image:'',biography:'Add this member’s biography, scientific interests and contribution to Sferavis.',expertise:['Scientific research','Technical writing','Quality assurance'],socialLinks:[]},
+ {id:'01',name:'Sajid Aman',role:'Co-lead & Frontend',institution:'Notre Dame College',location:'Dhaka, Bangladesh',image:'',biography:'Biography to be added.',expertise:['Frontend development','Project coordination'],socialLinks:[]},
+ {id:'02',name:'Radit Raian',role:'Co-lead & Backend',institution:'',location:'',image:'',biography:'Biography to be added.',expertise:['Backend development'],socialLinks:[]},
+ {id:'03',name:'Elisabeth Tagobert',role:'UI/UX',institution:'',location:'',image:'',biography:'Biography to be added.',expertise:['UI/UX design'],socialLinks:[]},
+ {id:'04',name:'Emils',role:'AI & ML',institution:'',location:'',image:'',biography:'Biography to be added.',expertise:['Artificial intelligence','Machine learning'],socialLinks:[]},
+ {id:'05',name:'Ioanna Tsolaki',role:'AI & ML',institution:'',location:'',image:'',biography:'Biography to be added.',expertise:['Artificial intelligence','Machine learning'],socialLinks:[]},
+ {id:'06',name:'Sofia',role:'Research & Content',institution:'',location:'',image:'',biography:'Biography to be added.',expertise:['Research','Content development'],socialLinks:[]},
 ];
 const SocialIcon = ({platform}:{platform:Social['platform']}) => platform==='linkedin'?<Linkedin size={17}/>:platform==='github'?<Github size={17}/>:platform==='instagram'?<Instagram size={17}/>:platform==='email'?<Mail size={17}/>:<Globe size={17}/>;
 
