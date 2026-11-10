@@ -164,6 +164,7 @@ export const AladinSkyViewer: React.FC<AladinSkyViewerProps> = ({ className = ''
       setStatus('ready');
 
       // Load SPHEREx using its published HiPS URL and known metadata.
+      checkSurveyConnectivity(targetSurvey);
     } catch (err) {
       console.error('[Sferavis Aladin Lite Init Error]', err);
       const message = err instanceof Error ? err.message : String(err);
