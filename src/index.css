@@ -425,3 +425,41 @@ body footer .font-oswald span:last-child {
   color: #A30000 !important;
 }
 
+
+/* Accessibility preferences and shared keyboard-navigation affordances. */
+.sferavis-skip-link {
+  position: fixed; top: .75rem; left: .75rem; z-index: 1000;
+  transform: translateY(-180%); border-radius: .65rem;
+  background: #8B0000; color: #fff; padding: .75rem 1rem;
+  font-weight: 700; box-shadow: 0 8px 24px rgba(0,0,0,.22);
+}
+.sferavis-skip-link:focus { transform: translateY(0); }
+:where(button, a, input, textarea, select, [tabindex]):focus-visible {
+  outline: 3px solid #A30000 !important; outline-offset: 3px !important;
+}
+html.a11y-large-text { font-size: 112.5%; }
+html.a11y-high-contrast {
+  --sfera-page: #fff; --sfera-surface: #fff; --sfera-surface-muted: #f0f0f0;
+  --sfera-text: #101010; --sfera-text-muted: #303030; --sfera-border: #555;
+}
+html.dark.a11y-high-contrast {
+  --sfera-page: #000; --sfera-surface: #050505; --sfera-surface-muted: #111;
+  --sfera-text: #fff; --sfera-text-muted: #eee; --sfera-border: #bdbdbd;
+}
+html.a11y-underlined-links .sferavis-site a,
+html.a11y-underlined-links .sferavis-site [role="link"] {
+  text-decoration: underline !important; text-underline-offset: .18em;
+}
+html.a11y-reduced-motion *,
+html.a11y-reduced-motion *::before,
+html.a11y-reduced-motion *::after {
+  scroll-behavior: auto !important; animation-duration: .01ms !important;
+  animation-iteration-count: 1 !important; transition-duration: .01ms !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation-duration: .01ms !important; animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
+}
