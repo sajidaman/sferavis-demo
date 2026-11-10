@@ -170,10 +170,10 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate, onLaunchSferavis }) 
               </li>
               <li>
                 <button
-                  onClick={() => onNavigate('team')}
+                  onClick={() => onNavigate('publications')}
                   className="hover:text-zinc-950 dark:hover:text-white transition-colors cursor-pointer text-left"
                 >
-                  Peer-Reviewed Publications
+                  Publications & Research
                 </button>
               </li>
               <li>
