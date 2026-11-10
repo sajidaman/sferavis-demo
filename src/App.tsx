@@ -9,6 +9,8 @@ import { TutorialsPage } from './pages/TutorialsPage';
 import { DocsPage } from './pages/DocsPage';
 import { TeamPage } from './pages/TeamPage';
 import { LaunchSferavisModal } from './components/LaunchSferavisModal';
+import { AccessibilityControls } from './components/AccessibilityControls';
+import { RediumChat } from './components/RediumChat';
 
 export default function App() {
   // Page state (Atlas excluded as requested)
@@ -64,7 +66,8 @@ export default function App() {
       />
 
       {/* Main Page View with Animated Cross-Dissolve Transitions */}
-      <main className="sferavis-site flex-1 w-full relative z-10">
+      <a className="sferavis-skip-link" href="#main-content">Skip to main content</a>
+      <main id="main-content" tabIndex={-1} aria-label="Main content" className="sferavis-site flex-1 w-full relative z-10">
         <AnimatePresence mode="wait">
           <motion.div
             key={currentPage}
@@ -105,6 +108,8 @@ export default function App() {
         onClose={() => setIsLaunchModalOpen(false)}
       />
 
+      <AccessibilityControls />
+      <RediumChat />
     </div>
   );
 }
