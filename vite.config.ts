@@ -20,14 +20,14 @@ function rediumChatDevPlugin(): Plugin {
           return;
         }
 
-        const apiKey = process.env.GEMINI_API_KEY;
+        const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
         if (!apiKey) {
           res.statusCode = 503;
           res.setHeader('Content-Type', 'application/json');
           res.end(
             JSON.stringify({
               error:
-                'Redium is not configured yet. Add GEMINI_API_KEY to your .env.local or deployment environment variables.',
+                'Redium is not configured yet. Add GEMINI_API_KEY or GOOGLE_API_KEY to your server environment or .env.local.',
             })
           );
           return;
