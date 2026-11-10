@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import spherexObservatoryImage from '../assets/images/spherex_observatory_orbit_1794254683688.jpg';
 import { motion } from 'motion/react';
 import { PageId, SpectralBand } from '../types';
 import { SPHEREX_BANDS } from '../data/mockData';
@@ -352,7 +353,7 @@ export const SpherexPage: React.FC<SpherexPageProps> = ({ onNavigate, onLaunchSf
 
           <div className="relative border-2 border-zinc-800 overflow-hidden shadow-2xl bg-black">
             <img
-              src="/src/assets/images/spherex_observatory_orbit_1794254683688.jpg"
+              src={spherexObservatoryImage}
               alt="NASA SPHEREx Observatory Conical Passive Shields"
               className="w-full h-full object-cover"
               referrerPolicy="no-referrer"
