@@ -64,7 +64,7 @@ export default function App() {
       />
 
       {/* Main Page View with Animated Cross-Dissolve Transitions */}
-      <main className="flex-1 w-full relative z-10">
+      <main className="sferavis-site flex-1 w-full relative z-10">
         <AnimatePresence mode="wait">
           <motion.div
             key={currentPage}
