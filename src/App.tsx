@@ -56,6 +56,8 @@ export default function App() {
       {/* Lightweight, static astronomy-inspired page backdrop */}
       <div className="sferavis-cosmic-backdrop" aria-hidden="true" />
       
+      <a className="sferavis-skip-link" href="#main-content">Skip to main content</a>
+
       {/* Apple-style Frosted Glass Navigation Bar */}
       <Navbar
         currentPage={currentPage}
@@ -66,8 +68,7 @@ export default function App() {
       />
 
       {/* Main Page View with Animated Cross-Dissolve Transitions */}
-      <a className="sferavis-skip-link" href="#main-content">Skip to main content</a>
-      <main id="main-content" tabIndex={-1} aria-label="Main content" className="sferavis-site flex-1 w-full relative z-10">
+            <main id="main-content" tabIndex={-1} aria-label="Main content" className="sferavis-site flex-1 w-full relative z-10">
         <AnimatePresence mode="wait">
           <motion.div
             key={currentPage}
