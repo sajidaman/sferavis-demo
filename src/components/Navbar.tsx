@@ -30,7 +30,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   ];
 
   return (
-    <header className="sticky top-0 z-50 w-full backdrop-blur-xl bg-white/95 dark:bg-[#08080a]/95 border-b border-zinc-200 dark:border-zinc-800 transition-colors duration-200">
+    <header className="sferavis-cursor-area sticky top-0 z-50 w-full backdrop-blur-xl bg-white/95 dark:bg-[#08080a]/95 border-b border-zinc-200 dark:border-zinc-800 transition-colors duration-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-18 flex items-center justify-between gap-8">
         
         {/* Zone 1: Big prominent text Logo without icon */}
