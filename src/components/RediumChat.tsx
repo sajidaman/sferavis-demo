@@ -78,7 +78,7 @@ export const RediumChat: React.FC = () => {
   return (
     <div className="fixed bottom-5 right-5 z-[80]">
       {open && (
-        <section role="dialog" aria-modal="false" aria-labelledby="redium-title" className="mb-3 flex h-[min(36rem,calc(100dvh-7rem))] w-[min(23rem,calc(100vw-2.5rem))] flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white text-slate-900 shadow-2xl dark:border-slate-700 dark:bg-[#10141d] dark:text-slate-100">
+        <section id="redium-chat-panel" role="dialog" aria-modal="false" aria-labelledby="redium-title" className="mb-3 flex h-[min(36rem,calc(100dvh-7rem))] w-[min(23rem,calc(100vw-2.5rem))] flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white text-slate-900 shadow-2xl dark:border-slate-700 dark:bg-[#10141d] dark:text-slate-100">
           <header className="flex items-center justify-between gap-3 bg-[#8B0000] px-4 py-3 text-white">
             <div className="flex min-w-0 items-center gap-3">
               <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/15"><Bot size={20} aria-hidden="true" /></span>
@@ -113,7 +113,7 @@ export const RediumChat: React.FC = () => {
           <p className="bg-white px-3 pb-2 text-[10px] text-slate-500 dark:bg-[#10141d] dark:text-slate-400">AI-generated responses may be inaccurate. Do not share private information.</p>
         </section>
       )}
-      <button ref={toggleRef} type="button" aria-label={open ? 'Close Redium assistant' : 'Open Redium assistant'} aria-expanded={open} onClick={() => setOpen(value => !value)} className="ml-auto flex h-14 w-14 items-center justify-center rounded-full border border-white bg-[#8B0000] text-white shadow-xl transition hover:-translate-y-0.5 hover:bg-[#700000] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-red-300">
+      <button ref={toggleRef} type="button" aria-label={open ? 'Close Redium assistant' : 'Open Redium assistant'} aria-expanded={open} aria-controls="redium-chat-panel" onClick={() => setOpen(value => !value)} className="ml-auto flex h-14 w-14 items-center justify-center rounded-full border border-white bg-[#8B0000] text-white shadow-xl transition hover:-translate-y-0.5 hover:bg-[#700000] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-red-300">
         {open ? <X size={23} aria-hidden="true" /> : <MessageCircle size={23} aria-hidden="true" />}
       </button>
     </div>
