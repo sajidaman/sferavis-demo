@@ -38,12 +38,12 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate, onLaunchSferavis
 
   // Determine current active band based on wavelength
   const getCurrentBand = (w: number) => {
-    if (w <= 1.11) return SPHEREx_BANDS[0];
-    if (w <= 1.64) return SPHEREx_BANDS[1];
-    if (w <= 2.42) return SPHEREx_BANDS[2];
-    if (w <= 3.82) return SPHEREx_BANDS[3];
-    if (w <= 4.42) return SPHEREx_BANDS[4];
-    return SPHEREx_BANDS[5];
+    if (w <= 1.11) return SPHEREX_BANDS[0];
+    if (w <= 1.64) return SPHEREX_BANDS[1];
+    if (w <= 2.42) return SPHEREX_BANDS[2];
+    if (w <= 3.82) return SPHEREX_BANDS[3];
+    if (w <= 4.42) return SPHEREX_BANDS[4];
+    return SPHEREX_BANDS[5];
   };
 
   const currentBand = getCurrentBand(activeWavelength);

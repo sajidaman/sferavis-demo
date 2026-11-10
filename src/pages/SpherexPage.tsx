@@ -12,7 +12,7 @@ interface SpherexPageProps {
 export const SpherexPage: React.FC<SpherexPageProps> = ({ onNavigate, onLaunchSferavis }) => {
   const [selectedBandIndex, setSelectedBandIndex] = useState<number>(3); // Default to Band 4 (Water Ice)
 
-  const selectedBand = SPHEREx_BANDS[selectedBandIndex];
+  const selectedBand = SPHEREX_BANDS[selectedBandIndex];
 
   return (
     <div className="w-full bg-[#050507] text-white selection:bg-[#A30000] selection:text-white">

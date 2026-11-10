@@ -14,10 +14,10 @@ const ALADIN_SCRIPT = 'https://aladin.cds.unistra.fr/AladinLite/api/v3/latest/al
 let aladinScriptPromise: Promise<void> | null = null;
 
 function loadAladin(): Promise<void> {
-  if (window.A?.init) return window.A.init;
+  if (window.A?.init) return window.A.init.then(() => {});
   if (aladinScriptPromise) return aladinScriptPromise;
 
-  aladinScriptPromise = new Promise((resolve, reject) => {
+  const promise = new Promise<void>((resolve, reject) => {
     const existing = document.querySelector<HTMLScriptElement>('script[data-sferavis-aladin]');
     const script = existing ?? document.createElement('script');
 
@@ -26,12 +26,12 @@ function loadAladin(): Promise<void> {
         reject(new Error('Aladin Lite loaded, but its API was not found.'));
         return;
       }
-      window.A.init.then(resolve).catch(reject);
+      window.A.init.then(() => resolve()).catch(reject);
     };
 
     if (existing) {
       if (window.A?.init) {
-        window.A.init.then(resolve).catch(reject);
+        window.A.init.then(() => resolve()).catch(reject);
       } else {
         existing.addEventListener('load', onLoad, { once: true });
         existing.addEventListener('error', () => reject(new Error('Could not load Aladin Lite.')), { once: true });
@@ -51,7 +51,8 @@ function loadAladin(): Promise<void> {
     throw error;
   });
 
-  return aladinScriptPromise;
+  aladinScriptPromise = promise;
+  return promise;
 }
 
 interface AladinSkyViewerProps {
