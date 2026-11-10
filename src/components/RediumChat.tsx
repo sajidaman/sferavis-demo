@@ -87,7 +87,7 @@ export const RediumChat: React.FC = () => {
                 <p className="text-[11px] text-white/80">Sferavis AI assistant</p>
               </div>
             </div>
-            <button type="button" onClick={() => setOpen(false)} aria-label="Close Redium chat" className="rounded-lg p-2 hover:bg-white/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white">
+            <button type="button" onClick={() => { setOpen(false); toggleRef.current?.focus(); }} aria-label="Close Redium chat" className="rounded-lg p-2 hover:bg-white/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white">
               <X size={18} aria-hidden="true" />
             </button>
           </header>
