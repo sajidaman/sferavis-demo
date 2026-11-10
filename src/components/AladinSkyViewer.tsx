@@ -178,41 +178,59 @@ export const AladinSkyViewer: React.FC<AladinSkyViewerProps> = ({ className = ''
     }
   }, [containerId]);
 
-  // Background check for survey HiPS service connectivity to distinguish tile/network issues
-  const checkSurveyConnectivity = async (surveyId: string) => {
-    try {
-      // A HiPS properties file lives at <service-root>/properties.
-      const baseHipsUrl = `${surveyId.replace(/\\/$/, '')}/properties`;
+  // Verify the actual HiPS properties endpoint. SPHEREx has a published mirror;
+  // if the primary host is unreachable, switch the viewer to that mirror.
+  const checkSurveyConnectivity = async (surveyUrl: string) => {
+    const candidates =
+      surveyUrl === SPHEREX_HIPS_URL
+        ? [SPHEREX_HIPS_URL, SPHEREX_HIPS_MIRROR_URL]
+        : [surveyUrl];
 
+    for (const candidate of candidates) {
+      const propertiesUrl = `${candidate.replace(/\\/+$/, '')}/properties`;
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 8000);
+      const timeoutId = window.setTimeout(() => controller.abort(), 8000);
 
-      const resp = await fetch(baseHipsUrl, {
-        method: 'GET',
-        signal: controller.signal,
-        mode: 'cors',
-      }).catch(() => null);
+      try {
+        const response = await fetch(propertiesUrl, {
+          method: 'GET',
+          signal: controller.signal,
+          mode: 'cors',
+          credentials: 'omit',
+        });
 
-      clearTimeout(timeoutId);
-
-      if (!resp) {
-        setSurveyErrorMsg(`Could not reach the HiPS metadata endpoint: ${baseHipsUrl}. The service may be blocked by the current network.`);
-      } else if (!resp.ok) {
-        setSurveyErrorMsg(`HiPS metadata request returned HTTP ${resp.status} from ${baseHipsUrl}.`);
-      } else {
-        const properties = await resp.text();
-        if (!/^hips_tile_format=.*(?:png|fits)/im.test(properties) || !/^hips_order=7/im.test(properties)) {
-          setSurveyErrorMsg(`The response from ${baseHipsUrl} did not contain the expected SPHEREx HiPS metadata.`);
-        } else {
-          setSurveyErrorMsg(null);
+        if (!response.ok) {
+          continue;
         }
+
+        const properties = await response.text();
+        const hasPngTiles = /^\\s*hips_tile_format\\s*=.*\\bpng\\b/im.test(properties);
+        const hasExpectedOrder = /^\\s*hips_order\\s*=\\s*7\\b/im.test(properties);
+
+        if (surveyUrl === SPHEREX_HIPS_URL && (!hasPngTiles || !hasExpectedOrder)) {
+          continue;
+        }
+
+        if (candidate !== surveyUrl && surveyUrl === SPHEREX_HIPS_URL && aladinRef.current) {
+          const mirrorLayer = createSpherexHiPS(candidate, (cause) => {
+            const detail = cause instanceof Error ? cause.message : String(cause);
+            setSurveyErrorMsg(`SPHEREx mirror layer failed: ${detail}`);
+          });
+          (aladinRef.current as unknown as { setBaseImageLayer: (layer: unknown) => void }).setBaseImageLayer(mirrorLayer);
+        }
+
+        setSurveyErrorMsg(null);
+        return;
+      } catch {
+        // Try the next official HiPS host, if one is available.
+      } finally {
+        window.clearTimeout(timeoutId);
       }
-    } catch {
-      // Non-fatal: tile loading errors handled gracefully
-      setSurveyErrorMsg(
-        `Unable to reach CDS Unistra HiPS service directly for ${surveyId}. If sky tiles appear black, check external network or CORS proxy access.`
-      );
     }
+
+    setSurveyErrorMsg(
+      `Could not retrieve HiPS metadata from ${candidates.join(' or ')}. The survey host may be unreachable or blocked by the browser/network.`
+    );
   };
 
   useEffect(() => {
