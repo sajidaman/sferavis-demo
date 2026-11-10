@@ -12,68 +12,42 @@ function rediumChatDevPlugin(): Plugin {
   return {
     name: 'redium-chat-dev-middleware',
     configureServer(server) {
-      server.middlewares.use('/api/chat', async (req, res) => {
-        if (req.method !== 'POST') {
-          res.statusCode = 405;
-          res.setHeader('Content-Type', 'application/json');
-          res.end(JSON.stringify({ error: 'Method not allowed.' }));
-          return;
-        }
-
-        const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
-        if (!apiKey) {
-          res.statusCode = 503;
-          res.setHeader('Content-Type', 'application/json');
-          res.end(
-            JSON.stringify({
-              error:
-                'Redium is not configured yet. Add GEMINI_API_KEY or GOOGLE_API_KEY to your server environment or .env.local.',
-            })
-          );
-          return;
-        }
-
+      // Run the real Vercel function so dev and production share one code path.
+      server.middlewares.use('/api/chat', (req, res) => {
         let bodyRaw = '';
         req.on('data', (chunk) => {
           bodyRaw += chunk;
         });
 
         req.on('end', async () => {
+          const response = {
+            status(code: number) {
+              res.statusCode = code;
+              return response;
+            },
+            setHeader(name: string, value: string) {
+              res.setHeader(name, value);
+            },
+            json(payload: unknown) {
+              res.setHeader('Content-Type', 'application/json');
+              res.end(JSON.stringify(payload));
+            },
+          };
+
           try {
-            const body = JSON.parse(bodyRaw || '{}');
-            const messages = (body.messages || []).slice(-12);
-
-            const { GoogleGenAI } = await import('@google/genai');
-            const ai = new GoogleGenAI({ apiKey });
-
-            const result = await ai.models.generateContent({
-              model: 'gemini-3.8-flash',
-              contents: messages.map((m: { role: string; content: string }) => ({
-                role: m.role,
-                parts: [{ text: m.content }],
-              })),
-              config: {
-                systemInstruction: `You are Redium, the official AI assistant on the Sferavis website.
-Sferavis is an independent, broad science-focused organization exploring astronomy, astrophysics, particle physics, and other scientific fields. It is not NASA and does not operate the SPHEREx mission.
-Help visitors understand Sferavis, its website sections, astronomy, astrophysics, and NASA's SPHEREx mission. Be welcoming, clear, scientifically careful, and concise.`,
-                maxOutputTokens: 700,
-                temperature: 0.45,
-              },
-            });
-
-            const reply = result.text?.trim() || 'I could not generate a response.';
-            res.statusCode = 200;
-            res.setHeader('Content-Type', 'application/json');
-            res.end(JSON.stringify({ reply }));
-          } catch (err: any) {
+            let body: unknown = {};
+            try {
+              body = JSON.parse(bodyRaw || '{}');
+            } catch {
+              return response.status(400).json({ error: 'Invalid JSON body.' });
+            }
+            const mod = await server.ssrLoadModule('/api/chat.ts');
+            await mod.default({ method: req.method, body }, response);
+          } catch (err) {
             console.error('Dev server Redium API error:', err);
-            res.statusCode = 500;
-            res.setHeader('Content-Type', 'application/json');
-            res.end(
-              JSON.stringify({
-                error: err?.message || 'Redium is having trouble responding right now.',
-              })
-            );
+            if (!res.writableEnded) {
+              response.status(500).json({ error: 'Redium is having trouble responding right now.' });
+            }
           }
         });
       });
