@@ -10,7 +10,7 @@ interface FooterProps {
 
 export const Footer: React.FC<FooterProps> = ({ onNavigate, onLaunchSferavis }) => {
   return (
-    <footer className="relative z-10 w-full bg-[#08080a] border-t border-zinc-800 text-zinc-400 text-xs transition-colors duration-200 font-lexend selection:bg-[#A30000] selection:text-white">
+    <footer className="sferavis-site relative z-10 w-full bg-[#08080a] border-t border-zinc-800 text-zinc-400 text-xs transition-colors duration-200 font-lexend selection:bg-[#A30000] selection:text-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
         
         {/* Top Disclaimer / Mission Heritage strip */}
