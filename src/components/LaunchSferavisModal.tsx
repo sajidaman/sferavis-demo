@@ -106,7 +106,7 @@ ICE_TAU =                ${currentTarget.iceAbsorptionDepth.toFixed(3)} / H2O Ic
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className={`relative w-full bg-[#08080a] border border-zinc-800 shadow-2xl flex flex-col overflow-hidden transition-all duration-300 ${
+        className={`dark relative w-full bg-[#08080a] border border-zinc-800 shadow-2xl flex flex-col overflow-hidden transition-all duration-300 ${
           isFullscreen
             ? 'h-screen w-screen rounded-none border-none'
             : 'max-w-7xl h-[94vh] rounded-2xl'

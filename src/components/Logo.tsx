@@ -4,14 +4,16 @@ interface LogoProps {
   className?: string;
   size?: 'sm' | 'md' | 'lg' | 'xl';
   useImageWordmark?: boolean;
+  variant?: 'auto' | 'dark' | 'light';
 }
 
 export const Logo: React.FC<LogoProps> = ({
   className = '',
   size = 'md',
   useImageWordmark = false,
+  variant = 'auto',
 }) => {
-  // Bigger scale for the text logo as requested
+  // Scale for the text logo as requested
   const textSizes = {
     sm: 'text-2xl tracking-tight',
     md: 'text-3xl sm:text-4xl tracking-tight',
@@ -39,12 +41,19 @@ export const Logo: React.FC<LogoProps> = ({
     );
   }
 
-  // Pure typography reproduction using Oswald, matching the uploaded SFERAvis wordmark
+  const sferaColor =
+    variant === 'dark'
+      ? 'text-white'
+      : variant === 'light'
+      ? 'text-black'
+      : 'text-black dark:text-white';
+
+  // Pure typography reproduction using Oswald, matching the Sferavis wordmark
   return (
     <span
       className={`font-oswald font-black select-none inline-flex items-baseline leading-none transition-transform duration-200 ${textSizes[size]} ${className}`}
     >
-      <span className="text-black dark:text-white font-extrabold">Sfera</span>
+      <span className={`${sferaColor} font-extrabold transition-colors duration-200`}>Sfera</span>
       <span className="text-[#A30000] font-black">vis</span>
     </span>
   );

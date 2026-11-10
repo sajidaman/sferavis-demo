@@ -674,10 +674,10 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate, onLaunchSferavis
 
 
       {/* SECTION 5: FINAL CALL TO ACTION — PROMINENT LOGO & EDITORIAL INVITATION */}
-      <section className="py-24 lg:py-32 relative overflow-hidden text-center bg-black">
+      <section className="sferavis-cta-panel py-24 lg:py-32 relative overflow-hidden text-center bg-white dark:bg-black border-t border-zinc-200 dark:border-zinc-800 transition-colors duration-200">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           
-          {/* Big Text Logo without icon */}
+          {/* Big Text Logo without icon, color-mode compatible */}
           <motion.div
             whileHover={{ scale: 1.04 }}
             transition={{ type: 'spring', stiffness: 200, damping: 12 }}
@@ -686,11 +686,11 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate, onLaunchSferavis
             <Logo size="xl" />
           </motion.div>
 
-          <h2 className="text-3xl sm:text-5xl font-oswald uppercase font-black tracking-tight text-white max-w-2xl mx-auto text-balance">
+          <h2 className="text-3xl sm:text-5xl font-oswald uppercase font-black tracking-tight text-zinc-950 dark:text-white max-w-2xl mx-auto text-balance transition-colors">
             Explore the All-Sky Infrared Cosmos.
           </h2>
 
-          <p className="mt-4 text-base sm:text-xl text-zinc-300 max-w-xl mx-auto font-merriweather leading-relaxed">
+          <p className="mt-4 text-base sm:text-xl text-zinc-600 dark:text-zinc-300 max-w-xl mx-auto font-merriweather leading-relaxed transition-colors">
             Launch the interactive 102-channel hyperspectral sky dome, query Level-2 FITS cubes with our Python SDK, or examine guided data reduction tutorials.
           </p>
 
@@ -709,7 +709,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate, onLaunchSferavis
               onClick={() => onNavigate('tutorials')}
               whileHover={{ scale: 1.02, y: -2 }}
               whileTap={{ scale: 0.96 }}
-              className="px-8 py-4 text-xs font-lexend uppercase tracking-widest font-semibold text-zinc-200 bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 transition-colors cursor-pointer"
+              className="px-8 py-4 text-xs font-lexend uppercase tracking-widest font-semibold text-zinc-800 dark:text-zinc-200 bg-zinc-100 dark:bg-zinc-900 hover:bg-zinc-200 dark:hover:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 transition-colors cursor-pointer"
             >
               Tutorials & Notebooks
             </motion.button>

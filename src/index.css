@@ -369,3 +369,59 @@ html:not(.dark) body .sferavis-site .sferavis-visualizer-stage .sferavis-sed-pan
 html:not(.dark) body .sferavis-site .sferavis-visualizer-stage .sferavis-sed-plot {
   border-color: #d5dce5 !important;
 }
+
+/* Explicit white-mode override for the lower-most CTA panel and footer */
+html:not(.dark) body .sferavis-site .sferavis-cta-panel,
+html:not(.dark) body .sferavis-cta-panel,
+html:not(.dark) body .sferavis-footer,
+html:not(.dark) body footer {
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+}
+
+html:not(.dark) body .sferavis-site .sferavis-cta-panel h2 {
+  color: #09090b !important;
+}
+
+html:not(.dark) body .sferavis-site .sferavis-cta-panel p {
+  color: #52525b !important;
+}
+
+html:not(.dark) body .sferavis-footer h4 {
+  color: #09090b !important;
+}
+
+html:not(.dark) body .sferavis-footer p {
+  color: #52525b !important;
+}
+
+html:not(.dark) body .sferavis-footer button,
+html:not(.dark) body .sferavis-footer a {
+  color: #52525b !important;
+}
+
+html:not(.dark) body .sferavis-footer button:hover,
+html:not(.dark) body .sferavis-footer a:hover {
+  color: #09090b !important;
+}
+
+/* Ensure Logo text in lower-most panel and footer is crisp black + deep red in light mode, and crisp white + deep red in dark mode */
+html:not(.dark) body .sferavis-cta-panel .font-oswald span:first-child,
+html:not(.dark) body .sferavis-footer .font-oswald span:first-child,
+html:not(.dark) body footer .font-oswald span:first-child {
+  color: #000000 !important;
+}
+
+html.dark body .sferavis-cta-panel .font-oswald span:first-child,
+html.dark body .sferavis-footer .font-oswald span:first-child,
+html.dark body footer .font-oswald span:first-child {
+  color: #ffffff !important;
+}
+
+body .sferavis-cta-panel .font-oswald span:last-child,
+body .sferavis-footer .font-oswald span:last-child,
+body footer .font-oswald span:last-child {
+  color: #A30000 !important;
+}
+
