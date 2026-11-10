@@ -15,10 +15,33 @@ import {
 } from 'lucide-react';
 
 const SPHEREX_HIPS = 'CDS/P/SPHEREx/QR2/D3';
+const SPHEREX_HIPS_URL = 'https://alasky.cds.unistra.fr/SPHEREx/D3';
+const SPHEREX_HIPS_MIRROR_URL = 'https://alaskybis.cds.unistra.fr/SPHEREx/D3';
 const DSS2_SURVEY = 'P/DSS2/color';
+const DSS2_HIPS_URL = 'https://alasky.cds.unistra.fr/DSS/DSSColor';
 const INITIAL_RA = 266.414089;
 const INITIAL_DEC = -29.006111;
-const INITIAL_FOV = 120;
+// The SPHEREx QR2 registry publishes this as its recommended observation FoV.
+const INITIAL_FOV = 0.4580648549089874;
+
+function createSpherexHiPS(url = SPHEREX_HIPS_URL, onError?: (error: unknown) => void) {
+  const api = A as unknown as {
+    HiPS: (id: string, options: Record<string, unknown>) => unknown;
+  };
+
+  return api.HiPS(SPHEREX_HIPS, {
+    name: 'NASA SPHEREx QR2 D3',
+    url,
+    maxOrder: 7,
+    minOrder: 0,
+    tileSize: 512,
+    imgFormat: 'png',
+    cooFrame: 'equatorial',
+    requestMode: 'cors',
+    requestCredentials: 'omit',
+    errorCallback: (error: unknown) => onError?.(error),
+  });
+}
 
 interface AladinSkyViewerProps {
   className?: string;
@@ -45,6 +68,10 @@ export const AladinSkyViewer: React.FC<AladinSkyViewerProps> = ({ className = ''
   const [fov, setFov] = useState(INITIAL_FOV);
   const [coordinateError, setCoordinateError] = useState('');
   const [retryCount, setRetryCount] = useState(0);
+  const surveyRef = useRef(survey);
+  const gridEnabledRef = useRef(gridEnabled);
+  surveyRef.current = survey;
+  gridEnabledRef.current = gridEnabled;
 
   // Initialize Aladin Lite
   const initializeViewer = useCallback(async () => {
@@ -85,15 +112,21 @@ export const AladinSkyViewer: React.FC<AladinSkyViewerProps> = ({ className = ''
         );
       }
 
+      // Wait until the modal has completed layout; Aladin measures its mount node at creation.
+      await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
       if (!containerRef.current) return;
+      if (containerRef.current.clientWidth < 2 || containerRef.current.clientHeight < 2) {
+        throw new Error('The planetarium viewport has no measurable size. Close and reopen Launch Sferavis, then retry.');
+      }
 
       // Ensure the container has the expected id attribute
       containerRef.current.id = containerId;
 
-      // 3. Instantiate Aladin viewer
-      const targetSurvey = survey === 'spherex' ? SPHEREX_HIPS : DSS2_SURVEY;
+      // Start with the known optical reference layer so the canvas is never an empty black panel
+      // while the SPHEREx HiPS metadata and tiles are being requested.
+      const targetSurvey = surveyRef.current === 'spherex' ? SPHEREX_HIPS_URL : DSS2_HIPS_URL;
       const aladin = A.aladin(`#${containerId}`, {
-        survey: targetSurvey,
+        survey: DSS2_HIPS_URL,
         target: `${INITIAL_RA} ${INITIAL_DEC}`,
         fov: INITIAL_FOV,
         projection: 'AIT',
@@ -114,16 +147,25 @@ export const AladinSkyViewer: React.FC<AladinSkyViewerProps> = ({ className = ''
       // Style overlay elements & grid to match Sferavis deep red theme
       aladin.setDefaultColor('#A30000');
       aladin.setCooGrid({
-        enabled: gridEnabled,
+        enabled: gridEnabledRef.current,
         color: '#A30000',
         opacity: 0.42,
         labelSize: 10,
       });
 
       aladinRef.current = aladin;
+
+      if (surveyRef.current === 'spherex') {
+        const layer = createSpherexHiPS(SPHEREX_HIPS_URL, (cause) => {
+          const detail = cause instanceof Error ? cause.message : String(cause);
+          setSurveyErrorMsg(`SPHEREx HiPS could not be initialized: ${detail}. The optical DSS2 reference layer remains available.`);
+        });
+        (aladin as unknown as { setBaseImageLayer: (layer: unknown) => void }).setBaseImageLayer(layer);
+      }
+
       setStatus('ready');
 
-      // Verify survey connectivity in background without blocking UI
+      // Check the exact public HiPS properties endpoint, not the CDS identifier as a path.
       checkSurveyConnectivity(targetSurvey);
     } catch (err) {
       console.error('[Sferavis Aladin Lite Init Error]', err);
@@ -134,38 +176,76 @@ export const AladinSkyViewer: React.FC<AladinSkyViewerProps> = ({ className = ''
         'Diagnostic: Library initialization error (WebGL 2.0 / WebAssembly / DOM instantiation). Check browser graphics acceleration and WebAssembly execution permissions.'
       );
     }
-  }, [containerId, survey, gridEnabled]);
+  }, [containerId]);
 
-  // Background check for survey HiPS service connectivity to distinguish tile/network issues
-  const checkSurveyConnectivity = async (surveyId: string) => {
-    try {
-      // CDS HiPS properties endpoint check
-      const baseHipsUrl = surveyId.startsWith('http')
-        ? surveyId
-        : `https://alasky.cds.unistra.fr/${surveyId}/properties`;
+  // Verify the actual HiPS properties endpoint. SPHEREx has a published mirror;
+  // if the primary host is unreachable, switch the viewer to that mirror.
+  const checkSurveyConnectivity = async (surveyUrl: string) => {
+    const candidates =
+      surveyUrl === SPHEREX_HIPS_URL
+        ? [SPHEREX_HIPS_URL, SPHEREX_HIPS_MIRROR_URL]
+        : [surveyUrl];
 
+    for (const candidate of candidates) {
+      const rootUrl = candidate.endsWith('/') ? candidate.slice(0, -1) : candidate;
+      const propertiesUrl = `${rootUrl}/properties`;
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 8000);
+      const timeoutId = window.setTimeout(() => controller.abort(), 8000);
 
-      const resp = await fetch(baseHipsUrl, {
-        method: 'HEAD',
-        signal: controller.signal,
-        mode: 'cors',
-      }).catch(() => null);
+      try {
+        const response = await fetch(propertiesUrl, {
+          method: 'GET',
+          signal: controller.signal,
+          mode: 'cors',
+          credentials: 'omit',
+        });
 
-      clearTimeout(timeoutId);
+        if (!response.ok) {
+          continue;
+        }
 
-      if (resp && !resp.ok && resp.status >= 400 && resp.status !== 405) {
-        setSurveyErrorMsg(
-          `HiPS remote service returned HTTP ${resp.status} for ${surveyId}. Sky tiles may fail to display or experience degraded bandwidth.`
-        );
-      } else {
+        const properties = await response.text();
+        const propertyLines = properties.split(/\r?\n/).map((line) => line.trim());
+        const readProperty = (key: string) => {
+          const line = propertyLines.find((item) => item.split('=')[0]?.trim() === key);
+          return line ? line.slice(line.indexOf('=') + 1).trim() : '';
+        };
+        const hasPngTiles = readProperty('hips_tile_format').split(/\s+/).includes('png');
+        const hasExpectedOrder = Number(readProperty('hips_order')) === 7;
+
+        if (surveyUrl === SPHEREX_HIPS_URL && (!hasPngTiles || !hasExpectedOrder)) {
+          continue;
+        }
+
+        if (candidate !== surveyUrl && surveyUrl === SPHEREX_HIPS_URL && aladinRef.current) {
+          const mirrorLayer = createSpherexHiPS(candidate, (cause) => {
+            const detail = cause instanceof Error ? cause.message : String(cause);
+            setSurveyErrorMsg(`SPHEREx mirror layer failed: ${detail}`);
+          });
+          (aladinRef.current as unknown as { setBaseImageLayer: (layer: unknown) => void }).setBaseImageLayer(mirrorLayer);
+        }
+
         setSurveyErrorMsg(null);
+        return;
+      } catch {
+        // Try the next official HiPS host, if one is available.
+      } finally {
+        window.clearTimeout(timeoutId);
       }
-    } catch {
-      // Non-fatal: tile loading errors handled gracefully
+    }
+
+    if (surveyUrl === SPHEREX_HIPS_URL) {
+      if (aladinRef.current) {
+        // Keep the atlas useful even when both SPHEREx hosts are inaccessible.
+        aladinRef.current.setBaseImageLayer(DSS2_HIPS_URL);
+        setSurvey('reference');
+      }
       setSurveyErrorMsg(
-        `Unable to reach CDS Unistra HiPS service directly for ${surveyId}. If sky tiles appear black, check external network or CORS proxy access.`
+        `SPHEREx HiPS metadata could not be retrieved from either official host (${candidates.join(' or ')}). Switched to the DSS2 optical reference layer; select SPHEREx QR2 to retry.`
+      );
+    } else {
+      setSurveyErrorMsg(
+        `Could not retrieve HiPS metadata from ${surveyUrl}. The reference survey host may be unreachable or blocked by the browser/network.`
       );
     }
   };
@@ -184,11 +264,19 @@ export const AladinSkyViewer: React.FC<AladinSkyViewerProps> = ({ className = ''
   const changeSurvey = (nextSurvey: 'spherex' | 'reference') => {
     setSurvey(nextSurvey);
     setSurveyErrorMsg(null);
-    const surveyId = nextSurvey === 'spherex' ? SPHEREX_HIPS : DSS2_SURVEY;
+    const surveyId = nextSurvey === 'spherex' ? SPHEREX_HIPS_URL : DSS2_HIPS_URL;
 
     if (aladinRef.current) {
       try {
-        aladinRef.current.setBaseImageLayer(surveyId);
+        if (nextSurvey === 'spherex') {
+          const layer = createSpherexHiPS(SPHEREX_HIPS_URL, (cause) => {
+            const detail = cause instanceof Error ? cause.message : String(cause);
+            setSurveyErrorMsg(`SPHEREx HiPS could not be initialized: ${detail}.`);
+          });
+          (aladinRef.current as unknown as { setBaseImageLayer: (layer: unknown) => void }).setBaseImageLayer(layer);
+        } else {
+          aladinRef.current.setBaseImageLayer(DSS2_HIPS_URL);
+        }
         if (nextSurvey === 'spherex') {
           aladinRef.current.gotoRaDec(INITIAL_RA, INITIAL_DEC);
           aladinRef.current.setFoV(INITIAL_FOV);
@@ -326,7 +414,7 @@ export const AladinSkyViewer: React.FC<AladinSkyViewerProps> = ({ className = ''
             <span>{surveyErrorMsg}</span>
           </div>
           <button
-            onClick={() => checkSurveyConnectivity(survey === 'spherex' ? SPHEREX_HIPS : DSS2_SURVEY)}
+            onClick={() => checkSurveyConnectivity(survey === 'spherex' ? SPHEREX_HIPS_URL : DSS2_HIPS_URL)}
             className="shrink-0 underline hover:text-white"
           >
             Recheck service
