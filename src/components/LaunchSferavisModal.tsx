@@ -95,7 +95,7 @@ ICE_TAU =                ${currentTarget.iceAbsorptionDepth.toFixed(3)} / H2O Ic
     setIsFullscreen((prev) => !prev);
   };
 
-  const atlasUrl = 'https://aladin.cds.unistra.fr/AladinLite/';
+  const atlasUrl = 'https://irsa.ipac.caltech.edu/Missions/spherex.html';
 
   return (
     <div
@@ -120,7 +120,7 @@ ICE_TAU =                ${currentTarget.iceAbsorptionDepth.toFixed(3)} / H2O Ic
             <div className="flex items-center gap-3">
               <Logo size="md" />
               <span className="hidden md:inline-block text-[11px] font-lexend uppercase tracking-widest text-zinc-400 border-l border-zinc-700 pl-3">
-                102-Band All-Sky IR Studio
+                SPHEREx Planetarium & Analysis
               </span>
             </div>
 
@@ -135,7 +135,7 @@ ICE_TAU =                ${currentTarget.iceAbsorptionDepth.toFixed(3)} / H2O Ic
                 }`}
               >
                 <Compass className="w-3.5 h-3.5" />
-                <span>Sky Atlas (Dome & Globe)</span>
+                <span>SPHEREx Planetarium</span>
               </button>
 
               <button
@@ -165,10 +165,10 @@ ICE_TAU =                ${currentTarget.iceAbsorptionDepth.toFixed(3)} / H2O Ic
               target="_blank"
               rel="noopener noreferrer"
               className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-xs font-lexend uppercase tracking-wider text-zinc-200 transition-colors cursor-pointer"
-              title="Open standalone viewer in new tab"
+              title="Open the official SPHEREx data archive in a new tab"
             >
               <ExternalLink className="w-3.5 h-3.5" />
-              <span>Full Tab</span>
+              <span>Data Archive</span>
             </a>
 
             <button
@@ -405,7 +405,7 @@ ICE_TAU =                ${currentTarget.iceAbsorptionDepth.toFixed(3)} / H2O Ic
         <footer className="px-5 py-3 bg-[#0d0d12] border-t border-zinc-800 flex items-center justify-between text-xs text-zinc-400 shrink-0">
           <div className="flex items-center gap-2">
             <span className="w-2 h-2 bg-[#A30000]"></span>
-            <span className="font-lexend text-[11px] uppercase tracking-wider text-zinc-300">SPHEREx Survey Engine Active · 102 Channels Ready</span>
+            <span className="font-lexend text-[11px] uppercase tracking-wider text-zinc-300">SPHEREx QR2 HiPS Quicklook · IRSA Data Access</span>
           </div>
 
           <div className="flex items-center gap-3">
