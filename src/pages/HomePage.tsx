@@ -244,10 +244,10 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate, onLaunchSferavis
           </div>
 
           {/* Interactive Console Card */}
-          <div className="bg-[#0e0e14] border border-zinc-800 p-6 sm:p-8 lg:p-10 shadow-2xl relative">
+          <div className="sferavis-spectral-console bg-[#0e0e14] border border-zinc-800 p-6 sm:p-8 lg:p-10 shadow-2xl relative">
             
             {/* Top Wavelength Indicator & Live Band Readout */}
-            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 pb-6 border-b border-zinc-800">
+            <div className="sferavis-spectral-controls flex flex-col md:flex-row items-start md:items-center justify-between gap-4 pb-6 border-b border-zinc-800">
               <div>
                 <span className="text-xs text-zinc-400 uppercase font-lexend tracking-widest flex items-center gap-2">
                   <Activity className="w-3.5 h-3.5 text-[#A30000]" />
@@ -341,7 +341,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate, onLaunchSferavis
             </div>
 
             {/* Visualizer Stage */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 pt-6 border-t border-zinc-800">
+            <div className="sferavis-visualizer-stage grid grid-cols-1 lg:grid-cols-3 gap-6 pt-6 border-t border-zinc-800">
               
               {/* Chemical Signature Card with National Geographic red rule */}
               <motion.div
@@ -349,7 +349,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate, onLaunchSferavis
                 initial={{ opacity: 0, x: -10 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.3 }}
-                className="bg-[#08080a] p-6 border border-zinc-800 border-l-4 border-l-[#A30000] flex flex-col justify-between"
+                className="sferavis-diagnostic-panel bg-[#08080a] p-6 border border-zinc-800 border-l-4 border-l-[#A30000] flex flex-col justify-between"
               >
                 <div>
                   <span className="text-xs font-lexend text-[#A30000] uppercase tracking-widest font-bold">
@@ -386,7 +386,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate, onLaunchSferavis
               </motion.div>
 
               {/* Simulated Spectral Energy Distribution (SED) Curve Canvas */}
-              <div className="lg:col-span-2 bg-[#08080a] p-6 border border-zinc-800 flex flex-col justify-between">
+              <div className="sferavis-sed-panel lg:col-span-2 bg-[#08080a] p-6 border border-zinc-800 flex flex-col justify-between">
                 <div className="flex items-center justify-between mb-3">
                   <div>
                     <span className="text-xs font-mono text-zinc-500">Live SED Profile · Orion Kleinmann-Low Nebula</span>
@@ -404,11 +404,11 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate, onLaunchSferavis
                 </div>
 
                 {/* SVG Graph rendering the SED curve with laser line */}
-                <div className="relative h-48 sm:h-56 w-full bg-[#050507] border border-zinc-800 p-2 overflow-hidden">
+                <div className="sferavis-sed-plot relative h-48 sm:h-56 w-full bg-[#050507] border border-zinc-800 p-2 overflow-hidden">
                   <svg className="w-full h-full" viewBox="0 0 500 160" preserveAspectRatio="none">
-                    <line x1="0" y1="40" x2="500" y2="40" stroke="rgba(255,255,255,0.05)" strokeDasharray="4" />
-                    <line x1="0" y1="80" x2="500" y2="80" stroke="rgba(255,255,255,0.05)" strokeDasharray="4" />
-                    <line x1="0" y1="120" x2="500" y2="120" stroke="rgba(255,255,255,0.05)" strokeDasharray="4" />
+                    <line x1="0" y1="40" x2="500" y2="40" stroke="rgba(100,116,139,0.24)" strokeDasharray="4" />
+                    <line x1="0" y1="80" x2="500" y2="80" stroke="rgba(100,116,139,0.24)" strokeDasharray="4" />
+                    <line x1="0" y1="120" x2="500" y2="120" stroke="rgba(100,116,139,0.24)" strokeDasharray="4" />
 
                     <rect x="0" y="0" width="42" height="160" fill="rgba(255,255,255,0.015)" />
                     <rect x="196" y="0" width="165" height="160" fill="rgba(163,0,0,0.08)" />
@@ -436,17 +436,17 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate, onLaunchSferavis
                             y1="0"
                             x2={xPos}
                             y2="160"
-                            stroke="#ffffff"
+                            stroke="#A30000"
                             strokeWidth="2"
                           />
-                          <circle cx={xPos} cy="75" r="5" fill="#ffffff" />
+                          <circle cx={xPos} cy="75" r="5" fill="#A30000" />
                           <circle cx={xPos} cy="75" r="9" fill="none" stroke="#A30000" strokeWidth="1.5" />
                         </g>
                       );
                     })()}
 
                     <defs>
-                      <linearGradient id="sed-gradient-natgeo-home" x1="0" y1="0" x2="0" y2="1">
+                      <linearGradient className="sferavis-sed-gradient" id="sed-gradient-natgeo-home" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="0%" stopColor="#A30000" />
                         <stop offset="100%" stopColor="#050507" />
                       </linearGradient>
