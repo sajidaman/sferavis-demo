@@ -35,6 +35,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         
         {/* Zone 1: Big prominent text Logo without icon */}
         <button
+          type="button"
           onClick={() => {
             onNavigate('home');
             setMobileMenuOpen(false);
@@ -73,6 +74,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         {/* Zone 3: 1 primary action ('Launch Sferavis') + theme toggle */}
         <div className="flex items-center gap-4 shrink-0">
           <button
+            type="button"
             onClick={onToggleTheme}
             aria-label={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
             className="p-2 rounded-lg text-zinc-600 dark:text-zinc-400 hover:text-black dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer border border-transparent dark:border-zinc-800"
@@ -81,6 +83,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           </button>
 
           <button
+            type="button"
             onClick={onLaunchSferavis}
             className="hidden sm:inline-flex items-center gap-2 px-5 py-2.5 text-xs font-lexend uppercase font-bold tracking-wider text-white bg-[#A30000] hover:bg-[#8B0000] active:bg-[#700000] transition-all duration-200 shadow-md cursor-pointer whitespace-nowrap"
           >
@@ -128,6 +131,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           })}
           <div className="pt-2">
             <button
+              type="button"
               onClick={() => {
                 onLaunchSferavis();
                 setMobileMenuOpen(false);
