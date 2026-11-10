@@ -46,20 +46,58 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
     return res.status(400).json({ error: 'Your latest message could not be read. Please try again.' });
   }
 
-  try {
-    const ai = new GoogleGenAI({ apiKey });
-    const result = await ai.models.generateContent({
-      model: 'gemini-3.8-flash',
-      contents: messages.map(message => ({
-        role: message.role,
-        parts: [{ text: message.content }],
-      })),
-      config: {
-        systemInstruction,
-        maxOutputTokens: 700,
-        temperature: 0.45,
+  const ai = new GoogleGenAI({
+    apiKey,
+    httpOptions: {
+      // Bound each upstream attempt so a temporary Gemini outage cannot
+      // leave the Vercel function waiting for several minutes.
+      timeout: 20000,
+      retryOptions: {
+        attempts: 2,
+        initialDelay: 0.7,
+        maxDelay: 1.5,
+        expBase: 2,
+        jitter: 0.2,
+        httpStatusCodes: [408, 429, 500, 502, 503, 504],
       },
-    });
+    },
+  });
+
+  const contents = messages.map(message => ({
+    role: message.role,
+    parts: [{ text: message.content }],
+  }));
+
+  const generationConfig = {
+    systemInstruction,
+    maxOutputTokens: 700,
+    temperature: 0.45,
+    automaticContinuation: false,
+  };
+
+  try {
+    let result;
+    try {
+      result = await ai.models.generateContent({
+        model: 'gemini-3.8-flash',
+        contents,
+        config: generationConfig,
+      });
+    } catch (primaryError) {
+      const status = Number((primaryError as { status?: number; code?: number })?.status ||
+        (primaryError as { code?: number })?.code || 0);
+
+      // A 503 indicates temporary model capacity pressure. Try the previous
+      // stable Flash generation once as a backup before reporting an outage.
+      if (status !== 503) throw primaryError;
+
+      console.warn('Redium primary model is unavailable; trying Gemini 3.7 Flash.');
+      result = await ai.models.generateContent({
+        model: 'gemini-3.7-flash',
+        contents,
+        config: generationConfig,
+      });
+    }
 
     const reply = result.text?.trim();
     if (!reply) return res.status(502).json({ error: 'Redium could not generate a reply. Please try again.' });
