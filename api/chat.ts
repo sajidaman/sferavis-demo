@@ -22,9 +22,9 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
     return res.status(405).json({ error: 'Method not allowed.' });
   }
 
-  const apiKey = process.env.GEMINI_API_KEY;
+  const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
   if (!apiKey) {
-    return res.status(503).json({ error: 'Redium is not configured yet. Please try again later.' });
+    return res.status(503).json({ error: 'Redium is missing its server-side Gemini API key. Set GEMINI_API_KEY or GOOGLE_API_KEY in the hosting environment, then redeploy.' });
   }
 
   const body = (req.body && typeof req.body === 'object' ? req.body : {}) as { messages?: unknown };
