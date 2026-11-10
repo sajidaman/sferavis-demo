@@ -401,7 +401,7 @@ export const AladinSkyViewer: React.FC<AladinSkyViewerProps> = ({ className = ''
             <span>{surveyErrorMsg}</span>
           </div>
           <button
-            onClick={() => checkSurveyConnectivity(survey === 'spherex' ? SPHEREX_HIPS : DSS2_SURVEY)}
+            onClick={() => checkSurveyConnectivity(survey === 'spherex' ? SPHEREX_HIPS_URL : DSS2_HIPS_URL)}
             className="shrink-0 underline hover:text-white"
           >
             Recheck service
