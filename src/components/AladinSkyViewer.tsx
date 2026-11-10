@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useId, useRef, useState } from 'react';
 
 declare global {
   interface Window {
@@ -60,6 +60,7 @@ interface AladinSkyViewerProps {
 
 export const AladinSkyViewer: React.FC<AladinSkyViewerProps> = ({ className = '' }) => {
   const containerRef = useRef<HTMLDivElement>(null);
+  const containerId = useId().replace(/:/g, '');
   const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading');
   const [error, setError] = useState('');
 
@@ -71,7 +72,7 @@ export const AladinSkyViewer: React.FC<AladinSkyViewerProps> = ({ className = ''
         await loadAladin();
         if (cancelled || !containerRef.current || !window.A) return;
 
-        window.A.aladin(containerRef.current, {
+        window.A.aladin(`#${containerId}`, {
           survey: 'P/DSS2/color',
           target: '0 +0',
           fov: 120,
@@ -101,7 +102,7 @@ export const AladinSkyViewer: React.FC<AladinSkyViewerProps> = ({ className = ''
 
   return (
     <section className={`relative h-full min-h-[420px] w-full bg-[#050507] ${className}`} aria-label="Interactive Aladin astronomical sky map">
-      <div ref={containerRef} className="absolute inset-0 h-full w-full" />
+      <div id={containerId} ref={containerRef} className="absolute inset-0 h-full w-full" />
       {status === 'loading' && (
         <div className="absolute inset-0 z-10 flex items-center justify-center bg-[#050507] text-zinc-300">
           <div className="text-center">
