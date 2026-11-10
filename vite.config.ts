@@ -6,9 +6,18 @@ import {defineConfig} from 'vite';
 export default defineConfig(() => {
   return {
     plugins: [react(), tailwindcss()],
+    assetsInclude: ['**/*.wasm'],
+    build: {
+      target: 'esnext',
+    },
+    optimizeDeps: {
+      esbuildOptions: {
+        target: 'esnext',
+      },
+    },
     resolve: {
       alias: {
-        '@': path.resolve(__dirname, '.'),
+        '@': path.resolve(import.meta.dirname ?? __dirname, '.'),
       },
     },
     server: {
@@ -20,3 +29,4 @@ export default defineConfig(() => {
     },
   };
 });
+
