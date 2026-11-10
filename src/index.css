@@ -333,14 +333,20 @@ html:not(.dark) .sferavis-site .sferavis-sed-plot [class~="text-red-300"] {
 /* A minimal crimson instrument-reticle cursor; only enabled on precise pointers. */
 @media (hover: hover) and (pointer: fine) {
   .sferavis-site,
-  .sferavis-site * {
+  .sferavis-site *,
+  .sferavis-cursor-area,
+  .sferavis-cursor-area * {
     cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Ccircle cx='14' cy='14' r='4' fill='%23A30000'/%3E%3Ccircle cx='14' cy='14' r='9' fill='none' stroke='%23A30000' stroke-width='1.35'/%3E%3Cpath d='M14 1.5v5M14 21.5v5M1.5 14h5M21.5 14h5' stroke='%23A30000' stroke-width='1.25' stroke-linecap='round'/%3E%3C/svg%3E") 14 14, auto;
   }
   .sferavis-site a,
   .sferavis-site button,
   .sferavis-site [role="button"],
   .sferavis-site input[type="range"],
-  .sferavis-site label {
+  .sferavis-site label,
+  .sferavis-cursor-area a,
+  .sferavis-cursor-area button,
+  .sferavis-cursor-area [role="button"],
+  .sferavis-cursor-area label {
     cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Ccircle cx='14' cy='14' r='3' fill='%23A30000'/%3E%3Ccircle cx='14' cy='14' r='9' fill='none' stroke='%23A30000' stroke-width='1.6'/%3E%3C/svg%3E") 14 14, pointer;
   }
 }
