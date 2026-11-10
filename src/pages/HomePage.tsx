@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import spherexObservatoryImage from '../assets/images/spherex_observatory_orbit_1794254683688.jpg';
+import allSkyInfraredImage from '../assets/images/allsky_infrared_cosmos_1794254684440.jpg';
 import { motion } from 'motion/react';
 import { PageId } from '../types';
 import { Logo } from '../components/Logo';
@@ -164,7 +166,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate, onLaunchSferavis
             className="mt-14 relative max-w-5xl mx-auto border-2 border-zinc-800 overflow-hidden shadow-2xl bg-black"
           >
             <motion.img
-              src="/src/assets/images/spherex_observatory_orbit_1794254683688.jpg"
+              src={spherexObservatoryImage}
               alt="NASA SPHEREx Space Telescope Observatory Orbiting Earth"
               className="w-full h-[380px] sm:h-[500px] lg:h-[600px] object-cover object-center"
               whileHover={{ scale: 1.02 }}
@@ -522,7 +524,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate, onLaunchSferavis
 
             <div className="absolute right-0 top-0 bottom-0 w-1/2 opacity-25 group-hover:opacity-40 transition-opacity duration-500 pointer-events-none">
               <img
-                src="/src/assets/images/allsky_infrared_cosmos_1794254684440.jpg"
+                src={allSkyInfraredImage}
                 alt="Cosmic All-Sky Infrared Galaxy Distribution"
                 className="w-full h-full object-cover object-left"
                 referrerPolicy="no-referrer"
