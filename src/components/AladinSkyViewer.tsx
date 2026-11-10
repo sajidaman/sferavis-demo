@@ -25,13 +25,19 @@ const INITIAL_DEC = -29.006111;
 const INITIAL_FOV = 0.4580648549089874;
 
 function createSpherexHiPS(url = SPHEREX_HIPS_URL, onError?: (error: unknown) => void) {
+  // Aladin Lite v3 expects: new A.HiPS(id, locationUrl, options).
+  // Supplying the published HiPS metadata here avoids a separate properties-file
+  // lookup, which can fail independently of the actual survey tile service.
   const api = A as unknown as {
-    HiPS: (id: string, options: Record<string, unknown>) => unknown;
+    HiPS: new (
+      id: string,
+      location: string,
+      options: Record<string, unknown>
+    ) => unknown;
   };
 
-  return api.HiPS(SPHEREX_HIPS, {
+  return new api.HiPS(SPHEREX_HIPS, url, {
     name: 'NASA SPHEREx QR2 D3',
-    url,
     maxOrder: 7,
     minOrder: 0,
     tileSize: 512,
@@ -155,18 +161,10 @@ export const AladinSkyViewer: React.FC<AladinSkyViewerProps> = ({ className = ''
 
       aladinRef.current = aladin;
 
-      if (surveyRef.current === 'spherex') {
-        const layer = createSpherexHiPS(SPHEREX_HIPS_URL, (cause) => {
-          const detail = cause instanceof Error ? cause.message : String(cause);
-          setSurveyErrorMsg(`SPHEREx HiPS could not be initialized: ${detail}. The optical DSS2 reference layer remains available.`);
-        });
-        (aladin as unknown as { setBaseImageLayer: (layer: unknown) => void }).setBaseImageLayer(layer);
-      }
-
       setStatus('ready');
 
-      // Check the exact public HiPS properties endpoint, not the CDS identifier as a path.
-      checkSurveyConnectivity(targetSurvey);
+      // Load SPHEREx using its published HiPS URL and known metadata.
+      loadSurveyLayer(targetSurvey);
     } catch (err) {
       console.error('[Sferavis Aladin Lite Init Error]', err);
       const message = err instanceof Error ? err.message : String(err);
@@ -178,75 +176,40 @@ export const AladinSkyViewer: React.FC<AladinSkyViewerProps> = ({ className = ''
     }
   }, [containerId]);
 
-  // Verify the actual HiPS properties endpoint. SPHEREx has a published mirror;
-  // if the primary host is unreachable, switch the viewer to that mirror.
-  const checkSurveyConnectivity = async (surveyUrl: string) => {
-    const candidates =
-      surveyUrl === SPHEREX_HIPS_URL
-        ? [SPHEREX_HIPS_URL, SPHEREX_HIPS_MIRROR_URL]
-        : [surveyUrl];
+  // Load the survey directly through Aladin Lite. The SPHEREx registry confirms
+  // order 7, 512px tiles, equatorial frame, and PNG availability. Passing these
+  // values to A.HiPS prevents a fragile browser-side properties fetch.
+  const loadSurveyLayer = (surveyUrl: string) => {
+    const aladin = aladinRef.current;
+    if (!aladin) return;
 
-    for (const candidate of candidates) {
-      const rootUrl = candidate.endsWith('/') ? candidate.slice(0, -1) : candidate;
-      const propertiesUrl = `${rootUrl}/properties`;
-      const controller = new AbortController();
-      const timeoutId = window.setTimeout(() => controller.abort(), 8000);
-
-      try {
-        const response = await fetch(propertiesUrl, {
-          method: 'GET',
-          signal: controller.signal,
-          mode: 'cors',
-          credentials: 'omit',
-        });
-
-        if (!response.ok) {
-          continue;
-        }
-
-        const properties = await response.text();
-        const propertyLines = properties.split(/\r?\n/).map((line) => line.trim());
-        const readProperty = (key: string) => {
-          const line = propertyLines.find((item) => item.split('=')[0]?.trim() === key);
-          return line ? line.slice(line.indexOf('=') + 1).trim() : '';
-        };
-        const hasPngTiles = readProperty('hips_tile_format').split(/\s+/).includes('png');
-        const hasExpectedOrder = Number(readProperty('hips_order')) === 7;
-
-        if (surveyUrl === SPHEREX_HIPS_URL && (!hasPngTiles || !hasExpectedOrder)) {
-          continue;
-        }
-
-        if (candidate !== surveyUrl && surveyUrl === SPHEREX_HIPS_URL && aladinRef.current) {
-          const mirrorLayer = createSpherexHiPS(candidate, (cause) => {
-            const detail = cause instanceof Error ? cause.message : String(cause);
-            setSurveyErrorMsg(`SPHEREx mirror layer failed: ${detail}`);
-          });
-          (aladinRef.current as unknown as { setBaseImageLayer: (layer: unknown) => void }).setBaseImageLayer(mirrorLayer);
-        }
-
-        setSurveyErrorMsg(null);
-        return;
-      } catch {
-        // Try the next official HiPS host, if one is available.
-      } finally {
-        window.clearTimeout(timeoutId);
-      }
+    if (surveyUrl !== SPHEREX_HIPS_URL) {
+      aladin.setBaseImageLayer(DSS2_HIPS_URL);
+      setSurveyErrorMsg(null);
+      return;
     }
 
-    if (surveyUrl === SPHEREX_HIPS_URL) {
+    const mirrorError = (cause: unknown) => {
+      const detail = cause instanceof Error ? cause.message : String(cause);
+      setSurveyErrorMsg(`SPHEREx QR2 could not be loaded from either official HiPS host. Details: ${detail}`);
+    };
+
+    const primaryError = (cause: unknown) => {
+      const detail = cause instanceof Error ? cause.message : String(cause);
+      setSurveyErrorMsg(`The primary SPHEREx host failed (${detail}). Trying the official mirror…`);
+
       if (aladinRef.current) {
-        // Keep the atlas useful even when both SPHEREx hosts are inaccessible.
-        aladinRef.current.setBaseImageLayer(DSS2_HIPS_URL);
-        setSurvey('reference');
+        const mirrorLayer = createSpherexHiPS(SPHEREX_HIPS_MIRROR_URL, mirrorError);
+        aladinRef.current.setBaseImageLayer(mirrorLayer);
       }
-      setSurveyErrorMsg(
-        `SPHEREx HiPS metadata could not be retrieved from either official host (${candidates.join(' or ')}). Switched to the DSS2 optical reference layer; select SPHEREx QR2 to retry.`
-      );
-    } else {
-      setSurveyErrorMsg(
-        `Could not retrieve HiPS metadata from ${surveyUrl}. The reference survey host may be unreachable or blocked by the browser/network.`
-      );
+    };
+
+    try {
+      const layer = createSpherexHiPS(SPHEREX_HIPS_URL, primaryError);
+      aladin.setBaseImageLayer(layer);
+      setSurveyErrorMsg(null);
+    } catch (error) {
+      primaryError(error);
     }
   };
 
@@ -264,33 +227,21 @@ export const AladinSkyViewer: React.FC<AladinSkyViewerProps> = ({ className = ''
   const changeSurvey = (nextSurvey: 'spherex' | 'reference') => {
     setSurvey(nextSurvey);
     setSurveyErrorMsg(null);
-    const surveyId = nextSurvey === 'spherex' ? SPHEREX_HIPS_URL : DSS2_HIPS_URL;
+    const surveyUrl = nextSurvey === 'spherex' ? SPHEREX_HIPS_URL : DSS2_HIPS_URL;
 
-    if (aladinRef.current) {
-      try {
-        if (nextSurvey === 'spherex') {
-          const layer = createSpherexHiPS(SPHEREX_HIPS_URL, (cause) => {
-            const detail = cause instanceof Error ? cause.message : String(cause);
-            setSurveyErrorMsg(`SPHEREx HiPS could not be initialized: ${detail}.`);
-          });
-          (aladinRef.current as unknown as { setBaseImageLayer: (layer: unknown) => void }).setBaseImageLayer(layer);
-        } else {
-          aladinRef.current.setBaseImageLayer(DSS2_HIPS_URL);
-        }
-        if (nextSurvey === 'spherex') {
-          aladinRef.current.gotoRaDec(INITIAL_RA, INITIAL_DEC);
-          aladinRef.current.setFoV(INITIAL_FOV);
-          setFov(INITIAL_FOV);
-        }
-      } catch (err) {
-        console.error('[Survey Change Error]', err);
-        setSurveyErrorMsg(
-          `Failed to switch survey layer to ${surveyId}: ${err instanceof Error ? err.message : String(err)}`
-        );
+    try {
+      loadSurveyLayer(surveyUrl);
+      if (nextSurvey === 'spherex' && aladinRef.current) {
+        aladinRef.current.gotoRaDec(INITIAL_RA, INITIAL_DEC);
+        aladinRef.current.setFoV(INITIAL_FOV);
+        setFov(INITIAL_FOV);
       }
+    } catch (error) {
+      console.error('[Survey Change Error]', error);
+      setSurveyErrorMsg(
+        `Failed to switch survey layer: ${error instanceof Error ? error.message : String(error)}`
+      );
     }
-
-    checkSurveyConnectivity(surveyId);
   };
 
   const goToCoordinates = (event: React.FormEvent) => {
@@ -414,7 +365,7 @@ export const AladinSkyViewer: React.FC<AladinSkyViewerProps> = ({ className = ''
             <span>{surveyErrorMsg}</span>
           </div>
           <button
-            onClick={() => checkSurveyConnectivity(survey === 'spherex' ? SPHEREX_HIPS_URL : DSS2_HIPS_URL)}
+            onClick={() => loadSurveyLayer(survey === 'spherex' ? SPHEREX_HIPS_URL : DSS2_HIPS_URL)}
             className="shrink-0 underline hover:text-white"
           >
             Recheck service
