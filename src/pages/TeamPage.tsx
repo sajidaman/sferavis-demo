@@ -1,342 +1,54 @@
-import React, { useState } from 'react';
-import { PageId, TeamMember } from '../types';
-import { TEAM_MEMBERS, PUBLICATIONS } from '../data/mockData';
-import {
-  Users,
-  GraduationCap,
-  BookOpen,
-  Send,
-  CheckCircle,
-  ExternalLink,
-  Building,
-  Mail,
-  Shield,
-  FileText,
-} from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { AnimatePresence, motion } from 'motion/react';
+import { ArrowUpRight, Camera, Github, Globe, Instagram, Linkedin, Mail, X } from 'lucide-react';
+import { PageId } from '../types';
 
-interface TeamPageProps {
-  onNavigate: (page: PageId) => void;
-}
+interface TeamPageProps { onNavigate: (page: PageId) => void; }
+type Social = { label: string; url: string; platform: 'linkedin'|'github'|'instagram'|'email'|'website' };
+type Member = { id: string; name: string; role: string; image: string; biography: string; expertise: string[]; socialLinks: Social[] };
 
-export const TeamPage: React.FC<TeamPageProps> = ({ onNavigate }) => {
-  const [selectedPillar, setSelectedPillar] = useState<string>('All');
-  const [expandedPubId, setExpandedPubId] = useState<string | null>(null);
+// Replace these clearly marked placeholders with the six real members.
+// Add portraits under /public/team/ and set image to e.g. /team/member-name.jpg.
+const TEAM_MEMBERS: Member[] = [
+ {id:'01',name:'Member One',role:'Project Lead & Technical Coordinator',image:'',biography:'Add this member’s biography, background and what motivates their work at Sferavis.',expertise:['Project direction','Systems thinking','Team coordination'],socialLinks:[]},
+ {id:'02',name:'Member Two',role:'UI/UX Designer',image:'',biography:'Add this member’s biography, design interests and contribution to Sferavis.',expertise:['Interface design','User experience','Visual communication'],socialLinks:[]},
+ {id:'03',name:'Member Three',role:'Frontend Developer',image:'',biography:'Add this member’s biography, development interests and contribution to Sferavis.',expertise:['React','TypeScript','Web development'],socialLinks:[]},
+ {id:'04',name:'Member Four',role:'Backend & Integration Developer',image:'',biography:'Add this member’s biography, technical interests and contribution to Sferavis.',expertise:['Backend systems','APIs','Database design'],socialLinks:[]},
+ {id:'05',name:'Member Five',role:'AI & Machine Learning Engineer',image:'',biography:'Add this member’s biography, AI/ML interests and contribution to Sferavis.',expertise:['Machine learning','AI integration','Data analysis'],socialLinks:[]},
+ {id:'06',name:'Member Six',role:'Research, Content & Quality Lead',image:'',biography:'Add this member’s biography, scientific interests and contribution to Sferavis.',expertise:['Scientific research','Technical writing','Quality assurance'],socialLinks:[]},
+];
+const SocialIcon = ({platform}:{platform:Social['platform']}) => platform==='linkedin'?<Linkedin size={17}/>:platform==='github'?<Github size={17}/>:platform==='instagram'?<Instagram size={17}/>:platform==='email'?<Mail size={17}/>:<Globe size={17}/>;
 
-  // Inquiry form state
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    institution: '',
-    researchArea: 'Interstellar Ices',
-    message: '',
-  });
-  const [formSubmitted, setFormSubmitted] = useState<boolean>(false);
-  const [formError, setFormError] = useState<string | null>(null);
-
-  const pillars = ['All', 'Cosmic Inflation', 'Galaxy Formation', 'Interstellar Ices', 'Instrumentation & Data'];
-
-  const filteredPublications = PUBLICATIONS.filter(
-    (p) => selectedPillar === 'All' || p.pillar === selectedPillar
-  );
-
-  const handleSubmitInquiry = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!formData.name.trim() || !formData.email.trim() || !formData.message.trim()) {
-      setFormError('Please complete all required fields.');
-      return;
-    }
-    setFormError(null);
-    setFormSubmitted(true);
-  };
-
-  return (
-    <div className="w-full text-slate-900 dark:text-slate-100 min-h-screen selection:bg-[#A30000] selection:text-white">
-      
-      {/* HEADER SECTION */}
-      <section className="pt-12 pb-16 border-b border-zinc-200 dark:border-slate-800 bg-white/70 dark:bg-[#090f1d]/70">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          
-          <div className="inline-flex items-center gap-3 text-xs font-lexend uppercase tracking-widest text-slate-600 dark:text-zinc-400 border-b border-zinc-200 dark:border-slate-800 pb-2 mb-4">
-            <span className="w-2 h-2 bg-[#A30000]"></span>
-            <span className="text-[#A30000] font-bold">CONSORTIUM LEADERSHIP</span>
-            <span className="text-zinc-400 dark:text-zinc-600">/</span>
-            <span className="text-slate-700 dark:text-zinc-300">CALTECH · JPL · KASI · HARVARD CfA</span>
-          </div>
-
-          <h1 className="text-4xl sm:text-6xl font-oswald uppercase font-black tracking-tight text-slate-950 dark:text-white max-w-3xl leading-[1.05]">
-            The SPHEREx & SFERAvis Team.
-          </h1>
-
-          <p className="mt-4 text-base sm:text-xl font-merriweather text-slate-600 dark:text-zinc-300 max-w-2xl leading-relaxed">
-            Astrophysicists, instrument scientists, and high-performance software architects united across international research institutions to map the all-sky infrared universe.
-          </p>
-
-        </div>
-      </section>
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14 space-y-20">
-        
-        {/* TEAM LEADERSHIP GRID */}
-        <section>
-          <div className="mb-10">
-            <span className="text-xs font-lexend uppercase tracking-widest font-bold text-[#A30000]">
-              Scientific Leadership
-            </span>
-            <h2 className="text-2xl sm:text-4xl font-oswald uppercase font-black text-slate-950 dark:text-white mt-1">
-              Principal Investigators & Architects
-            </h2>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {TEAM_MEMBERS.map((member) => (
-              <div
-                key={member.id}
-                className="bg-white dark:bg-[#0e1628] border border-zinc-200 dark:border-slate-800 border-l-4 border-l-[#A30000] p-7 flex flex-col justify-between hover:border-zinc-400 dark:hover:border-slate-700 transition-colors shadow-md"
-              >
-                <div>
-                  <div className="flex items-center justify-between mb-3 text-xs font-lexend">
-                    <span className="text-[#A30000] uppercase font-bold tracking-wider">{member.role}</span>
-                    <span className="text-slate-500 dark:text-zinc-500 font-mono">{member.publicationsCount} Papers</span>
-                  </div>
-
-                  <h3 className="text-xl sm:text-2xl font-bold font-oswald uppercase text-slate-950 dark:text-white tracking-wide">{member.name}</h3>
-                  <div className="text-xs text-slate-500 dark:text-zinc-400 font-lexend mt-1 flex items-center gap-1.5">
-                    <Building className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
-                    <span className="truncate">{member.institution}</span>
-                  </div>
-
-                  <p className="mt-4 text-xs sm:text-sm text-slate-600 dark:text-zinc-300 font-merriweather leading-relaxed">
-                    {member.bio}
-                  </p>
-                </div>
-
-                <div className="mt-6 pt-4 border-t border-zinc-200 dark:border-slate-800 font-lexend">
-                  <span className="text-[11px] text-slate-500 dark:text-zinc-500 uppercase tracking-widest block mb-1">
-                    Research Focus
-                  </span>
-                  <span className="text-xs text-slate-800 dark:text-zinc-200 font-bold">{member.focusArea}</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-
-
-        {/* CONSORTIUM INSTITUTIONS STRIP */}
-        <section className="bg-white dark:bg-[#0e1628] border border-zinc-200 dark:border-slate-800 p-8 text-center border-l-4 border-l-[#A30000] shadow-md">
-          <span className="text-xs font-lexend font-bold text-slate-500 dark:text-zinc-400 uppercase tracking-widest block mb-6">
-            Partner Institutions & Space Agencies
-          </span>
-
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 items-center justify-center">
-            <div className="p-5 bg-slate-50 dark:bg-black/60 border border-zinc-200 dark:border-slate-800">
-              <div className="text-lg font-bold font-oswald uppercase text-slate-950 dark:text-white">Caltech</div>
-              <div className="text-xs text-slate-500 dark:text-zinc-400 font-lexend mt-0.5">Lead Institution & IPAC</div>
-            </div>
-            <div className="p-5 bg-slate-50 dark:bg-black/60 border border-zinc-200 dark:border-slate-800">
-              <div className="text-lg font-bold font-oswald uppercase text-slate-950 dark:text-white">NASA JPL</div>
-              <div className="text-xs text-slate-500 dark:text-zinc-400 font-lexend mt-0.5">Project Management & Optics</div>
-            </div>
-            <div className="p-5 bg-slate-50 dark:bg-black/60 border border-zinc-200 dark:border-slate-800">
-              <div className="text-lg font-bold font-oswald uppercase text-slate-950 dark:text-white">KASI</div>
-              <div className="text-xs text-slate-500 dark:text-zinc-400 font-lexend mt-0.5">Korea Astronomy & Space Science</div>
-            </div>
-            <div className="p-5 bg-slate-50 dark:bg-black/60 border border-zinc-200 dark:border-slate-800">
-              <div className="text-lg font-bold font-oswald uppercase text-slate-950 dark:text-white">Harvard CfA</div>
-              <div className="text-xs text-slate-500 dark:text-zinc-400 font-lexend mt-0.5">Center for Astrophysics</div>
-            </div>
-          </div>
-        </section>
-
-
-        {/* PEER-REVIEWED PUBLICATIONS */}
-        <section>
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
-            <div>
-              <span className="text-xs font-lexend uppercase tracking-widest font-bold text-[#A30000]">
-                Scientific Output
-              </span>
-              <h2 className="text-2xl sm:text-4xl font-oswald uppercase font-black text-slate-950 dark:text-white mt-1">
-                Mission Publications & Reports
-              </h2>
-            </div>
-
-            {/* Filter buttons */}
-            <div className="flex flex-wrap gap-2">
-              {pillars.map((pil) => (
-                <button
-                  key={pil}
-                  onClick={() => setSelectedPillar(pil)}
-                  className={`px-3.5 py-1.5 text-xs font-lexend uppercase tracking-wider transition-colors cursor-pointer border ${
-                    selectedPillar === pil
-                      ? 'bg-[#A30000] border-[#A30000] text-white font-bold'
-                      : 'bg-white dark:bg-[#0e1628] text-slate-700 dark:text-zinc-400 hover:text-slate-950 dark:hover:text-white border-zinc-300 dark:border-slate-700 shadow-sm'
-                  }`}
-                >
-                  {pil}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="space-y-4">
-            {filteredPublications.map((pub) => {
-              const isExpanded = expandedPubId === pub.id;
-              return (
-                <div
-                  key={pub.id}
-                  className="bg-white dark:bg-[#0e1628] border border-zinc-200 dark:border-slate-800 border-l-4 border-l-[#A30000] p-6 hover:border-zinc-400 dark:hover:border-slate-700 transition-all shadow-sm"
-                >
-                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 mb-2 font-lexend">
-                    <span className="text-xs text-[#A30000] font-bold uppercase tracking-wider">{pub.pillar}</span>
-                    <span className="text-xs text-slate-500 dark:text-zinc-400 font-mono">
-                      {pub.journal} ({pub.year}) · DOI: {pub.doi}
-                    </span>
-                  </div>
-
-                  <h3 className="text-base sm:text-lg font-bold font-oswald uppercase text-slate-950 dark:text-white tracking-wide">{pub.title}</h3>
-                  <div className="text-xs text-slate-600 dark:text-zinc-400 font-lexend mt-1">{pub.authors}</div>
-
-                  {isExpanded && (
-                    <div className="mt-4 pt-4 border-t border-zinc-200 dark:border-slate-800 text-xs sm:text-sm text-slate-700 dark:text-zinc-300 font-merriweather leading-relaxed bg-slate-50 dark:bg-black/60 p-4 border border-zinc-200 dark:border-slate-800">
-                      <p>{pub.abstract}</p>
-                    </div>
-                  )}
-
-                  <div className="mt-4 flex items-center justify-between pt-3 border-t border-zinc-200 dark:border-slate-800 text-xs font-lexend">
-                    <button
-                      onClick={() => setExpandedPubId(isExpanded ? null : pub.id)}
-                      className="text-[#A30000] hover:text-[#8B0000] uppercase tracking-wider font-bold cursor-pointer"
-                    >
-                      {isExpanded ? 'Hide Abstract' : 'Read Abstract →'}
-                    </button>
-                    <span className="text-slate-400 dark:text-zinc-500 font-mono">ADS Bibcode verified</span>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </section>
-
-
-        {/* SCIENTIFIC COLLABORATION INQUIRY FORM */}
-        <section className="bg-white dark:bg-[#0e1628] border border-zinc-200 dark:border-slate-800 p-8 sm:p-12 border-l-4 border-l-[#A30000] shadow-md">
-          <div className="max-w-3xl">
-            <span className="text-xs font-lexend uppercase tracking-widest font-bold text-[#A30000]">
-              Get in Touch
-            </span>
-            <h2 className="text-2xl sm:text-4xl font-oswald uppercase font-black text-slate-950 dark:text-white mt-1">
-              Scientific Collaboration & Data Inquiries
-            </h2>
-            <p className="mt-2 text-sm sm:text-base text-slate-600 dark:text-zinc-300 font-merriweather leading-relaxed">
-              Reach the SFERAvis platform development team and SPHEREx science working groups for data release questions, software contributions, or survey scheduling.
-            </p>
-
-            {formSubmitted ? (
-              <div className="mt-8 p-6 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-300 dark:border-emerald-800 flex items-center gap-3">
-                <CheckCircle className="w-5 h-5 text-emerald-600 dark:text-emerald-400 shrink-0" />
-                <span className="text-sm font-lexend text-emerald-900 dark:text-white font-medium">
-                  Thank you! Your collaboration inquiry has been routed to the SPHEREx working group coordinator.
-                </span>
-              </div>
-            ) : (
-              <form onSubmit={handleSubmitInquiry} className="mt-8 space-y-4">
-                {formError && (
-                  <div className="text-xs font-lexend text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/40 p-3 border border-red-200 dark:border-red-900">
-                    {formError}
-                  </div>
-                )}
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-lexend uppercase tracking-wider text-slate-600 dark:text-zinc-400 mb-1">
-                      Full Name *
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      value={formData.name}
-                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      className="w-full px-3.5 py-2.5 bg-white dark:bg-black/60 border border-zinc-300 dark:border-zinc-800 text-xs font-lexend text-slate-900 dark:text-white focus:outline-none focus:border-[#A30000]"
-                      placeholder="Dr. Jane Doe"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-lexend uppercase tracking-wider text-slate-600 dark:text-zinc-400 mb-1">
-                      Institutional Email *
-                    </label>
-                    <input
-                      type="email"
-                      required
-                      value={formData.email}
-                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                      className="w-full px-3.5 py-2.5 bg-white dark:bg-black/60 border border-zinc-300 dark:border-zinc-800 text-xs font-lexend text-slate-900 dark:text-white focus:outline-none focus:border-[#A30000]"
-                      placeholder="jane.doe@university.edu"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-lexend uppercase tracking-wider text-slate-600 dark:text-zinc-400 mb-1">
-                      Institution / Observatory
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.institution}
-                      onChange={(e) => setFormData({ ...formData, institution: e.target.value })}
-                      className="w-full px-3.5 py-2.5 bg-white dark:bg-black/60 border border-zinc-300 dark:border-zinc-800 text-xs font-lexend text-slate-900 dark:text-white focus:outline-none focus:border-[#A30000]"
-                      placeholder="Max Planck Institute for Astronomy"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-lexend uppercase tracking-wider text-slate-600 dark:text-zinc-400 mb-1">
-                      Primary Science Area
-                    </label>
-                    <select
-                      value={formData.researchArea}
-                      onChange={(e) => setFormData({ ...formData, researchArea: e.target.value })}
-                      className="w-full px-3.5 py-2.5 bg-white dark:bg-black/60 border border-zinc-300 dark:border-zinc-800 text-xs font-lexend text-slate-900 dark:text-white focus:outline-none focus:border-[#A30000]"
-                    >
-                      <option value="Interstellar Ices">Interstellar Ices & Protoplanetary Disks</option>
-                      <option value="Cosmic Inflation">Cosmic Inflation & Large-Scale Structure</option>
-                      <option value="Extragalactic Background Light">Extragalactic Background Light (EBL)</option>
-                      <option value="Galaxy Evolution">Galaxy Evolution & Photometric Redshifts</option>
-                      <option value="Pipeline Engineering">Pipeline Engineering & FITS Cube Tools</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-lexend uppercase tracking-wider text-slate-600 dark:text-zinc-400 mb-1">
-                    Message / Collaboration Proposal *
-                  </label>
-                  <textarea
-                    rows={4}
-                    required
-                    value={formData.message}
-                    onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                    className="w-full px-3.5 py-2.5 bg-white dark:bg-black/60 border border-zinc-300 dark:border-zinc-800 text-xs font-lexend text-slate-900 dark:text-white focus:outline-none focus:border-[#A30000]"
-                    placeholder="Briefly describe your proposed research or inquiry..."
-                  />
-                </div>
-
-                <button
-                  type="submit"
-                  className="px-8 py-3 bg-[#A30000] hover:bg-[#8B0000] text-xs font-lexend uppercase tracking-wider font-bold text-white flex items-center gap-2 cursor-pointer transition-colors shadow-md"
-                >
-                  <Send className="w-3.5 h-3.5" />
-                  <span>Submit Inquiry</span>
-                </button>
-              </form>
-            )}
-          </div>
-        </section>
-
-      </div>
-
+export const TeamPage: React.FC<TeamPageProps> = () => {
+ const [selected,setSelected] = useState<Member|null>(null);
+ useEffect(()=>{ if(!selected)return; const old=document.body.style.overflow; document.body.style.overflow='hidden'; const key=(e:KeyboardEvent)=>{if(e.key==='Escape')setSelected(null)}; window.addEventListener('keydown',key); return ()=>{document.body.style.overflow=old;window.removeEventListener('keydown',key)}; },[selected]);
+ return <div className="relative min-h-[75vh] w-full overflow-hidden bg-[#f7f8fa] text-[#15191f] dark:bg-[#080a0e] dark:text-white">
+  <div aria-hidden="true" className="pointer-events-none absolute inset-0 opacity-60 dark:opacity-30"><div className="absolute -top-48 left-1/2 h-[34rem] w-[48rem] -translate-x-1/2 rounded-full bg-[radial-gradient(ellipse_at_center,rgba(120,150,190,0.15),transparent_68%)]"/><div className="absolute right-[-12rem] top-[35rem] h-[28rem] w-[28rem] rounded-full bg-[radial-gradient(circle,rgba(163,0,0,0.07),transparent_70%)]"/></div>
+  <div className="relative mx-auto max-w-[1440px] px-5 pb-24 pt-20 sm:px-8 sm:pt-28 lg:px-14">
+   <header className="mx-auto mb-14 max-w-3xl text-center sm:mb-20">
+    <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-black/10 bg-white/70 px-4 py-2 text-[10px] font-semibold uppercase tracking-[0.24em] text-[#777f8a] shadow-sm dark:border-white/10 dark:bg-white/[0.04] dark:text-zinc-400"><span className="h-1.5 w-1.5 rounded-full bg-[#a30000]"/>The people behind the work</div>
+    <h1 className="text-4xl font-semibold tracking-[-0.055em] text-[#171b22] sm:text-6xl lg:text-7xl dark:text-white">The People Behind <span className="text-[#a30000]">Sferavis.</span></h1>
+    <p className="mx-auto mt-6 max-w-xl text-sm leading-7 text-[#68717d] sm:text-base dark:text-zinc-400">Different perspectives. Shared curiosity. A collective pursuit of discovery.</p>
+   </header>
+   <section aria-label="Sferavis team members" className="grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3 lg:gap-x-8 lg:gap-y-14">
+    {TEAM_MEMBERS.map((m,i)=><motion.button key={m.id} type="button" onClick={()=>setSelected(m)} initial={{opacity:0,y:18}} animate={{opacity:1,y:0}} transition={{duration:.45,delay:i*.07}} whileHover={{y:-5}} whileTap={{scale:.99}} className="group w-full cursor-pointer text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-[#a30000] focus-visible:ring-offset-4 dark:focus-visible:ring-offset-[#080a0e]" aria-label={`View profile of ${m.name}, ${m.role}`}>
+     <div className="relative aspect-[4/4.65] overflow-hidden rounded-[1.35rem] border border-black/[0.06] bg-[#e9edf2] shadow-[0_12px_36px_rgba(20,30,45,0.07)] dark:border-white/[0.08] dark:bg-[#151a22] dark:shadow-[0_18px_50px_rgba(0,0,0,0.22)]">
+      {m.image?<img src={m.image} alt={`Portrait of ${m.name}`} loading="lazy" className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.045]"/>:<div className="relative flex h-full w-full items-center justify-center overflow-hidden bg-[linear-gradient(145deg,#e5eaf0,#cbd4df)] dark:bg-[linear-gradient(145deg,#202a36,#10151d)]"><div className="absolute -right-12 -top-12 h-64 w-64 rounded-full border border-black/[0.06] dark:border-white/[0.07]"/><div className="absolute -bottom-28 -left-16 h-80 w-80 rounded-full border border-black/[0.06] dark:border-white/[0.07]"/><div className="relative flex flex-col items-center gap-3 text-[#788493] dark:text-zinc-500"><div className="flex h-20 w-20 items-center justify-center rounded-full border border-current/20 bg-white/35 dark:bg-white/[0.04]"><Camera size={25} strokeWidth={1.35}/></div><span className="text-[9px] font-semibold uppercase tracking-[0.2em]">Portrait to be added</span></div><span className="absolute bottom-5 left-6 font-mono text-xs tracking-widest text-black/25 dark:text-white/20">SFR / 0{i+1}</span></div>}
+      <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-black/25 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100"/><div className="absolute bottom-5 right-5 flex h-10 w-10 translate-y-2 items-center justify-center rounded-full border border-white/30 bg-white/90 text-[#171b22] opacity-0 shadow-lg transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100 dark:bg-[#111821] dark:text-white"><ArrowUpRight size={18}/></div>
+     </div>
+     <div className="flex items-start justify-between gap-4 px-1 pt-5"><div className="min-w-0"><h2 className="text-xl font-semibold tracking-[-0.035em] text-[#171b22] transition-colors group-hover:text-[#a30000] sm:text-2xl dark:text-white dark:group-hover:text-[#e58b8b]">{m.name}</h2><p className="mt-1.5 text-xs leading-5 text-[#737d89] sm:text-sm dark:text-zinc-400">{m.role}</p></div><span className="mt-1 shrink-0 font-mono text-[10px] tracking-widest text-[#a0a7b0] dark:text-zinc-600">0{i+1}</span></div>
+    </motion.button>)}
+   </section>
+  </div>
+  <AnimatePresence>{selected&&<motion.div className="fixed inset-0 z-[100] flex items-end justify-center bg-[#07090d]/70 p-0 backdrop-blur-md sm:items-center sm:p-6" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} onMouseDown={e=>{if(e.target===e.currentTarget)setSelected(null)}}>
+   <motion.article role="dialog" aria-modal="true" aria-labelledby="team-profile-name" initial={{opacity:0,y:28,scale:.985}} animate={{opacity:1,y:0,scale:1}} exit={{opacity:0,y:18,scale:.99}} transition={{duration:.28,ease:[.2,.75,.25,1]}} className="relative grid max-h-[92vh] w-full max-w-4xl grid-cols-1 overflow-y-auto rounded-t-[1.6rem] border border-white/10 bg-[#f8f9fb] shadow-2xl sm:max-h-[min(760px,90vh)] sm:grid-cols-[.82fr_1.18fr] sm:rounded-[1.6rem] dark:bg-[#10151d]">
+    <button type="button" onClick={()=>setSelected(null)} aria-label="Close profile" className="absolute right-4 top-4 z-10 flex h-10 w-10 items-center justify-center rounded-full border border-black/10 bg-white/85 text-[#303944] transition hover:bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-[#a30000] dark:border-white/10 dark:bg-black/40 dark:text-white"><X size={19}/></button>
+    <div className="relative min-h-[280px] bg-[#e4e9ef] sm:min-h-[560px] dark:bg-[#1a2430]">{selected.image?<img src={selected.image} alt={`Portrait of ${selected.name}`} className="absolute inset-0 h-full w-full object-cover"/>:<div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-[linear-gradient(145deg,#e5eaf0,#cbd4df)] text-[#788493] dark:bg-[linear-gradient(145deg,#202a36,#10151d)] dark:text-zinc-500"><Camera size={34} strokeWidth={1.2}/><span className="text-[10px] font-semibold uppercase tracking-[0.2em]">Add member portrait</span></div>}<div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-black/35 to-transparent"/><span className="absolute bottom-6 left-6 font-mono text-xs tracking-[0.2em] text-white/70">SFERAVIS / PROFILE</span></div>
+    <div className="flex flex-col p-7 sm:p-10"><div className="mb-8 pr-10"><span className="text-[10px] font-bold uppercase tracking-[0.22em] text-[#a30000]">Team member</span><h2 id="team-profile-name" className="mt-3 text-3xl font-semibold tracking-[-0.05em] text-[#171b22] sm:text-4xl dark:text-white">{selected.name}</h2><p className="mt-2 text-sm leading-6 text-[#737d89] dark:text-zinc-400">{selected.role}</p></div>
+     <div className="space-y-6"><div><h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#8a929d] dark:text-zinc-500">About</h3><p className="mt-3 text-sm leading-7 text-[#4f5965] dark:text-zinc-300">{selected.biography}</p></div><div><h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#8a929d] dark:text-zinc-500">Focus & expertise</h3><div className="mt-3 flex flex-wrap gap-2">{selected.expertise.map(x=><span key={x} className="rounded-full border border-black/10 bg-white px-3 py-1.5 text-xs text-[#596370] dark:border-white/10 dark:bg-white/[0.04] dark:text-zinc-300">{x}</span>)}</div></div></div>
+     {selected.socialLinks.filter(x=>x.url.trim()).length>0&&<div className="mt-auto border-t border-black/10 pt-6 dark:border-white/10"><h3 className="mb-4 text-[10px] font-bold uppercase tracking-[0.2em] text-[#8a929d] dark:text-zinc-500">Find me elsewhere</h3><div className="flex flex-wrap gap-2">{selected.socialLinks.filter(x=>x.url.trim()).map(x=><a key={x.label} href={x.url} target="_blank" rel="noreferrer" aria-label={x.label} className="inline-flex items-center gap-2 rounded-full border border-black/10 bg-white px-4 py-2.5 text-xs font-medium text-[#303944] transition hover:border-[#a30000]/40 hover:text-[#a30000] dark:border-white/10 dark:bg-white/[0.04] dark:text-zinc-200">{<SocialIcon platform={x.platform}/>} {x.label}</a>)}</div></div>}
     </div>
-  );
+   </motion.article>
+  </motion.div>}</AnimatePresence>
+ </div>;
 };
