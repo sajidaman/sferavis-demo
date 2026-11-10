@@ -14,6 +14,10 @@ Help visitors understand Sferavis, its website sections, astronomy, astrophysics
 Never claim to have live access to the website, private databases, current SPHEREx observations, or user accounts. Do not invent project capabilities, scientific measurements, team details, or links. If you do not know a Sferavis-specific fact, say so and direct the visitor to the relevant website section or official contact channel.
 Distinguish established science from hypotheses. For medical, legal, financial, or safety-critical questions, provide general information and recommend an appropriate qualified source.`;
 
+const PRIMARY_MODEL = 'gemini-3.8-flash';
+const FALLBACK_MODEL = 'gemini-3.6-flash';
+const FALLBACK_STATUSES = new Set([404, 429, 500, 503]);
+
 export default async function handler(req: ApiRequest, res: ApiResponse) {
   res.setHeader('Cache-Control', 'no-store');
 
@@ -79,7 +83,7 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
     let result;
     try {
       result = await ai.models.generateContent({
-        model: 'gemini-3.8-flash',
+        model: PRIMARY_MODEL,
         contents,
         config: generationConfig,
       });
@@ -87,13 +91,13 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
       const status = Number((primaryError as { status?: number; code?: number })?.status ||
         (primaryError as { code?: number })?.code || 0);
 
-      // A 503 indicates temporary model capacity pressure. Try the previous
-      // stable Flash generation once as a backup before reporting an outage.
-      if (status !== 503) throw primaryError;
+      // Capacity, quota, or model-availability errors are often specific to
+      // one model, so retry once on the previous stable Flash generation.
+      if (!FALLBACK_STATUSES.has(status)) throw primaryError;
 
-      console.warn('Redium primary model is unavailable; trying Gemini 3.7 Flash.');
+      console.warn(`Redium primary model failed with ${status}; trying ${FALLBACK_MODEL}.`);
       result = await ai.models.generateContent({
-        model: 'gemini-3.7-flash',
+        model: FALLBACK_MODEL,
         contents,
         config: generationConfig,
       });
