@@ -232,14 +232,20 @@ export const AladinSkyViewer: React.FC<AladinSkyViewerProps> = ({ className = ''
       }
     }
 
-    if (surveyUrl === SPHEREX_HIPS_URL && aladinRef.current) {
-      // Keep the atlas useful even when both SPHEREx hosts are inaccessible.
-      aladinRef.current.setBaseImageLayer(DSS2_HIPS_URL);
-      setSurvey('reference');
+    if (surveyUrl === SPHEREX_HIPS_URL) {
+      if (aladinRef.current) {
+        // Keep the atlas useful even when both SPHEREx hosts are inaccessible.
+        aladinRef.current.setBaseImageLayer(DSS2_HIPS_URL);
+        setSurvey('reference');
+      }
+      setSurveyErrorMsg(
+        `SPHEREx HiPS metadata could not be retrieved from either official host (${candidates.join(' or ')}). Switched to the DSS2 optical reference layer; select SPHEREx QR2 to retry.`
+      );
+    } else {
+      setSurveyErrorMsg(
+        `Could not retrieve HiPS metadata from ${surveyUrl}. The reference survey host may be unreachable or blocked by the browser/network.`
+      );
     }
-    setSurveyErrorMsg(
-      `SPHEREx HiPS metadata could not be retrieved from either official host (${candidates.join(' or ')}). Switched to the DSS2 optical reference layer; select SPHEREx QR2 to retry.`
-    );
   };
 
   useEffect(() => {
