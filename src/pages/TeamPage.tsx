@@ -1,23 +1,23 @@
 import React, { useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
-import { ArrowUpRight, Camera, Facebook, Github, Globe, Instagram, Linkedin, Mail, Twitter, X } from 'lucide-react';
+import { ArrowUpRight, Camera, Github, Globe, Linkedin, Mail, X } from 'lucide-react';
 import { PageId } from '../types';
 
 interface TeamPageProps { onNavigate: (page: PageId) => void; }
-type Social = { label: string; url: string; platform: 'linkedin'|'github'|'instagram'|'email'|'website'|'x'|'facebook' };
+type Social = { label: string; url: string; platform: 'linkedin'|'github'|'email'|'website' };
 type Member = { id: string; name: string; role: string; institution: string; location: string; image: string; biography: string; expertise: string[]; socialLinks: Social[] };
 
 // Replace these clearly marked placeholders with the six real members.
 // Add portraits under /public/team/ and set image to e.g. /team/member-name.jpg.
 const TEAM_MEMBERS: Member[] = [
- {id:'01',name:'Sajid Aman',role:'Co-lead & Frontend',institution:'Notre Dame College',location:'Dhaka, Bangladesh',image:'https://drive.google.com/thumbnail?id=1pUnSZiif5lS4ElkkcXzM5Nmln8-aQBSC&sz=w1200',biography:'Biography to be added.',expertise:['Frontend development','Project coordination'],socialLinks:[{label:'Portfolio',url:'',platform:'website'},{label:'LinkedIn',url:'https://www.linkedin.com/in/sajidaman01/',platform:'linkedin'},{label:'Email',url:'sajidaman01@outlook.com',platform:'email'}]},
+ {id:'01',name:'Sajid Aman',role:'Co-lead & Frontend',institution:'Notre Dame College',location:'Dhaka, Bangladesh',image:'https://drive.google.com/thumbnail?id=1pUnSZiif5lS4ElkkcXzM5Nmln8-aQBSC&sz=w1200',biography:'Biography to be added.',expertise:['Frontend development','Project coordination'],socialLinks:[{label:'Portfolio',url:'',platform:'website'},{label:'GitHub',url:'',platform:'github'},{label:'LinkedIn',url:'https://www.linkedin.com/in/sajidaman01/',platform:'linkedin'},{label:'Email',url:'mailto:sajidaman01@outlook.com',platform:'email'}]},
  {id:'02',name:'Radit Raian',role:'Co-lead & Backend',institution:'',location:'',image:'',biography:'Biography to be added.',expertise:['Backend development'],socialLinks:[]},
  {id:'03',name:'Elisabeth Tagobert',role:'UI/UX',institution:'',location:'',image:'',biography:'Biography to be added.',expertise:['UI/UX design'],socialLinks:[]},
  {id:'04',name:'Emils',role:'AI & ML',institution:'',location:'',image:'',biography:'Biography to be added.',expertise:['Artificial intelligence','Machine learning'],socialLinks:[]},
  {id:'05',name:'Ioanna Tsolaki',role:'AI & ML',institution:'',location:'',image:'',biography:'Biography to be added.',expertise:['Artificial intelligence','Machine learning'],socialLinks:[]},
  {id:'06',name:'Sofia',role:'Research & Content',institution:'',location:'',image:'',biography:'Biography to be added.',expertise:['Research','Content development'],socialLinks:[]},
 ];
-const SocialIcon = ({platform}:{platform:Social['platform']}) => platform==='linkedin'?<Linkedin size={17}/>:platform==='github'?<Github size={17}/>:platform==='instagram'?<Instagram size={17}/>:platform==='email'?<Mail size={17}/>:platform==='x'?<Twitter size={17}/>:platform==='facebook'?<Facebook size={17}/>:<Globe size={17}/>;
+const SocialIcon = ({platform}:{platform:Social['platform']}) => platform==='linkedin'?<Linkedin size={17}/>:platform==='github'?<Github size={17}/>:platform==='email'?<Mail size={17}/>:<Globe size={17}/>;
 
 export const TeamPage: React.FC<TeamPageProps> = () => {
  const [selected,setSelected] = useState<Member|null>(null);
@@ -26,9 +26,6 @@ export const TeamPage: React.FC<TeamPageProps> = () => {
   <div className="relative mx-auto max-w-[1440px] px-5 pb-24 pt-20 sm:px-8 sm:pt-28 lg:px-14">
    <header className="mx-auto mb-14 w-full max-w-none text-center sm:mb-20">
     <h1 className="w-full whitespace-nowrap text-[clamp(1.15rem,5.1vw,4rem)] font-semibold tracking-[-0.055em] text-[#171b22] dark:text-white">The Minds Behind <span className="text-[#a30000]">Sferavis.</span></h1>
-    <a href="https://www.spaceappschallenge.org/2026/find-a-team/sferavis/" target="_blank" rel="noreferrer" className="mx-auto mt-6 inline-flex items-center gap-2 border border-[#a30000]/25 px-4 py-2.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-[#a30000] transition-colors hover:border-[#a30000] hover:bg-[#a30000]/[0.05] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#a30000]">
-     NASA Space Apps Challenge 2026 Team Profile <ArrowUpRight size={13}/>
-    </a>
    </header>
    <section aria-label="Sferavis team members" className="mx-auto grid max-w-4xl grid-cols-1 justify-items-center gap-x-8 gap-y-10 sm:grid-cols-2 sm:gap-x-12 sm:gap-y-14">
     {TEAM_MEMBERS.map((m,i)=><motion.button key={m.id} type="button" onClick={()=>setSelected(m)} initial={{opacity:0,y:18}} animate={{opacity:1,y:0}} transition={{duration:.45,delay:i*.07}} whileHover={{y:-5}} whileTap={{scale:.99}} className="group w-full max-w-[320px] cursor-pointer text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-[#a30000] focus-visible:ring-offset-4 dark:focus-visible:ring-offset-[#080a0e]" aria-label={`View profile of ${m.name}, ${m.role}`}>
@@ -70,9 +67,7 @@ export const TeamPage: React.FC<TeamPageProps> = () => {
     <button type="button" onClick={()=>setSelected(null)} aria-label="Close profile" className="absolute right-4 top-4 z-10 flex h-10 w-10 items-center justify-center rounded-full border border-black/10 bg-white/85 text-[#303944] transition hover:bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-[#a30000] dark:border-white/10 dark:bg-black/40 dark:text-white"><X size={19}/></button>
     <div className="relative min-h-[280px] bg-[#e4e9ef] sm:min-h-[560px] dark:bg-[#1a2430]">{selected.image?<img src={selected.image} alt={`Portrait of ${selected.name}`} className="absolute inset-0 h-full w-full object-cover"/>:<div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-[linear-gradient(145deg,#e5eaf0,#cbd4df)] text-[#788493] dark:bg-[linear-gradient(145deg,#202a36,#10151d)] dark:text-zinc-500"><Camera size={34} strokeWidth={1.2}/><span className="text-[10px] font-semibold uppercase tracking-[0.2em]">Add member portrait</span></div>}<div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-black/35 to-transparent"/><span className="absolute bottom-6 left-6 font-mono text-xs tracking-[0.2em] text-white/70">SFERAVIS / PROFILE</span></div>
     <div className="flex flex-col p-7 sm:p-10"><div className="mb-8 pr-10"><h2 id="team-profile-name" className="font-[Oswald] text-3xl font-medium tracking-[-0.025em] text-[#8B0000] sm:text-4xl">{selected.name}</h2><p className="mt-2 text-sm leading-6 text-[#737d89] dark:text-zinc-400">{selected.role}</p>{selected.institution && <p className="mt-1 text-xs leading-5 text-[#737d89] dark:text-zinc-400">{selected.institution}</p>}{selected.location && <p className="text-xs leading-5 text-[#929aa5] dark:text-zinc-500">{selected.location}</p>}</div>
-     <div className="space-y-6"><div><h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#8a929d] dark:text-zinc-500">About</h3><p className="mt-3 text-sm leading-7 text-[#4f5965] dark:text-zinc-300">{selected.biography}</p></div><div><h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#8a929d] dark:text-zinc-500">Focus & expertise</h3><div className="mt-3 flex flex-wrap gap-2">{selected.expertise.map(x=><span key={x} className="rounded-full border border-black/10 bg-white px-3 py-1.5 text-xs text-[#596370] dark:border-white/10 dark:bg-white/[0.04] dark:text-zinc-300">{x}</span>)}</div></div></div>
-
-    </div>
+     <div className="space-y-6"><div><h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#8a929d] dark:text-zinc-500">About</h3><p className="mt-3 text-sm leading-7 text-[#4f5965] dark:text-zinc-300">{selected.biography}</p></div><div><h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#8a929d] dark:text-zinc-500">Focus & expertise</h3><div className="mt-3 flex flex-wrap gap-2">{selected.expertise.map(x=><span key={x} className="rounded-full border border-black/10 bg-white px-3 py-1.5 text-xs text-[#596370] dark:border-white/10 dark:bg-white/[0.04] dark:text-zinc-300">{x}</span>)}</div></div><div className="mt-8 flex flex-wrap gap-3 border-t border-black/[0.08] pt-6 dark:border-white/[0.09]">{selected.socialLinks.filter(link=>link.url && (link.platform==='website'||link.platform==='github'||link.platform==='linkedin'||link.platform==='email')).map(link=><a key={link.platform} href={link.url} target={link.platform==='email'?undefined:'_blank'} rel={link.platform==='email'?undefined:'noreferrer'} aria-label={link.label} title={link.label} className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-black/10 bg-white text-[#4f5965] transition hover:border-[#a30000]/40 hover:bg-[#a30000]/[0.06] hover:text-[#a30000] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#a30000] dark:border-white/10 dark:bg-white/[0.04] dark:text-zinc-300 dark:hover:text-white"><SocialIcon platform={link.platform}/></a>)}</div></div>
    </motion.article>
   </motion.div>}</AnimatePresence>
  </div>;
