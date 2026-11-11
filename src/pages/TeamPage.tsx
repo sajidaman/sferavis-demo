@@ -37,6 +37,49 @@ export const TeamPage: React.FC<TeamPageProps> = () => {
      <div className="px-1 pt-5"><h2 className="font-[Oswald] text-lg font-medium tracking-[-0.025em] text-[#15191f] transition-colors group-hover:text-[#a30000] sm:text-xl dark:text-white dark:group-hover:text-[#a30000]">{m.name}</h2><p className="mt-1.5 text-xs leading-5 text-[#737d89] sm:text-sm dark:text-zinc-400">{m.role}</p></div>
     </motion.button>)}
    </section>
+   <section aria-labelledby="global-collaboration-title" className="mx-auto mt-24 max-w-5xl sm:mt-32">
+    <div className="mb-8 flex flex-col gap-3 text-center sm:mb-10">
+     <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-[#a30000]">Across borders, together</p>
+     <h2 id="global-collaboration-title" className="text-3xl font-semibold tracking-[-0.045em] text-[#171b22] sm:text-5xl dark:text-white">A Global Collective.</h2>
+     <p className="mx-auto max-w-xl text-sm leading-7 text-[#68717d] dark:text-zinc-400">Six minds connected across four countries, united by curiosity and a shared pursuit of discovery.</p>
+    </div>
+    <div className="overflow-hidden rounded-[1.5rem] border border-black/[0.07] bg-[#f4f6f8] p-4 shadow-[0_16px_50px_rgba(20,30,45,0.05)] sm:p-7 dark:border-white/[0.08] dark:bg-[#0d131b] dark:shadow-[0_20px_60px_rgba(0,0,0,0.18)]">
+     <div className="relative">
+      <svg viewBox="0 0 1000 440" role="img" aria-label="World map showing two team members in Bangladesh, two in Greece, one in Latvia, and one in Estonia" className="h-auto w-full">
+       <defs><pattern id="sferavis-map-grid" width="50" height="50" patternUnits="userSpaceOnUse"><path d="M 50 0 L 0 0 0 50" fill="none" stroke="currentColor" strokeOpacity=".055" strokeWidth="1"/></pattern><linearGradient id="sferavis-map-land" x1="0" x2="1" y1="0" y2="1"><stop offset="0%" stopColor="#9aa8b8" stopOpacity=".24"/><stop offset="100%" stopColor="#9aa8b8" stopOpacity=".08"/></linearGradient></defs>
+       <rect width="1000" height="440" rx="18" fill="url(#sferavis-map-grid)"/>
+       <g fill="url(#sferavis-map-land)" stroke="currentColor" strokeOpacity=".13" strokeWidth="1.2">
+        <path d="M75 104 L108 70 157 55 195 66 218 91 251 95 267 121 247 143 221 149 208 176 181 190 163 222 136 224 119 197 91 187 78 157 55 141Z"/>
+        <path d="M221 235 L248 222 275 237 290 270 284 303 302 331 289 370 269 400 250 378 244 344 225 317 215 282Z"/>
+        <path d="M420 91 L450 70 489 74 514 91 548 88 574 105 608 99 638 114 674 104 711 120 747 111 786 127 818 153 851 158 876 184 854 207 819 204 793 224 761 218 733 241 703 229 683 210 651 216 625 193 597 196 573 175 541 178 519 157 490 162 466 140 438 138 420 117Z"/>
+        <path d="M476 185 L509 174 541 189 556 218 550 250 532 278 520 313 496 338 479 313 472 281 453 251 455 219Z"/>
+        <path d="M812 290 L847 278 884 289 909 314 895 339 860 350 831 335 808 316Z"/>
+        <path d="M371 63 L390 51 409 59 403 78 382 82Z"/>
+       </g>
+       <g fill="none" stroke="#a30000" strokeOpacity=".55" strokeWidth="1.8" strokeDasharray="5 7">
+        <path d="M751 190 Q650 38 567 94"/>
+        <path d="M751 190 Q653 122 566 145"/>
+       </g>
+       <g fill="#a30000" stroke="#fff" strokeWidth="3">
+        <circle cx="751" cy="190" r="7"/><circle cx="744" cy="198" r="5"/>
+        <circle cx="566" cy="145" r="7"/><circle cx="575" cy="150" r="5"/>
+        <circle cx="567" cy="94" r="7"/>
+        <circle cx="570" cy="81" r="7"/>
+       </g>
+       <g fill="currentColor" fontFamily="Arial, sans-serif" fontSize="13" fontWeight="600">
+        <text x="765" y="185">Bangladesh</text><text x="765" y="203" fontSize="11" fontWeight="400" opacity=".65">2 members</text>
+        <text x="548" y="169" textAnchor="end">Greece</text><text x="548" y="184" textAnchor="end" fontSize="11" fontWeight="400" opacity=".65">2 members</text>
+        <text x="584" y="97">Latvia · 1</text>
+        <text x="587" y="78">Estonia · 1</text>
+       </g>
+      </svg>
+     </div>
+     <div className="mt-3 grid grid-cols-2 gap-3 border-t border-black/[0.07] pt-5 sm:grid-cols-4 dark:border-white/[0.08]">
+      {[{country:'Bangladesh',count:'02',city:'South Asia'},{country:'Greece',count:'02',city:'Southern Europe'},{country:'Latvia',count:'01',city:'Northern Europe'},{country:'Estonia',count:'01',city:'Northern Europe'}].map(item=><div key={item.country} className="rounded-xl bg-white/70 px-3 py-3 dark:bg-white/[0.035]"><p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#8a929d] dark:text-zinc-500">{item.city}</p><p className="mt-1 text-sm font-medium text-[#303944] dark:text-zinc-200">{item.country}</p><p className="mt-1 font-mono text-xl text-[#a30000]">{item.count}</p></div>)}
+     </div>
+    </div>
+    <p className="mt-4 text-center text-[10px] uppercase tracking-[0.18em] text-[#929aa5] dark:text-zinc-600">6 members · 4 countries · 1 collective</p>
+   </section>
   </div>
   <AnimatePresence>{selected&&<motion.div className="fixed inset-0 z-[100] flex items-end justify-center bg-[#07090d]/70 p-0 backdrop-blur-md sm:items-center sm:p-6" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} onMouseDown={e=>{if(e.target===e.currentTarget)setSelected(null)}}>
    <motion.article role="dialog" aria-modal="true" aria-labelledby="team-profile-name" initial={{opacity:0,y:28,scale:.985}} animate={{opacity:1,y:0,scale:1}} exit={{opacity:0,y:18,scale:.99}} transition={{duration:.28,ease:[.2,.75,.25,1]}} className="relative grid max-h-[92vh] w-full max-w-4xl grid-cols-1 overflow-y-auto rounded-t-[1.6rem] border border-white/10 bg-[#f8f9fb] shadow-2xl sm:max-h-[min(760px,90vh)] sm:grid-cols-[.82fr_1.18fr] sm:rounded-[1.6rem] dark:bg-[#10151d]">
