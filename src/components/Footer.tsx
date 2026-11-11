@@ -195,24 +195,39 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate, onLaunchSferavis }) 
         {/* Bottom Wordmark, Social Links & Legal Bar */}
         <div className="pt-8 border-t border-zinc-200 dark:border-slate-800 flex flex-col items-center gap-7">
           <div className="flex w-full flex-wrap items-center justify-center gap-x-6 gap-y-4" aria-label="Sferavis social media">
-            <a href="https://www.spaceappschallenge.org/2026/find-a-team/sferavis/" target="_blank" rel="noopener noreferrer" title="NASA Space Apps Team Profile" aria-label="NASA Space Apps Team Profile" className="inline-flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-[#A30000] transition-colors hover:text-[#8B0000]">
-              NASA Space Apps Team Profile <ArrowUpRight className="h-3.5 w-3.5" />
+            <a href="https://www.spaceappschallenge.org/2026/find-a-team/sferavis/" target="_blank" rel="noopener noreferrer" title="NASA Space Apps Team Profile" aria-label="NASA Space Apps Team Profile" className="flex min-w-[54px] flex-col items-center gap-2 text-zinc-700 transition-colors hover:text-[#A30000] dark:text-zinc-200">
+              <span className="flex h-12 w-12 items-center justify-center rounded-full border-2 border-zinc-400 bg-zinc-100 dark:border-slate-500 dark:bg-slate-800">
+                <img src="./sferavis-icon.svg" alt="" className="h-7 w-7" />
+              </span>
+              <span className="text-[10px] font-medium tracking-wide">Space Apps</span>
             </a>
             {[
-              { label: 'GitHub', Icon: Github },
+              { label: 'GitHub', Icon: Github, href: 'https://github.com/sajidaman/sferavis-demo' },
               { label: 'LinkedIn', Icon: Linkedin },
               { label: 'X', Icon: Twitter },
               { label: 'Instagram', Icon: Instagram },
               { label: 'Facebook', Icon: Facebook },
               { label: 'Email', Icon: Mail },
-            ].map(({ label, Icon }) => (
-              <div key={label} title={label} className="flex min-w-[54px] flex-col items-center gap-2 text-zinc-700 dark:text-zinc-200">
-                <span className="flex h-12 w-12 items-center justify-center rounded-full border-2 border-zinc-400 bg-zinc-100 text-zinc-800 dark:border-slate-500 dark:bg-slate-800 dark:text-white">
-                  <Icon className="h-6 w-6" strokeWidth={2} />
-                </span>
-                <span className="text-[10px] font-medium tracking-wide">{label}</span>
-              </div>
-            ))}
+            ].map(({ label, Icon, href }) => {
+              const content = (
+                <>
+                  <span className="flex h-12 w-12 items-center justify-center rounded-full border-2 border-zinc-400 bg-zinc-100 text-zinc-800 dark:border-slate-500 dark:bg-slate-800 dark:text-white">
+                    <Icon className="h-6 w-6" strokeWidth={2} />
+                  </span>
+                  <span className="text-[10px] font-medium tracking-wide">{label}</span>
+                </>
+              );
+
+              return href ? (
+                <a key={label} href={href} target="_blank" rel="noopener noreferrer" title={label} aria-label={label} className="flex min-w-[54px] flex-col items-center gap-2 text-zinc-700 transition-colors hover:text-[#A30000] dark:text-zinc-200">
+                  {content}
+                </a>
+              ) : (
+                <div key={label} title={label} className="flex min-w-[54px] flex-col items-center gap-2 text-zinc-700 dark:text-zinc-200">
+                  {content}
+                </div>
+              );
+            })}
           </div>
           <div className="flex w-full flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-4">
