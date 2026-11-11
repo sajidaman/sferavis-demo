@@ -234,6 +234,7 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate, onLaunchSferavis }) 
         </div>
 
       </div>
+      </div>
     </footer>
   );
 };
