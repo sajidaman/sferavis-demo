@@ -44,33 +44,31 @@ export const TeamPage: React.FC<TeamPageProps> = () => {
      <p className="mx-auto max-w-xl text-sm leading-7 text-[#68717d] dark:text-zinc-400">Six minds connected across four countries, united by curiosity and a shared pursuit of discovery.</p>
     </div>
     <div className="overflow-hidden rounded-[1.5rem] border border-black/[0.07] bg-[#f4f6f8] p-4 shadow-[0_16px_50px_rgba(20,30,45,0.05)] sm:p-7 dark:border-white/[0.08] dark:bg-[#0d131b] dark:shadow-[0_20px_60px_rgba(0,0,0,0.18)]">
-     <div className="relative">
-      <svg viewBox="0 0 1000 440" role="img" aria-label="World map showing two team members in Bangladesh, two in Greece, one in Latvia, and one in Estonia" className="h-auto w-full">
-       <defs><pattern id="sferavis-map-grid" width="50" height="50" patternUnits="userSpaceOnUse"><path d="M 50 0 L 0 0 0 50" fill="none" stroke="currentColor" strokeOpacity=".055" strokeWidth="1"/></pattern><linearGradient id="sferavis-map-land" x1="0" x2="1" y1="0" y2="1"><stop offset="0%" stopColor="#9aa8b8" stopOpacity=".24"/><stop offset="100%" stopColor="#9aa8b8" stopOpacity=".08"/></linearGradient></defs>
-       <rect width="1000" height="440" rx="18" fill="url(#sferavis-map-grid)"/>
-       <g fill="url(#sferavis-map-land)" stroke="currentColor" strokeOpacity=".13" strokeWidth="1.2">
-        <path d="M75 104 L108 70 157 55 195 66 218 91 251 95 267 121 247 143 221 149 208 176 181 190 163 222 136 224 119 197 91 187 78 157 55 141Z"/>
-        <path d="M221 235 L248 222 275 237 290 270 284 303 302 331 289 370 269 400 250 378 244 344 225 317 215 282Z"/>
-        <path d="M420 91 L450 70 489 74 514 91 548 88 574 105 608 99 638 114 674 104 711 120 747 111 786 127 818 153 851 158 876 184 854 207 819 204 793 224 761 218 733 241 703 229 683 210 651 216 625 193 597 196 573 175 541 178 519 157 490 162 466 140 438 138 420 117Z"/>
-        <path d="M476 185 L509 174 541 189 556 218 550 250 532 278 520 313 496 338 479 313 472 281 453 251 455 219Z"/>
-        <path d="M812 290 L847 278 884 289 909 314 895 339 860 350 831 335 808 316Z"/>
-        <path d="M371 63 L390 51 409 59 403 78 382 82Z"/>
+     <div className="relative aspect-[2000/1001] w-full overflow-hidden rounded-xl">
+      <img src="/world-map.svg" alt="World map with highlighted team countries" className="absolute inset-0 h-full w-full object-contain" loading="lazy"/>
+      <svg viewBox="0 0 2000 1001" preserveAspectRatio="xMidYMid meet" aria-label="Team member locations" className="absolute inset-0 h-full w-full overflow-visible">
+       <g fill="none" stroke="#a30000" strokeWidth="4" strokeOpacity=".55" strokeDasharray="12 13">
+        <path d="M1502 368 Q1320 190 1132 289"/>
+        <path d="M1502 368 Q1320 100 1140 184"/>
+        <path d="M1502 368 Q1320 80 1138 170"/>
        </g>
-       <g fill="none" stroke="#a30000" strokeOpacity=".55" strokeWidth="1.8" strokeDasharray="5 7">
-        <path d="M751 190 Q650 38 567 94"/>
-        <path d="M751 190 Q653 122 566 145"/>
+       <g fill="#a30000" stroke="white" strokeWidth="5">
+        <circle cx="1502" cy="368" r="13"/><circle cx="1490" cy="374" r="7"/>
+        <circle cx="1132" cy="289" r="13"/><circle cx="1142" cy="296" r="7"/>
+        <circle cx="1140" cy="184" r="11"/>
+        <circle cx="1138" cy="170" r="11"/>
        </g>
-       <g fill="#a30000" stroke="#fff" strokeWidth="3">
-        <circle cx="751" cy="190" r="7"/><circle cx="744" cy="198" r="5"/>
-        <circle cx="566" cy="145" r="7"/><circle cx="575" cy="150" r="5"/>
-        <circle cx="567" cy="94" r="7"/>
-        <circle cx="570" cy="81" r="7"/>
+       <g fill="#a30000" stroke="white" strokeWidth="3">
+        <circle cx="1502" cy="368" r="23" fillOpacity=".10"/>
+        <circle cx="1132" cy="289" r="23" fillOpacity=".10"/>
        </g>
-       <g fill="currentColor" fontFamily="Arial, sans-serif" fontSize="13" fontWeight="600">
-        <text x="765" y="185">Bangladesh</text><text x="765" y="203" fontSize="11" fontWeight="400" opacity=".65">2 members</text>
-        <text x="548" y="169" textAnchor="end">Greece</text><text x="548" y="184" textAnchor="end" fontSize="11" fontWeight="400" opacity=".65">2 members</text>
-        <text x="584" y="97">Latvia · 1</text>
-        <text x="587" y="78">Estonia · 1</text>
+       <g fill="currentColor" fontFamily="Arial, sans-serif" fontSize="27" fontWeight="600">
+        <text x="1540" y="361">Bangladesh</text><text x="1540" y="395" fontSize="22" fontWeight="400" opacity=".7">2 members</text>
+        <text x="1085" y="329" textAnchor="end">Greece</text><text x="1085" y="359" textAnchor="end" fontSize="22" fontWeight="400" opacity=".7">2 members</text>
+        <path d="M1150 170 L1200 115 L1270 115" fill="none" stroke="currentColor" strokeOpacity=".45" strokeWidth="2"/>
+        <text x="1280" y="122" fontSize="22">Estonia · 1</text>
+        <path d="M1152 184 L1200 205 L1270 205" fill="none" stroke="currentColor" strokeOpacity=".45" strokeWidth="2"/>
+        <text x="1280" y="212" fontSize="22">Latvia · 1</text>
        </g>
       </svg>
      </div>
@@ -78,7 +76,7 @@ export const TeamPage: React.FC<TeamPageProps> = () => {
       {[{country:'Bangladesh',count:'02',city:'South Asia'},{country:'Greece',count:'02',city:'Southern Europe'},{country:'Latvia',count:'01',city:'Northern Europe'},{country:'Estonia',count:'01',city:'Northern Europe'}].map(item=><div key={item.country} className="rounded-xl bg-white/70 px-3 py-3 dark:bg-white/[0.035]"><p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#8a929d] dark:text-zinc-500">{item.city}</p><p className="mt-1 text-sm font-medium text-[#303944] dark:text-zinc-200">{item.country}</p><p className="mt-1 font-mono text-xl text-[#a30000]">{item.count}</p></div>)}
      </div>
     </div>
-    <p className="mt-4 text-center text-[10px] uppercase tracking-[0.18em] text-[#929aa5] dark:text-zinc-600">6 members · 4 countries · 1 collective</p>
+    <p className="mt-4 text-center text-[10px] uppercase tracking-[0.18em] text-[#929aa5] dark:text-zinc-600">Map data: Natural Earth · Menelabs VectorAtlas (CC BY 4.0) · 6 members · 4 countries</p>
    </section>
   </div>
   <AnimatePresence>{selected&&<motion.div className="fixed inset-0 z-[100] flex items-end justify-center bg-[#07090d]/70 p-0 backdrop-blur-md sm:items-center sm:p-6" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} onMouseDown={e=>{if(e.target===e.currentTarget)setSelected(null)}}>
