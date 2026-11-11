@@ -24,8 +24,8 @@ export const TeamPage: React.FC<TeamPageProps> = () => {
  useEffect(()=>{ if(!selected)return; const old=document.body.style.overflow; document.body.style.overflow='hidden'; const key=(e:KeyboardEvent)=>{if(e.key==='Escape')setSelected(null)}; window.addEventListener('keydown',key); return ()=>{document.body.style.overflow=old;window.removeEventListener('keydown',key)}; },[selected]);
  return <div className="relative min-h-[75vh] w-full overflow-hidden bg-transparent text-[#15191f] dark:bg-transparent dark:text-white">
   <div className="relative mx-auto max-w-[1440px] px-5 pb-24 pt-20 sm:px-8 sm:pt-28 lg:px-14">
-   <header className="mx-auto mb-14 max-w-3xl text-center sm:mb-20">
-    <h1 className="whitespace-nowrap text-[clamp(1.55rem,5.7vw,4.5rem)] font-semibold tracking-[-0.055em] text-[#171b22] dark:text-white">The Minds Behind <span className="text-[#a30000]">Sferavis.</span></h1>
+   <header className="mx-auto mb-14 w-full max-w-none text-center sm:mb-20">
+    <h1 className="w-full whitespace-nowrap text-[clamp(1.15rem,5.1vw,4rem)] font-semibold tracking-[-0.055em] text-[#171b22] dark:text-white">The Minds Behind <span className="text-[#a30000]">Sferavis.</span></h1>
     <a href="https://www.spaceappschallenge.org/2026/find-a-team/sferavis/" target="_blank" rel="noreferrer" className="mx-auto mt-6 inline-flex items-center gap-2 border border-[#a30000]/25 px-4 py-2.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-[#a30000] transition-colors hover:border-[#a30000] hover:bg-[#a30000]/[0.05] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#a30000]">
      NASA Space Apps Challenge 2026 Team Profile <ArrowUpRight size={13}/>
     </a>
