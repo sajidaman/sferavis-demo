@@ -196,31 +196,28 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate, onLaunchSferavis }) 
         <div className="pt-8 border-t border-zinc-200 dark:border-slate-800 flex flex-col items-center gap-7">
           <div className="flex w-full flex-wrap items-center justify-center gap-x-6 gap-y-4" aria-label="Sferavis social media">
             <a href="https://www.spaceappschallenge.org/2026/find-a-team/sferavis/" target="_blank" rel="noopener noreferrer" title="NASA Space Apps Team Profile" aria-label="NASA Space Apps Team Profile" className="group inline-flex min-w-[54px] flex-col items-center gap-2 text-zinc-700 dark:text-zinc-200 transition-colors hover:text-[#A30000] focus-visible:text-[#A30000]">
-              <svg
-                viewBox="0 0 48 48"
-                role="img"
-                aria-label="Asteroid icon"
-                className="h-12 w-12 fill-current transition-colors group-hover:text-[#A30000] group-focus-visible:text-[#A30000]"
-              >
-                <path d="M11.2 9.8 18.1 6.5 24.4 8.2 29.8 5.7 36.4 10.1 39.2 17.4 36.8 23.1 41.1 29.5 37.6 36.8 30.4 40.2 24.8 38.1 18.7 41.4 11.3 37.2 8.6 30.5 5.4 24.3 8.2 17.1Z" />
-                <path d="M15.3 17.2a4.1 4.1 0 1 0 0 8.2 4.1 4.1 0 0 0 0-8.2Zm13.1 9.4a2.7 2.7 0 1 0 0 5.4 2.7 2.7 0 0 0 0-5.4Zm4.2-13.2a1.9 1.9 0 1 0 0 3.8 1.9 1.9 0 0 0 0-3.8Z" fill="currentColor" opacity=".28" />
-              </svg>
+              <span className="flex h-12 w-12 items-center justify-center">
+                <img src="https://commons.wikimedia.org/wiki/Special:FilePath/Space_Apps_Motif_Logo_-_1-Color_Black.svg" alt="NASA Space Apps logo" className="h-10 w-10 object-contain transition-all group-hover:brightness-0 group-hover:opacity-80" style={{ filter: 'brightness(0) saturate(100%) invert(27%) sepia(89%) saturate(2300%) hue-rotate(203deg) brightness(96%) contrast(96%)' }} />
+              </span>
               <span className="text-[10px] font-medium tracking-wide opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">Space Apps Profile</span>
             </a>
             {[
-              { label: 'GitHub', Icon: Github },
-              { label: 'LinkedIn', Icon: Linkedin },
-              { label: 'X', Icon: Twitter },
-              { label: 'Instagram', Icon: Instagram },
-              { label: 'Facebook', Icon: Facebook },
-              { label: 'Email', Icon: Mail },
-            ].map(({ label, Icon }) => (
-              <div key={label} title={label} className="group flex min-w-[54px] flex-col items-center gap-2 text-zinc-700 dark:text-zinc-200 transition-colors hover:text-[#A30000]">
+              { label: 'LinkedIn', handle: 'Sferavis', href: 'https://www.linkedin.com/company/sferavis?utm_source=ig&utm_medium=social&utm_content=link_in_bio', Icon: Linkedin },
+              { label: 'X', handle: '@sferavis', href: 'https://x.com/sferavis', Icon: null },
+              { label: 'Instagram', handle: '@sferav1s', href: 'https://www.instagram.com/sferav1s/', Icon: Instagram },
+              { label: 'Facebook', handle: 'Sferavis', href: 'https://www.facebook.com/profile.php?id=61595873841241&utm_source=ig&utm_medium=social&utm_content=link_in_bio', Icon: Facebook },
+              { label: 'Email', handle: 'contact.sferavis@gmail.com', href: 'mailto:contact.sferavis@gmail.com', Icon: Mail },
+            ].map(({ label, handle, href, Icon }) => (
+              <a key={label} href={href} target={label === 'Email' ? undefined : '_blank'} rel={label === 'Email' ? undefined : 'noopener noreferrer'} title={handle} aria-label={label + ' ' + handle} className="group inline-flex min-w-[54px] flex-col items-center gap-2 text-zinc-700 dark:text-zinc-200 transition-colors hover:text-[#A30000] focus-visible:text-[#A30000]">
                 <span className="flex h-12 w-12 items-center justify-center">
-                  <Icon className="h-6 w-6 transition-colors group-hover:text-[#A30000]" strokeWidth={2} />
+                  {label === 'X' ? (
+                    <svg viewBox="0 0 24 24" aria-hidden="true" className="h-6 w-6 fill-current transition-colors group-hover:text-[#A30000]">
+                      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24h-6.657l-5.214-6.817-5.963 6.817H1.685l7.73-8.835L1.26 2.25h6.826l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+                    </svg>
+                  ) : Icon ? <Icon className="h-6 w-6 transition-colors group-hover:text-[#A30000]" strokeWidth={2} /> : null}
                 </span>
-                <span className="text-[10px] font-medium tracking-wide opacity-0 transition-opacity group-hover:opacity-100">{label}</span>
-              </div>
+                <span className="text-[10px] font-medium tracking-wide opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">{handle}</span>
+              </a>
             ))}
           </div>
           <div className="flex w-full flex-col md:flex-row items-center justify-between gap-6">
