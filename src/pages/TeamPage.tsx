@@ -26,7 +26,6 @@ export const TeamPage: React.FC<TeamPageProps> = () => {
   <div className="relative mx-auto max-w-[1440px] px-5 pb-24 pt-20 sm:px-8 sm:pt-28 lg:px-14">
    <header className="mx-auto mb-14 max-w-3xl text-center sm:mb-20">
     <h1 className="text-4xl font-semibold tracking-[-0.055em] text-[#171b22] sm:text-6xl lg:text-7xl dark:text-white">The Minds Behind <span className="text-[#a30000]">Sferavis.</span></h1>
-    <p className="mx-auto mt-6 max-w-xl text-sm leading-7 text-[#68717d] sm:text-base dark:text-zinc-400">Different perspectives. Shared curiosity. A collective pursuit of discovery.</p>
    </header>
    <section aria-label="Sferavis team members" className="mx-auto grid max-w-4xl grid-cols-1 justify-items-center gap-x-8 gap-y-10 sm:grid-cols-2 sm:gap-x-12 sm:gap-y-14">
     {TEAM_MEMBERS.map((m,i)=><motion.button key={m.id} type="button" onClick={()=>setSelected(m)} initial={{opacity:0,y:18}} animate={{opacity:1,y:0}} transition={{duration:.45,delay:i*.07}} whileHover={{y:-5}} whileTap={{scale:.99}} className="group w-full max-w-[320px] cursor-pointer text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-[#a30000] focus-visible:ring-offset-4 dark:focus-visible:ring-offset-[#080a0e]" aria-label={`View profile of ${m.name}, ${m.role}`}>
@@ -41,7 +40,6 @@ export const TeamPage: React.FC<TeamPageProps> = () => {
     <div className="mb-8 flex flex-col gap-3 text-center sm:mb-10">
      <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-[#a30000]">Across borders, together</p>
      <h2 id="global-collaboration-title" className="text-3xl font-semibold tracking-[-0.045em] text-[#171b22] sm:text-5xl dark:text-white">A Global Collective.</h2>
-     <p className="mx-auto max-w-xl text-sm leading-7 text-[#68717d] dark:text-zinc-400">Six minds connected across four countries, united by curiosity and a shared pursuit of discovery.</p>
     </div>
     <div className="overflow-hidden rounded-[1.5rem] border border-black/[0.07] bg-[#f4f6f8] p-4 shadow-[0_16px_50px_rgba(20,30,45,0.05)] sm:p-7 dark:border-white/[0.08] dark:bg-[#0d131b] dark:shadow-[0_20px_60px_rgba(0,0,0,0.18)]">
      <div className="relative aspect-[2000/1001] w-full overflow-hidden rounded-xl">
