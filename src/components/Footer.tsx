@@ -195,8 +195,13 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate, onLaunchSferavis }) 
         {/* Bottom Wordmark, Social Links & Legal Bar */}
         <div className="pt-8 border-t border-zinc-200 dark:border-slate-800 flex flex-col items-center gap-7">
           <div className="flex w-full flex-wrap items-center justify-center gap-x-6 gap-y-4" aria-label="Sferavis social media">
-            <a href="https://www.spaceappschallenge.org/2026/find-a-team/sferavis/" target="_blank" rel="noopener noreferrer" title="NASA Space Apps Team Profile" aria-label="NASA Space Apps Team Profile" className="inline-flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-[#A30000] transition-colors hover:text-[#8B0000]">
-              NASA Space Apps Team Profile <ArrowUpRight className="h-3.5 w-3.5" />
+            <a href="https://www.spaceappschallenge.org/2026/find-a-team/sferavis/" target="_blank" rel="noopener noreferrer" title="NASA Space Apps Team Profile" aria-label="NASA Space Apps Team Profile" className="group inline-flex min-w-[54px] flex-col items-center gap-2 text-zinc-700 dark:text-zinc-200 transition-colors hover:text-[#A30000] focus-visible:text-[#A30000]">
+              <img
+                src="https://commons.wikimedia.org/wiki/Special:Redirect/file/Space_Apps_Motif_Logo_-_1-Color_Black.svg"
+                alt="NASA Space Apps"
+                className="h-12 w-12 object-contain transition-[filter] group-hover:[filter:brightness(0)_saturate(100%)_invert(10%)_sepia(100%)_saturate(7450%)_hue-rotate(0deg)_brightness(85%)_contrast(115%)] group-focus-visible:[filter:brightness(0)_saturate(100%)_invert(10%)_sepia(100%)_saturate(7450%)_hue-rotate(0deg)_brightness(85%)_contrast(115%]"
+              />
+              <span className="text-[10px] font-medium tracking-wide opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">Space Apps Profile</span>
             </a>
             {[
               { label: 'GitHub', Icon: Github },
@@ -206,11 +211,11 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate, onLaunchSferavis }) 
               { label: 'Facebook', Icon: Facebook },
               { label: 'Email', Icon: Mail },
             ].map(({ label, Icon }) => (
-              <div key={label} title={label} className="flex min-w-[54px] flex-col items-center gap-2 text-zinc-700 dark:text-zinc-200">
-                <span className="flex h-12 w-12 items-center justify-center rounded-full border-2 border-zinc-400 bg-zinc-100 text-zinc-800 dark:border-slate-500 dark:bg-slate-800 dark:text-white">
-                  <Icon className="h-6 w-6" strokeWidth={2} />
+              <div key={label} title={label} className="group flex min-w-[54px] flex-col items-center gap-2 text-zinc-700 dark:text-zinc-200 transition-colors hover:text-[#A30000]">
+                <span className="flex h-12 w-12 items-center justify-center">
+                  <Icon className="h-6 w-6 transition-colors group-hover:text-[#A30000]" strokeWidth={2} />
                 </span>
-                <span className="text-[10px] font-medium tracking-wide">{label}</span>
+                <span className="text-[10px] font-medium tracking-wide opacity-0 transition-opacity group-hover:opacity-100">{label}</span>
               </div>
             ))}
           </div>
