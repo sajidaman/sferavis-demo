@@ -1,7 +1,7 @@
 import React from 'react';
 import { PageId } from '../types';
 import { Logo } from './Logo';
-import { ExternalLink, ArrowUpRight } from 'lucide-react';
+import { ExternalLink, ArrowUpRight, Github, Linkedin, Twitter, Instagram, Facebook, Mail } from 'lucide-react';
 
 interface FooterProps {
   onNavigate: (page: PageId) => void;
@@ -192,8 +192,27 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate, onLaunchSferavis }) 
 
         </div>
 
-        {/* Bottom Wordmark & Legal Bar */}
-        <div className="pt-8 border-t border-zinc-200 dark:border-slate-800 flex flex-col md:flex-row items-center justify-between gap-6">
+        {/* Bottom Wordmark, Social Links & Legal Bar */}
+        <div className="pt-8 border-t border-zinc-200 dark:border-slate-800 flex flex-col items-center gap-7">
+          <div className="flex flex-wrap items-center justify-center gap-3" aria-label="Sferavis social media">
+            <a href="https://www.spaceappschallenge.org/2026/find-a-team/sferavis/" target="_blank" rel="noopener noreferrer" title="NASA Space Apps Team Profile" aria-label="NASA Space Apps Team Profile" className="mr-2 inline-flex items-center gap-1.5 border-r border-zinc-300 pr-4 text-[10px] font-semibold uppercase tracking-wider text-[#A30000] transition-colors hover:text-[#8B0000] dark:border-slate-700">
+              NASA Space Apps Team Profile <ArrowUpRight className="h-3.5 w-3.5" />
+            </a>
+            {[
+              { label: 'GitHub', Icon: Github },
+              { label: 'LinkedIn', Icon: Linkedin },
+              { label: 'X', Icon: Twitter },
+              { label: 'Instagram', Icon: Instagram },
+              { label: 'Facebook', Icon: Facebook },
+              { label: 'Email', Icon: Mail },
+            ].map(({ label, Icon }) => (
+              <span key={label} title={label} aria-label={label} className="group relative flex h-11 w-11 items-center justify-center rounded-full border border-zinc-300 bg-white text-zinc-700 transition-colors hover:border-[#A30000] hover:text-[#A30000] dark:border-slate-700 dark:bg-slate-900 dark:text-zinc-200 dark:hover:border-[#A30000] dark:hover:text-white">
+                <Icon className="h-5 w-5" strokeWidth={1.8} />
+                <span className="pointer-events-none absolute bottom-full left-1/2 z-20 mb-2 -translate-x-1/2 whitespace-nowrap rounded bg-zinc-900 px-2.5 py-1.5 text-[10px] font-medium text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100">{label}</span>
+              </span>
+            ))}
+          </div>
+          <div className="flex w-full flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-4">
             <Logo size="md" />
             <span className="text-xs text-zinc-500">
