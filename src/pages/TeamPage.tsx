@@ -19,14 +19,17 @@ const TEAM_MEMBERS: Member[] = [
 ];
 const SocialIcon = ({platform}:{platform:Social['platform']}) => platform==='linkedin'?<Linkedin size={17}/>:platform==='github'?<Github size={17}/>:platform==='email'?<Mail size={17}/>:<Globe size={17}/>;
 
-// Public profile cards expose only these four contact destinations.
-// This allowlist intentionally excludes NASA Space Apps/team-profile links and every other link type.
+// Profile cards intentionally expose ONLY Portfolio, GitHub, LinkedIn, and Mail.
+// NASA Space Apps Team Profile, Twitter/X, Instagram, Facebook, and any other destinations
+// are excluded here, regardless of the incoming member data.
 const getVisibleSocialLinks = (member: Member): Social[] => member.socialLinks.filter((link) => {
  const label = link.label.trim().toLowerCase();
- return (label === 'portfolio' && link.platform === 'website') ||
-  (label === 'github' && link.platform === 'github') ||
-  (label === 'linkedin' && link.platform === 'linkedin') ||
-  (label === 'mail' && link.platform === 'email' && link.url.toLowerCase().startsWith('mailto:'));
+ const url = link.url.trim().toLowerCase();
+ if (label === 'portfolio') return link.platform === 'website' && url.startsWith('https://');
+ if (label === 'github') return link.platform === 'github' && url.startsWith('https://github.com/');
+ if (label === 'linkedin') return link.platform === 'linkedin' && (url.startsWith('https://linkedin.com/') || url.startsWith('https://www.linkedin.com/'));
+ if (label === 'mail') return link.platform === 'email' && url.startsWith('mailto:');
+ return false;
 });
 
 export const TeamPage: React.FC<TeamPageProps> = () => {
