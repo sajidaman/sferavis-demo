@@ -47,28 +47,11 @@ export const TeamPage: React.FC<TeamPageProps> = () => {
      <div className="relative aspect-[2000/1001] w-full overflow-hidden rounded-xl">
       <img src="/world-map.svg" alt="World map with highlighted team countries" className="absolute inset-0 h-full w-full object-contain" loading="lazy"/>
       <svg viewBox="0 0 2000 1001" preserveAspectRatio="xMidYMid meet" aria-label="Team member locations" className="absolute inset-0 h-full w-full overflow-visible">
-       <g fill="none" stroke="#a30000" strokeWidth="4" strokeOpacity=".55" strokeDasharray="12 13">
-        <path d="M1502 368 Q1320 190 1132 289"/>
-        <path d="M1502 368 Q1320 100 1140 184"/>
-        <path d="M1502 368 Q1320 80 1138 170"/>
-       </g>
        <g fill="#a30000" stroke="white" strokeWidth="5">
-        <circle cx="1502" cy="368" r="13"/><circle cx="1490" cy="374" r="7"/>
-        <circle cx="1132" cy="289" r="13"/><circle cx="1142" cy="296" r="7"/>
-        <circle cx="1140" cy="184" r="11"/>
-        <circle cx="1138" cy="170" r="11"/>
-       </g>
-       <g fill="#a30000" stroke="white" strokeWidth="3">
-        <circle cx="1502" cy="368" r="23" fillOpacity=".10"/>
-        <circle cx="1132" cy="289" r="23" fillOpacity=".10"/>
-       </g>
-       <g fill="currentColor" fontFamily="Arial, sans-serif" fontSize="27" fontWeight="600">
-        <text x="1540" y="361">Bangladesh</text><text x="1540" y="395" fontSize="22" fontWeight="400" opacity=".7">2 members</text>
-        <text x="1085" y="329" textAnchor="end">Greece</text><text x="1085" y="359" textAnchor="end" fontSize="22" fontWeight="400" opacity=".7">2 members</text>
-        <path d="M1150 170 L1200 115 L1270 115" fill="none" stroke="currentColor" strokeOpacity=".45" strokeWidth="2"/>
-        <text x="1280" y="122" fontSize="22">Estonia · 1</text>
-        <path d="M1152 184 L1200 205 L1270 205" fill="none" stroke="currentColor" strokeOpacity=".45" strokeWidth="2"/>
-        <text x="1280" y="212" fontSize="22">Latvia · 1</text>
+        <circle cx="1502.3" cy="368.6" r="12"/>
+        <circle cx="1131.8" cy="289.1" r="12"/>
+        <circle cx="1133.9" cy="183.9" r="11"/>
+        <circle cx="1137.5" cy="169.6" r="11"/>
        </g>
       </svg>
      </div>
