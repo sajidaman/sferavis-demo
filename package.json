@@ -38,7 +38,6 @@
     "@google/genai": "^2.4.0",
     "@tailwindcss/vite": "^4.3.3",
     "@vitejs/plugin-react": "^6.1.1",
-    "ai": "^7.0.169",
     "aladin-lite": "^3.9.2-beta",
     "dotenv": "^17.2.3",
     "express": "^4.21.2",
