@@ -11,6 +11,7 @@ import { TeamPage } from './pages/TeamPage';
 import { PublicationsPage } from './pages/PublicationsPage';
 import { LaunchSferavisModal } from './components/LaunchSferavisModal';
 import { AccessibilityControls } from './components/AccessibilityControls';
+import { RediumChat } from './components/RediumChat';
 
 import { AstroBackground } from './components/AstroBackground';
 
@@ -112,6 +113,7 @@ export default function App() {
         onClose={() => setIsLaunchModalOpen(false)}
       />
 
+      <RediumChat />
       <AccessibilityControls />
     </div>
   );
