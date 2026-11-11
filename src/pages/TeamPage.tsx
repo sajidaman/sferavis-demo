@@ -59,7 +59,7 @@ export const TeamPage: React.FC<TeamPageProps> = () => {
       {[{country:'Bangladesh',count:'02',city:'South Asia'},{country:'Greece',count:'02',city:'Southern Europe'},{country:'Latvia',count:'01',city:'Northern Europe'},{country:'Estonia',count:'01',city:'Northern Europe'}].map(item=><div key={item.country} className="rounded-xl bg-white/70 px-3 py-3 dark:bg-white/[0.035]"><p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#8a929d] dark:text-zinc-500">{item.city}</p><p className="mt-1 text-sm font-medium text-[#303944] dark:text-zinc-200">{item.country}</p><p className="mt-1 font-mono text-xl text-[#a30000]">{item.count}</p></div>)}
      </div>
     </div>
-    <p className="mt-4 text-center text-[10px] uppercase tracking-[0.18em] text-[#929aa5] dark:text-zinc-600">Map data: Natural Earth · Menelabs VectorAtlas (CC BY 4.0) · 6 members · 4 countries</p>
+    <p className="mt-4 text-center text-[10px] uppercase tracking-[0.18em] text-[#929aa5] dark:text-zinc-600">Map data: Natural Earth · Menelabs VectorAtlas (CC BY 4.0)<br/>6 members · 4 countries · 1 collective</p>
    </section>
   </div>
   <AnimatePresence>{selected&&<motion.div className="fixed inset-0 z-[100] flex items-end justify-center bg-[#07090d]/70 p-0 backdrop-blur-md sm:items-center sm:p-6" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} onMouseDown={e=>{if(e.target===e.currentTarget)setSelected(null)}}>
