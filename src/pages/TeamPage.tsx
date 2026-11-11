@@ -47,11 +47,11 @@ export const TeamPage: React.FC<TeamPageProps> = () => {
      <div className="relative aspect-[2000/1001] w-full overflow-hidden rounded-xl">
       <img src="/world-map.svg" alt="World map with highlighted team countries" className="absolute inset-0 h-full w-full object-contain" loading="lazy"/>
       <svg viewBox="0 0 2000 1001" preserveAspectRatio="xMidYMid meet" aria-label="Team member locations" className="absolute inset-0 h-full w-full overflow-visible">
-       <g fill="#a30000" stroke="white" strokeWidth="5">
-        <circle cx="1502.3" cy="368.6" r="12"/>
-        <circle cx="1131.8" cy="289.1" r="12"/>
-        <circle cx="1133.9" cy="183.9" r="11"/>
-        <circle cx="1137.5" cy="169.6" r="11"/>
+       <g fill="#a30000" stroke="white" strokeWidth="4">
+        <circle cx="1502" cy="446" r="10"/>
+        <circle cx="1133" cy="360" r="10"/>
+        <circle cx="1138" cy="260" r="9"/>
+        <circle cx="1142" cy="250" r="9"/>
        </g>
       </svg>
      </div>
