@@ -225,14 +225,19 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate, onLaunchSferavis }) 
             </span>
           </div>
 
-          <div className="flex items-center gap-4 text-xs text-zinc-500 font-lexend">
+          <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-xs text-zinc-500 font-lexend">
             <span className="hover:text-zinc-950 dark:hover:text-white cursor-pointer transition-colors">Privacy Policy</span>
-            <span>·</span>
+            <span aria-hidden="true">·</span>
             <span className="hover:text-zinc-950 dark:hover:text-white cursor-pointer transition-colors">Terms of Use</span>
-            <span>·</span>
-            <span className="hover:text-zinc-950 dark:hover:text-white cursor-pointer transition-colors">Open Source (BSD-3)</span>
-            <span>·</span>
-            <span className="hover:text-zinc-950 dark:hover:text-white cursor-pointer transition-colors">Data Release Policy</span>
+            <span aria-hidden="true">·</span>
+            <a
+              href="https://github.com/sajidaman/sferavis-demo/blob/main/THIRD_PARTY_NOTICES.md"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-zinc-950 dark:hover:text-white transition-colors"
+            >
+              Open Source & Licenses
+            </a>
           </div>
         </div>
 
