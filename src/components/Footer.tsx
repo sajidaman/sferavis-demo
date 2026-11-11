@@ -212,11 +212,11 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate, onLaunchSferavis }) 
             ))}
           </div>
           <div className="flex w-full flex-col md:flex-row items-center justify-between gap-6">
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
             <img
               src={`${import.meta.env.BASE_URL}sferavis-icon.svg`}
               alt="Sferavis icon"
-              className="h-10 w-10 shrink-0 object-contain"
+              className="h-8 w-8 sm:h-9 sm:w-9 shrink-0 object-contain"
             />
             <Logo size="md" />
             <span className="flex flex-col text-xs text-zinc-500 leading-relaxed">
