@@ -10,7 +10,7 @@ type Member = { id: string; name: string; role: string; institution: string; loc
 // Replace these clearly marked placeholders with the six real members.
 // Add portraits under /public/team/ and set image to e.g. /team/member-name.jpg.
 const TEAM_MEMBERS: Member[] = [
- {id:'01',name:'Sajid Aman',role:'Co-lead & Frontend',institution:'Notre Dame College',location:'Dhaka, Bangladesh',image:'',biography:'Biography to be added.',expertise:['Frontend development','Project coordination'],socialLinks:[]},
+ {id:'01',name:'Sajid Aman',role:'Co-lead & Frontend',institution:'Notre Dame College',location:'Dhaka, Bangladesh',image:'https://drive.google.com/uc?export=view&id=1pUnSZiif5lS4ElkkcXzM5Nmln8-aQBSC',biography:'Biography to be added.',expertise:['Frontend development','Project coordination'],socialLinks:[{label:'Portfolio',url:'',platform:'website'},{label:'LinkedIn',url:'https://www.linkedin.com/in/sajidaman01/',platform:'linkedin'},{label:'Email',url:'sajidaman01@outlook.com',platform:'email'}]},
  {id:'02',name:'Radit Raian',role:'Co-lead & Backend',institution:'',location:'',image:'',biography:'Biography to be added.',expertise:['Backend development'],socialLinks:[]},
  {id:'03',name:'Elisabeth Tagobert',role:'UI/UX',institution:'',location:'',image:'',biography:'Biography to be added.',expertise:['UI/UX design'],socialLinks:[]},
  {id:'04',name:'Emils',role:'AI & ML',institution:'',location:'',image:'',biography:'Biography to be added.',expertise:['Artificial intelligence','Machine learning'],socialLinks:[]},
