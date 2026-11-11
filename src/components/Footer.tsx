@@ -223,8 +223,9 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate, onLaunchSferavis }) 
           <div className="flex w-full flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-4">
             <Logo size="md" />
-            <span className="text-xs text-zinc-500">
-              Copyright © 2026 Sferavis Astrophysics Consortium. All rights reserved.
+            <span className="flex flex-col text-xs text-zinc-500 leading-relaxed">
+              <span>© 2026 Sferavis. All rights reserved.</span>
+              <span>Built for NASA Space Apps Challenge 2026</span>
             </span>
           </div>
 
