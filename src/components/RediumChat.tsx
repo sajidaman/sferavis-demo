@@ -56,7 +56,7 @@ export const RediumChat: React.FC = () => {
       }
 
       const reply = result.reply.trim();
-      setMessages(current => [...current, { role: 'assistant', content: reply }].slice(-20));
+      setMessages(current => [...current, { role: 'assistant' as const, content: reply }].slice(-20));
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : 'Redium could not reply. Please try again.');
     } finally {
