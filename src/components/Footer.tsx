@@ -196,11 +196,15 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate, onLaunchSferavis }) 
         <div className="pt-8 border-t border-zinc-200 dark:border-slate-800 flex flex-col items-center gap-7">
           <div className="flex w-full flex-wrap items-center justify-center gap-x-6 gap-y-4" aria-label="Sferavis social media">
             <a href="https://www.spaceappschallenge.org/2026/find-a-team/sferavis/" target="_blank" rel="noopener noreferrer" title="NASA Space Apps Team Profile" aria-label="NASA Space Apps Team Profile" className="group inline-flex min-w-[54px] flex-col items-center gap-2 text-zinc-700 dark:text-zinc-200 transition-colors hover:text-[#A30000] focus-visible:text-[#A30000]">
-              <img
-                src="https://commons.wikimedia.org/wiki/Special:Redirect/file/Space_Apps_Motif_Logo_-_1-Color_Black.svg"
-                alt="NASA Space Apps"
-                className="h-12 w-12 object-contain transition-[filter] group-hover:[filter:brightness(0)_saturate(100%)_invert(10%)_sepia(100%)_saturate(7450%)_hue-rotate(0deg)_brightness(85%)_contrast(115%)] group-focus-visible:[filter:brightness(0)_saturate(100%)_invert(10%)_sepia(100%)_saturate(7450%)_hue-rotate(0deg)_brightness(85%)_contrast(115%]"
-              />
+              <svg
+                viewBox="0 0 48 48"
+                role="img"
+                aria-label="Asteroid icon"
+                className="h-12 w-12 fill-current transition-colors group-hover:text-[#A30000] group-focus-visible:text-[#A30000]"
+              >
+                <path d="M11.2 9.8 18.1 6.5 24.4 8.2 29.8 5.7 36.4 10.1 39.2 17.4 36.8 23.1 41.1 29.5 37.6 36.8 30.4 40.2 24.8 38.1 18.7 41.4 11.3 37.2 8.6 30.5 5.4 24.3 8.2 17.1Z" />
+                <path d="M15.3 17.2a4.1 4.1 0 1 0 0 8.2 4.1 4.1 0 0 0 0-8.2Zm13.1 9.4a2.7 2.7 0 1 0 0 5.4 2.7 2.7 0 0 0 0-5.4Zm4.2-13.2a1.9 1.9 0 1 0 0 3.8 1.9 1.9 0 0 0 0-3.8Z" fill="currentColor" opacity=".28" />
+              </svg>
               <span className="text-[10px] font-medium tracking-wide opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">Space Apps Profile</span>
             </a>
             {[
