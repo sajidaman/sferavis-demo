@@ -197,7 +197,7 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate, onLaunchSferavis }) 
           <div className="flex w-full flex-wrap items-center justify-center gap-x-6 gap-y-4" aria-label="Sferavis social media">
             <a href="https://www.spaceappschallenge.org/2026/find-a-team/sferavis/" target="_blank" rel="noopener noreferrer" title="NASA Space Apps Team Profile" aria-label="NASA Space Apps Team Profile" className="group inline-flex min-w-[54px] flex-col items-center gap-2 text-zinc-700 dark:text-zinc-200 transition-colors hover:text-[#A30000] focus-visible:text-[#A30000]">
               <span className="flex h-12 w-12 items-center justify-center">
-                <img src="/assets/space-apps-asteroid-icon.svg" alt="NASA Space Apps icon" className="h-6 w-6 text-current object-contain transition-colors" />
+                <span role="img" aria-label="NASA Space Apps icon" className="h-6 w-6 bg-current transition-colors" style={{ mask: 'url("/assets/space-apps-asteroid-icon.svg") center / contain no-repeat', WebkitMask: 'url("/assets/space-apps-asteroid-icon.svg") center / contain no-repeat' }} />
               </span>
               <span className="text-[10px] font-medium tracking-wide opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">Space Apps Profile</span>
             </a>
