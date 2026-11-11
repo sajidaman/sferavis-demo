@@ -18,7 +18,7 @@ SPHEREx is surveying the entire celestial sphere every six months across 102 dis
 
 * **Interactive SPHEREx Planetarium**: Built on official `aladin-lite` (v3 WebAssembly core) rendering the NASA SPHEREx QR2 all-sky composite (`CDS/P/SPHEREx/QR2/D3`) and optical DSS2 reference surveys. Features Aitoff (AIT), Gnomonic (TAN), and Orthographic (SIN) projections, real-time coordinate grid navigation, and FoV control.
 * **102-Band Near-IR Hyperspectral Scrubber**: Continuously scrub through 0.75 µm to 5.00 µm across all 6 Linear Variable Filter (LVF) detector assemblies, diagnosing interstellar water ice (3.05 µm), carbon dioxide ice (4.27 µm), polycyclic aromatic hydrocarbons (3.3 µm PAH), and the cosmological H⁻ stellar opacity minimum (1.6 µm).
-* **Redium AI Science Assistant**: Integrated scientific assistant powered by Google Gemini (`@google/genai` Gemini 3.8 Flash) available via `/api/chat`. Explains mission science, SPHEREx survey strategies, and navigates visitors through the atlas.
+* **Redium AI Science Assistant**: Floating website chatbot backed by the server-side `/api/chat` endpoint. Uses OpenAI GPT (`gpt-4o-mini` by default) when `OPENAI_API_KEY` is configured; the existing Gemini integration remains available when no OpenAI key is set.
 * **Dual Celestial Aesthetics**:
   * **Luminous Atlas (Light Mode)**: Inspired by prestigious National Geographic editorial cartography, featuring clean ivory-slate canvases, charcoal headings, and deep red accents.
   * **Night Sky Observatory (Dark Mode)**: Atmospheric deep-space aesthetic (`#070b14` canvas, `#0e1628` instrument consoles, and starlight borders).
@@ -35,7 +35,7 @@ SPHEREx is surveying the entire celestial sphere every six months across 102 dis
 | **Frontend Framework** | React 19, TypeScript, Vite 8 |
 | **Styling** | Tailwind CSS v4, Motion (Framer Motion v12), Lucide Icons |
 | **Planetarium & Astro** | Aladin Lite v3 (WebAssembly & WebGL 2.0), HiPS protocol |
-| **AI Assistant** | `@google/genai` (Gemini 3.8 Flash), Vercel Serverless Function & Vite dev proxy |
+| **AI Assistant** | OpenAI Chat Completions API (GPT-4o mini), optional Gemini route, Vercel Serverless Function & Vite dev proxy |
 | **Typography** | Lexend, Oswald, Merriweather, JetBrains Mono |
 | **CI / CD** | GitHub Actions (`ci.yml`, `deploy-pages.yml`), Vercel (`vercel.json`) |
 
@@ -62,14 +62,15 @@ SPHEREx is surveying the entire celestial sphere every six months across 102 dis
    ```
 
 3. **(Optional) Configure Redium AI Assistant**:
-   Copy the example environment file and add your Gemini API key from [Google AI Studio](https://aistudio.google.com/):
+   Copy the example environment file and add your OpenAI API key from the [OpenAI platform](https://platform.openai.com/api-keys):
    ```bash
    cp .env.example .env.local
    ```
    Edit `.env.local`:
    ```env
-   GEMINI_API_KEY=your_gemini_api_key_here
+   OPENAI_API_KEY=your_openai_api_key_here
    ```
+   `OPENAI_MODEL` is optional and defaults to `gpt-4o-mini`. To use Gemini instead, set `GEMINI_API_KEY` from [Google AI Studio](https://aistudio.google.com/); it is used when no OpenAI key is configured.
 
 4. **Start the local development server**:
    ```bash
@@ -109,9 +110,8 @@ The repository includes a ready-to-use GitHub Actions workflow (`.github/workflo
 Sferavis includes a `vercel.json` and a serverless API function in `api/chat.ts`:
 
 1. Import the repository into [Vercel](https://vercel.com).
-2. Set the Environment Variable:
-   * `GEMINI_API_KEY`: Your Gemini API key from Google AI Studio.
-3. Deploy. Vercel automatically builds the Vite frontend and serves `/api/chat` as an edge/serverless function.
+2. Set `OPENAI_API_KEY` in **Settings → Environment Variables**. Optionally set `OPENAI_MODEL`; it defaults to `gpt-4o-mini`. Keep the key server-side—never prefix it with `VITE_`.
+3. Deploy. Vercel automatically builds the Vite frontend and serves `/api/chat` as a serverless function. If you prefer Gemini, set `GEMINI_API_KEY` instead.
 
 ---
 
@@ -127,7 +127,7 @@ sferavis/
 │       ├── bug_report.md          # Bug report issue template
 │       └── feature_request.md     # Feature proposal issue template
 ├── api/
-│   └── chat.ts                    # Serverless Gemini endpoint for Redium assistant
+│   └── chat.ts                    # Server-side OpenAI/Gemini endpoint for Redium
 ├── public/                        # Static assets, SVG icons, and diagrams
 ├── src/
 │   ├── assets/images/             # Telescope hardware and mission imagery
