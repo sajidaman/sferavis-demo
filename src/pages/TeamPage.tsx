@@ -39,6 +39,9 @@ export const TeamPage: React.FC<TeamPageProps> = () => {
   <div className="relative mx-auto max-w-[1440px] px-5 pb-24 pt-20 sm:px-8 sm:pt-28 lg:px-14">
    <header className="mx-auto mb-14 w-full max-w-none text-center sm:mb-20">
     <h1 className="w-full whitespace-nowrap text-[clamp(1.15rem,5.1vw,4rem)] font-semibold tracking-[-0.055em] text-[#171b22] dark:text-white">The Minds Behind <span className="text-[#a30000]">Sferavis.</span></h1>
+    <a href="https://www.spaceappschallenge.org/2026/find-a-team/sferavis/" target="_blank" rel="noreferrer" className="mx-auto mt-6 inline-flex items-center gap-2 border border-[#a30000]/25 px-4 py-2.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-[#a30000] transition-colors hover:border-[#a30000] hover:bg-[#a30000]/[0.05] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#a30000]">
+     NASA Space Apps Challenge 2026 Team Profile <ArrowUpRight size={13}/>
+    </a>
    </header>
    <section aria-label="Sferavis team members" className="mx-auto grid max-w-4xl grid-cols-1 justify-items-center gap-x-8 gap-y-10 sm:grid-cols-2 sm:gap-x-12 sm:gap-y-14">
     {TEAM_MEMBERS.map((m,i)=><motion.button key={m.id} type="button" onClick={()=>setSelected(m)} initial={{opacity:0,y:18}} animate={{opacity:1,y:0}} transition={{duration:.45,delay:i*.07}} whileHover={{y:-5}} whileTap={{scale:.99}} className="group w-full max-w-[320px] cursor-pointer text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-[#a30000] focus-visible:ring-offset-4 dark:focus-visible:ring-offset-[#080a0e]" aria-label={`View profile of ${m.name}, ${m.role}`}>
