@@ -1,5 +1,4 @@
 import { GoogleGenAI } from '@google/genai';
-import { generateText, type ModelMessage } from 'ai';
 
 type ChatMessage = { role: 'user' | 'assistant' | 'model'; content: string };
 type ApiRequest = { method?: string; body?: unknown };
@@ -15,9 +14,8 @@ Help visitors understand Sferavis, its website sections, astronomy, astrophysics
 Never claim to have live access to the website, private databases, current SPHEREx observations, or user accounts. Do not invent project capabilities, scientific measurements, team details, or links. If you do not know a Sferavis-specific fact, say so and direct the visitor to the relevant website section or official contact channel.
 Distinguish established science from hypotheses. For medical, legal, financial, or safety-critical questions, provide general information and recommend an appropriate qualified source.`;
 
-const MODELS = ['google/gemini-3.8-flash', 'google/gemini-3.5-flash'];
-const PER_MODEL_TIMEOUT_MS = 15000;
-const OPENAI_MODEL = process.env.OPENAI_MODEL || 'gpt-4o-mini';
+const MODEL = 'gemini-3.5-flash-lite';
+const REQUEST_TIMEOUT_MS = 15000;
 
 function parseMessages(body: unknown): ChatMessage[] {
   const raw = (body && typeof body === 'object' ? (body as { messages?: unknown }).messages : undefined);
@@ -45,98 +43,31 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
     return res.status(400).json({ error: 'Please send a message to Redium.' });
   }
 
-  const openAiApiKey = process.env.OPENAI_API_KEY;
-  if (openAiApiKey) {
-    try {
-      const response = await fetch('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${openAiApiKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: OPENAI_MODEL,
-          messages: [
-            { role: 'system', content: instructions },
-            ...messages.map(({ role, content }) => ({
-              role: role === 'user' ? 'user' : 'assistant',
-              content,
-            })),
-          ],
-          max_tokens: 700,
-          temperature: 0.45,
-        }),
-        signal: AbortSignal.timeout(PER_MODEL_TIMEOUT_MS),
-      });
-
-      if (!response.ok) {
-        const details = await response.text();
-        console.error(`Redium: OpenAI request failed (${response.status}):`, details.slice(0, 500));
-        return res.status(503).json({
-          error: 'Redium could not get a reply right now. Please try again in a moment.',
-        });
-      }
-
-      const result = await response.json() as {
-        choices?: Array<{ message?: { content?: string | null } }>;
-      };
-      const reply = result.choices?.[0]?.message?.content?.trim();
-      if (reply) return res.status(200).json({ reply });
-      console.error('Redium: OpenAI returned an empty reply.');
-    } catch (error) {
-      console.error('Redium: OpenAI request failed:', error instanceof Error ? error.message : String(error));
-      return res.status(503).json({
-        error: 'Redium could not get a reply right now. Please try again in a moment.',
-      });
-    }
-
+  const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
+  if (!apiKey) {
     return res.status(503).json({
-      error: 'Redium could not get a reply right now. Please try again in a moment.',
+      error: 'Redium is not configured yet. Add GEMINI_API_KEY in the server environment.',
     });
   }
 
-  const modelMessages: ModelMessage[] = messages.map(m => ({
-    role: m.role === 'model' ? 'assistant' : 'user',
-    content: m.content,
-  }));
-
-  for (const model of MODELS) {
-    try {
-      const { text } = await generateText({
-        model,
-        instructions,
-        messages: modelMessages,
-        maxOutputTokens: 700,
-        temperature: 0.45,
-        maxRetries: 1,
-        timeout: PER_MODEL_TIMEOUT_MS,
-      });
-      const reply = text.trim();
-      if (reply) return res.status(200).json({ reply });
-    } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
-      console.error(`Redium: AI Gateway ${model} failed:`, message);
-      if (/credit card|unauthori[sz]ed|authentication/i.test(message)) break;
-    }
-  }
-
-  const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
-  if (apiKey) {
-    try {
-      const ai = new GoogleGenAI({ apiKey, httpOptions: { timeout: PER_MODEL_TIMEOUT_MS } });
-      const result = await ai.models.generateContent({
-        model: MODELS[0].replace('google/', ''),
-        contents: messages.map(m => ({ role: m.role === 'user' ? 'user' : 'model', parts: [{ text: m.content }] })),
-        config: { systemInstruction: instructions, maxOutputTokens: 700, temperature: 0.45 },
-      });
-      const reply = result.text?.trim();
-      if (reply) return res.status(200).json({ reply });
-    } catch (error) {
-      console.error('Redium: direct Gemini fallback failed:', error instanceof Error ? error.message : String(error));
-    }
+  try {
+    const ai = new GoogleGenAI({ apiKey, httpOptions: { timeout: REQUEST_TIMEOUT_MS } });
+    const result = await ai.models.generateContent({
+      model: MODEL,
+      contents: messages.map(message => ({
+        role: message.role === 'user' ? 'user' : 'model',
+        parts: [{ text: message.content }],
+      })),
+      config: { systemInstruction: instructions, maxOutputTokens: 700, temperature: 0.45 },
+    });
+    const reply = result.text?.trim();
+    if (reply) return res.status(200).json({ reply });
+    console.error('Redium: Gemini returned an empty reply.');
+  } catch (error) {
+    console.error('Redium: Gemini request failed:', error instanceof Error ? error.message : String(error));
   }
 
   return res.status(503).json({
-    error: 'Redium is having trouble answering right now. Please try again in a moment.',
+    error: 'Redium could not get a reply. Check the Gemini API key and free-tier quota, then try again.',
   });
 }
