@@ -194,8 +194,8 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate, onLaunchSferavis }) 
 
         {/* Bottom Wordmark, Social Links & Legal Bar */}
         <div className="pt-8 border-t border-zinc-200 dark:border-slate-800 flex flex-col items-center gap-7">
-          <div className="flex flex-wrap items-center justify-center gap-3" aria-label="Sferavis social media">
-            <a href="https://www.spaceappschallenge.org/2026/find-a-team/sferavis/" target="_blank" rel="noopener noreferrer" title="NASA Space Apps Team Profile" aria-label="NASA Space Apps Team Profile" className="mr-2 inline-flex items-center gap-1.5 border-r border-zinc-300 pr-4 text-[10px] font-semibold uppercase tracking-wider text-[#A30000] transition-colors hover:text-[#8B0000] dark:border-slate-700">
+          <div className="flex w-full flex-wrap items-center justify-center gap-x-6 gap-y-4" aria-label="Sferavis social media">
+            <a href="https://www.spaceappschallenge.org/2026/find-a-team/sferavis/" target="_blank" rel="noopener noreferrer" title="NASA Space Apps Team Profile" aria-label="NASA Space Apps Team Profile" className="inline-flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-[#A30000] transition-colors hover:text-[#8B0000]">
               NASA Space Apps Team Profile <ArrowUpRight className="h-3.5 w-3.5" />
             </a>
             {[
@@ -206,10 +206,12 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate, onLaunchSferavis }) 
               { label: 'Facebook', Icon: Facebook },
               { label: 'Email', Icon: Mail },
             ].map(({ label, Icon }) => (
-              <span key={label} title={label} aria-label={label} className="group relative flex h-11 w-11 items-center justify-center rounded-full border border-zinc-300 bg-white text-zinc-700 transition-colors hover:border-[#A30000] hover:text-[#A30000] dark:border-slate-700 dark:bg-slate-900 dark:text-zinc-200 dark:hover:border-[#A30000] dark:hover:text-white">
-                <Icon className="h-5 w-5" strokeWidth={1.8} />
-                <span className="pointer-events-none absolute bottom-full left-1/2 z-20 mb-2 -translate-x-1/2 whitespace-nowrap rounded bg-zinc-900 px-2.5 py-1.5 text-[10px] font-medium text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100">{label}</span>
-              </span>
+              <div key={label} title={label} className="flex min-w-[54px] flex-col items-center gap-2 text-zinc-700 dark:text-zinc-200">
+                <span className="flex h-12 w-12 items-center justify-center rounded-full border-2 border-zinc-400 bg-zinc-100 text-zinc-800 dark:border-slate-500 dark:bg-slate-800 dark:text-white">
+                  <Icon className="h-6 w-6" strokeWidth={2} />
+                </span>
+                <span className="text-[10px] font-medium tracking-wide">{label}</span>
+              </div>
             ))}
           </div>
           <div className="flex w-full flex-col md:flex-row items-center justify-between gap-6">
