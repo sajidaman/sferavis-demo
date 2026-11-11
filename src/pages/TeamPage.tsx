@@ -48,10 +48,10 @@ export const TeamPage: React.FC<TeamPageProps> = () => {
       <img src="/world-map.svg" alt="World map with highlighted team countries" className="absolute inset-0 h-full w-full object-contain" loading="lazy"/>
       <svg viewBox="0 0 2000 1001" preserveAspectRatio="xMidYMid meet" aria-label="Team member locations" className="absolute inset-0 h-full w-full overflow-visible">
        <g fill="#a30000" stroke="white" strokeWidth="4">
-        <circle cx="1493" cy="446" r="9"/>
-        <circle cx="1511" cy="446" r="9"/>
-        <circle cx="1124" cy="360" r="9"/>
-        <circle cx="1142" cy="360" r="9"/>
+        <circle cx="1502" cy="446" r="9"/>
+        <circle cx="1502" cy="446" r="9"/>
+        <circle cx="1133" cy="360" r="9"/>
+        <circle cx="1133" cy="360" r="9"/>
         <circle cx="1138" cy="260" r="9"/>
         <circle cx="1142" cy="250" r="9"/>
        </g>
