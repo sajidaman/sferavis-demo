@@ -94,7 +94,7 @@ export const DocsPage: React.FC<DocsPageProps> = ({ onNavigate }) => {
           <div className="flex flex-col gap-8">
             <header className="mx-auto w-full max-w-3xl text-center">
               <h1 className="text-4xl font-semibold tracking-[-0.055em] text-[#171b22] sm:text-6xl lg:text-7xl dark:text-white">
-                Technical Documentation<span className="text-[#a30000]">.</span>
+                Documentation<span className="text-[#a30000]">.</span>
               </h1>
             </header>
 
