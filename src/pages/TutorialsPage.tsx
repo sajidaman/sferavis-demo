@@ -97,8 +97,8 @@ Delta-chi2: 142.8 (High confidence z-break match)`);
             <span className="text-slate-700 dark:text-zinc-300">INTERACTIVE DATA REDUCTION</span>
           </div>
 
-          <h1 className="text-4xl sm:text-6xl font-oswald uppercase font-black tracking-tight text-slate-950 dark:text-white">
-            Astrophysics Tutorials.
+          <h1 className="text-4xl font-semibold tracking-[-0.055em] text-[#171b22] sm:text-6xl lg:text-7xl dark:text-white">
+            Tutorials<span className="text-[#a30000]">.</span>
           </h1>
           <p className="mt-4 text-base sm:text-xl font-merriweather text-slate-600 dark:text-zinc-300 max-w-2xl leading-relaxed">
             Step-by-step guides for processing SPHEREx 102-band data cubes, fitting prebiotic ice chemistry, and measuring galaxy redshift distributions with Python and SFERAvis.
