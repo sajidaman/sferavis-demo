@@ -222,6 +222,7 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate, onLaunchSferavis }) 
             <span className="flex flex-col text-xs text-zinc-500 leading-relaxed">
               <span>© 2026 Sferavis. All rights reserved.</span>
               <span>Built for NASA Space Apps Challenge 2026</span>
+              <span>Aladin Lite Integrated</span>
             </span>
           </div>
 
