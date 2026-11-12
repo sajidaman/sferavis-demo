@@ -85,29 +85,19 @@ Delta-chi2: 142.8 (High confidence z-break match)`);
   };
 
   return (
-    <div className="w-full text-slate-900 dark:text-slate-100 min-h-screen selection:bg-[#A30000] selection:text-white">
+    <div className="relative min-h-[75vh] w-full overflow-hidden bg-transparent text-[#15191f] dark:bg-transparent dark:text-white selection:bg-[#A30000] selection:text-white">
       
       {/* HEADER */}
-      <section className="pt-12 pb-14 border-b border-zinc-200 dark:border-slate-800 bg-white/70 dark:bg-[#090f1d]/70">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="inline-flex items-center gap-3 text-xs font-lexend uppercase tracking-widest text-slate-600 dark:text-zinc-400 border-b border-zinc-200 dark:border-slate-800 pb-2 mb-4">
-            <span className="w-2 h-2 bg-[#A30000]"></span>
-            <span className="text-[#A30000] font-bold">SCIENCE & NOTEBOOK WORKSPACE</span>
-            <span className="text-zinc-400 dark:text-zinc-600">/</span>
-            <span className="text-slate-700 dark:text-zinc-300">INTERACTIVE DATA REDUCTION</span>
-          </div>
-
+      <div className="relative mx-auto max-w-[1200px] px-5 pb-0 pt-20 sm:px-8 sm:pt-28 lg:px-14">
+        <header className="mx-auto mb-16 max-w-3xl text-center">
           <h1 className="text-4xl font-semibold tracking-[-0.055em] text-[#171b22] sm:text-6xl lg:text-7xl dark:text-white">
             Tutorials<span className="text-[#a30000]">.</span>
           </h1>
-          <p className="mt-4 text-base sm:text-xl font-merriweather text-slate-600 dark:text-zinc-300 max-w-2xl leading-relaxed">
-            Step-by-step guides for processing SPHEREx 102-band data cubes, fitting prebiotic ice chemistry, and measuring galaxy redshift distributions with Python and SFERAvis.
-          </p>
-        </div>
-      </section>
+        </header>
+      </div>
 
       {/* WORKSPACE */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-10">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           
           {/* LEFT: TUTORIAL CURRICULUM SELECTION (4 COLS) */}
