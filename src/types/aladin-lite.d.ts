@@ -30,9 +30,24 @@ declare module 'aladin-lite' {
     [key: string]: unknown;
   }
 
+  export interface AladinHiPSOptions {
+    name?: string;
+    url?: string;
+    maxOrder?: number;
+    minOrder?: number;
+    tileSize?: number;
+    imgFormat?: string;
+    cooFrame?: string;
+    requestMode?: string;
+    requestCredentials?: RequestCredentials;
+    errorCallback?: (error: unknown) => void;
+    successCallback?: () => void;
+  }
+
   export interface AladinStatic {
     init: Promise<void>;
     aladin: (container: string | HTMLElement, options?: AladinOptions) => AladinInstance;
+    HiPS: (id: string, options?: AladinHiPSOptions) => unknown;
     [key: string]: unknown;
   }
 
