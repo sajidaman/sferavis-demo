@@ -89,23 +89,13 @@ export const DocsPage: React.FC<DocsPageProps> = ({ onNavigate }) => {
     <div className="w-full text-slate-900 dark:text-slate-100 min-h-screen selection:bg-[#A30000] selection:text-white">
       
       {/* HEADER */}
-      <section className="pt-12 pb-12 border-b border-zinc-200 dark:border-slate-800 bg-white/70 dark:bg-[#090f1d]/70">
+      <section className="pt-12 pb-12 border-b border-zinc-200 dark:border-slate-800 bg-transparent">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="inline-flex items-center gap-3 text-xs font-lexend uppercase tracking-widest text-slate-600 dark:text-zinc-400 border-b border-zinc-200 dark:border-slate-800 pb-2 mb-4">
-            <span className="w-2 h-2 bg-[#A30000]"></span>
-            <span className="text-[#A30000] font-bold">DEVELOPER SPECIFICATION</span>
-            <span className="text-zinc-400 dark:text-zinc-600">/</span>
-            <span className="text-slate-700 dark:text-zinc-300">SFERAvis PROTOCOL & PIPELINE v2.4</span>
-          </div>
-
           <div className="flex flex-col gap-8">
             <header className="mx-auto w-full max-w-3xl text-center">
               <h1 className="text-4xl font-semibold tracking-[-0.055em] text-[#171b22] sm:text-6xl lg:text-7xl dark:text-white">
                 Technical Documentation<span className="text-[#a30000]">.</span>
               </h1>
-              <p className="mx-auto mt-4 max-w-2xl text-base leading-relaxed text-slate-600 dark:text-zinc-300 sm:text-lg">
-                Developer reference, Python SDK methods, and REST endpoints for querying SPHEREx 102-band all-sky spectral databases.
-              </p>
             </header>
 
             {/* Search Input */}
