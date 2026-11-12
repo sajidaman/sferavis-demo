@@ -99,7 +99,7 @@ export const DocsPage: React.FC<DocsPageProps> = ({ onNavigate }) => {
             </header>
 
             {/* Search Input */}
-            <div className="w-full md:w-80 relative self-end">
+            <div className="w-full md:w-80 relative self-center">
               <Search className="w-4 h-4 text-slate-400 dark:text-zinc-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
               <input
                 type="text"
