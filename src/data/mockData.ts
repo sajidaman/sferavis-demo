@@ -309,112 +309,71 @@ print(f"Stellar Mass log(M*/M_sun): {z_fit.log_mass:.2f}")
 
 export const DOC_SECTIONS: DocSection[] = [
   {
-    id: 'intro-architecture',
-    title: 'Platform Architecture & SPHEREx Ingestion',
+    id: 'overview',
+    title: 'Overview',
     category: 'Overview',
-    content: `SFERAvis is the high-performance scientific visualization suite and Python ecosystem designed specifically for the NASA SPHEREx (Spectro-Photometer for the History of the Universe, Epoch of Reionization and Ices Explorer) mission.
+    content: `SFERAvis is a web-based platform for exploring and analysing data from NASA's SPHEREx near-infrared all-sky survey. Its purpose is to make multi-epoch, multi-band observations easier to inspect, compare, and interpret through an accessible scientific interface.
 
-SPHEREx scans the celestial sphere using three wide-field optical assemblies and six 2048 x 2048 HgCdTe focal plane arrays. Because each detector incorporates a Linear Variable Filter (LVF), the wavelength observed varies continuously along the focal plane dispersion axis. SFERAvis reconstructs these staggered spatial-spectral exposures into unified 102-band all-sky hyperspectral data cubes.`,
-    codeBlock: {
-      language: 'bash',
-      code: `# Install SFERAvis core and astronomical dependencies
-pip install sferavis astropy numpy scipy numba pyarrow`
-    }
+SPHEREx observes the sky across 102 spectral channels spanning approximately 0.75–5.0 µm. The survey's repeated observations provide spectral and temporal information that can support studies of stars, galaxies, interstellar material, and other sources. The exact information available for an analysis depends on the released data product, its calibration, coverage, quality flags, and observation epoch.
+
+The platform is organised around three connected activities: exploring the sky and available observations; inspecting image, coordinate, and spectral information; and applying documented analysis methods to candidate sources. Results should retain links to the underlying observations and clearly distinguish measured data, derived quantities, and model predictions.
+
+This documentation describes the scientific approach and the proposed software pipeline. A capability is not considered operational merely because it is described here: implementation status and data availability must be verified against the deployed system and the relevant SPHEREx release.`
   },
   {
-    id: 'python-sdk-cube',
-    title: 'sferavis.cube — Hyperspectral Cube IO & Slicing',
-    category: 'Python SDK',
-    content: `The \`sferavis.cube\` module provides memory-mapped access to multi-gigabyte FITS and Zarr hyperspectral data structures. It automatically handles WCS distortion matrices, spatial reprojection, and instrument transmission curves.`,
-    codeBlock: {
-      language: 'python',
-      code: `from sferavis.cube import SpectralCube
+    id: 'object-detection-method',
+    title: 'Object Detection Method',
+    category: 'Object Detection Method',
+    content: `The object-detection workflow is designed to identify candidate sources in SPHEREx observations and determine whether their measured properties are consistent with known or potentially interesting object classes. Detection and classification are separate steps: a detected source is not automatically a confirmed object of a particular type.
 
-# Memory-map an all-sky survey tile without loading full 4GB into RAM
-cube = SpectralCube.open("SPHEREx_L2_AllSky_R01.zarr", mode="r")
+1. Observation and quality screening
+Select the relevant calibrated image or spectral data product and observation epoch. Read its FITS metadata and World Coordinate System (WCS), verify coordinate and unit conventions, and apply the product's documented masks and quality flags. Exclude invalid, saturated, or otherwise unsuitable pixels according to the release documentation.
 
-# Extract sub-cube centered on RA/Dec with 1 arcmin box
-sub = cube.cutout(ra="05h35m14.5s", dec="-05d22m30s", size="1 arcmin")
+2. Background estimation and source detection
+Estimate the local background and noise, then identify statistically significant sources or source-like structures. Candidate detection may use thresholding, matched filtering, or a source-extraction algorithm appropriate to the image characteristics. Record the detection significance, centroid, footprint, local background, and uncertainty rather than relying on a visual label alone.
 
-# Instant spectral energy distribution (SED) extraction
-sed = sub.to_sed(aperture="optimal")
-print(sed.wavelengths, sed.flux_mjy)`
-    }
+3. Cross-epoch association and motion analysis
+Match detections between observations using their sky coordinates, positional uncertainties, epoch information, and an appropriate association radius. Estimate angular displacement and apparent motion only when the time baseline, astrometric quality, and number of observations support it. Stationary sources, moving-source candidates, and ambiguous associations should remain distinct outcomes.
+
+4. Spectral-feature and source-characterisation analysis
+Extract the available multi-band fluxes or spectrum at the candidate position, accounting for uncertainties, masks, blending, and the instrument response described by the data release. Derive features such as spectral shape, colours, continuum behaviour, and supported absorption or emission indicators. Do not interpret a feature outside the wavelength coverage or resolution of the relevant data.
+
+5. Candidate classification and validation
+Combine positional, temporal, and spectral evidence to rank candidate classes. Potential classes may include stars, brown dwarfs, asteroids, comets, and other sources where the data and observing cadence provide sufficient evidence. Use catalog cross-matches and independent observations where available. Report confidence, uncertainty, supporting evidence, and alternative explanations. Human review is appropriate for ambiguous or scientifically significant candidates.
+
+Important limitation: SPHEREx data alone will not necessarily distinguish every moving-object class or confirm a new planet. Classification depends on sensitivity, angular resolution, cadence, spectral information, source confusion, and external validation. Outputs should therefore be labelled as candidates unless independently confirmed.`
   },
   {
-    id: 'api-cube-extract',
-    title: 'REST Endpoint: /api/v1/spectral/extract',
-    category: 'REST API',
-    content: `Remotely query the SPHEREx spectral archive for any coordinate on the sky. Returns the full 102-band calibrated SED, error bounds, and exposure flags in JSON or Astropy-compatible VOTable format.`,
-    endpoint: {
-      method: 'GET',
-      path: '/api/v1/spectral/extract',
-      params: [
-        { name: 'ra', type: 'string / float', required: true, description: 'Right ascension in degrees (e.g. 83.822) or sexagesimal (05h35m17s)' },
-        { name: 'dec', type: 'string / float', required: true, description: 'Declination in degrees (-5.391) or sexagesimal (-05d23m28s)' },
-        { name: 'radius_arcsec', type: 'float', required: false, description: 'Aperture radius in arcseconds (default: 6.2")' },
-        { name: 'bands', type: 'string', required: false, description: 'Comma-separated band list, e.g. "1,2,3,4,5,6" (default: all)' },
-        { name: 'format', type: 'string', required: false, description: 'Output format: "json", "fits", or "csv" (default: json)' }
-      ]
-    },
-    codeBlock: {
-      language: 'javascript',
-      code: `// Fetch 102-band SED from SFERAvis scientific gateway
-const response = await fetch(
-  "https://api.sferavis.org/v1/spectral/extract?ra=83.810&dec=-5.375&format=json"
-);
-const { target, bands, flux_mjy, errors_mjy } = await response.json();
-console.log(\`Retrieved \${bands.length} spectral bands for \${target}\`);`
-    }
-  },
-  {
-    id: 'fits-format-standard',
-    title: 'SPHEREx FITS Cube HDU Header Specification',
-    category: 'FITS Format',
-    content: `All SFERAvis Level-2 and Level-3 cubes adhere to the IAU FITS Standard 4.0 and IVOA Spectral Data Model.
+    id: 'ai-ml-integration-pipeline',
+    title: 'AI & ML Integration Pipeline',
+    category: 'AI & ML Integration Pipeline',
+    content: `The AI/ML pipeline turns calibrated SPHEREx observations into traceable candidate detections and classifications. It is structured as a sequence of independently testable stages so that every result can be traced back to its input data, processing configuration, and model version.
 
-Primary HDU contains global mission observation parameters, while HDU 1 (FLUX), HDU 2 (ERROR), HDU 3 (MASK), and HDU 4 (WAVELENGTH) define the hyperspectral raster.`,
-    codeBlock: {
-      language: 'text',
-      code: `XTENSION= 'IMAGE   '           / Extension type
-BITPIX  =                  -32 / 32-bit single precision floating point
-NAXIS   =                    3 / Number of coordinate axes
-NAXIS1  =                 2048 / Right Ascension pixels
-NAXIS2  =                 2048 / Declination pixels
-NAXIS3  =                  102 / SPHEREx Spectral Wavelength Channels
-CTYPE1  = 'RA---TAN'           / Gnomonic projection Right Ascension
-CTYPE2  = 'DEC--TAN'           / Gnomonic projection Declination
-CTYPE3  = 'WAVE-TAB'           / Linear Variable Filter tabular dispersion
-CUNIT1  = 'deg     '           / Degrees
-CUNIT2  = 'deg     '           / Degrees
-CUNIT3  = 'um      '           / Micrometers (0.75 to 5.00)
-BUNIT   = 'MJy/sr  '           / Calibrated Surface Brightness`
-    }
-  },
-  {
-    id: 'algorithms-ice-fit',
-    title: 'Prebiotic Ice Fitting & Baseline Decontamination',
-    category: 'Algorithms',
-    content: `The SFERAvis chemical decomposition pipeline employs laboratory optical constants from the NASA Ames Cosmic Ice Laboratory and Leiden Ice Database. 
+1. Data ingestion
+Load the selected SPHEREx FITS products and associated metadata. Preserve the original files and record product identifiers, observation epochs, WCS information, calibration context, units, and provenance. Validate file integrity and expected HDUs before processing.
 
-The optical depth tau(lambda) is computed via:
-τ(λ) = -ln( F_obs(λ) / F_cont(λ) )
+2. Quality control and preprocessing
+Apply documented masks and quality flags, handle invalid values, estimate backgrounds, and account for uncertainty. Align or reproject observations only when scientifically justified, preserving the transformations and coordinate reference. Split training, validation, and test data by source or sky region where needed to prevent leakage between related observations.
 
-Where F_cont is modeled via a second-order polynomial fitted to the continuum windows:
-Band 3: 2.15 – 2.35 µm
-Band 4: 3.70 – 3.82 µm
-Band 6: 4.80 – 5.00 µm`,
-    codeBlock: {
-      language: 'python',
-      code: `import sferavis.chemistry as sc
+3. Candidate generation
+Run a reproducible source-detection stage to produce candidate positions and footprints. Store detection statistics and uncertainty estimates. This stage should be independently evaluated for completeness, false-positive rate, and performance across source brightness and background conditions.
 
-# Run full baseline subtraction and deconvolve overlapping ice bands
-fit_result = sc.deconvolve_ice_profile(
-    sed,
-    components=['H2O_pure_amorphous', 'CO2_pure', 'CO2_CH3OH_mixture', 'CO_polar']
-)
-print(fit_result.summary())`
-    }
+4. Feature extraction
+For each candidate, assemble spatial measurements, multi-band fluxes, spectral descriptors, uncertainty values, observation times, and cross-epoch positional changes. Keep missing or unusable measurements explicitly marked; do not silently replace them with zero or treat them as detections.
+
+5. Model inference
+Use task-appropriate models rather than assuming one model solves every problem. Image-based models may help identify source morphology; tabular or sequence models may combine spectral and temporal features for candidate classification. Establish simple, interpretable baselines before introducing more complex models. Return calibrated scores or probabilities only when calibration has been evaluated.
+
+6. Validation and human review
+Evaluate models on held-out data using class-wise precision, recall, F1, confusion matrices, completeness, and false-positive rates. Inspect performance across observing conditions and source brightness. Present uncertain cases for expert or community review, while keeping human-submitted judgements separate from automated predictions.
+
+7. Results publication and feedback
+Publish each result with its sky position, observation references, measured evidence, uncertainty, model and pipeline versions, timestamp, and review status. Allow authenticated users to submit comments or evidence-based assessments if that feature is enabled. Preserve an audit trail; community feedback must not silently overwrite model output or be treated as ground truth without a review process.
+
+8. Monitoring and retraining
+Track data-quality changes, model performance, drift, and review outcomes. Retraining should use versioned datasets and documented acceptance criteria. Keep previous model outputs reproducible and make changes to models or thresholds explicit.
+
+The pipeline is a design specification. Model architectures, training datasets, performance figures, and production status must be added only after they have been implemented and evaluated on documented SPHEREx data.`
   }
 ];
 
