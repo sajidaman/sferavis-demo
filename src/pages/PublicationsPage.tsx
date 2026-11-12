@@ -39,15 +39,12 @@ export const PublicationsPage: React.FC<PublicationsPageProps> = () => (
           );
         })}
       </section>
-      <section aria-labelledby="publication-archive-heading" className="overflow-hidden rounded-[1.5rem] border border-black/10 bg-white/60 shadow-[0_16px_50px_rgba(20,30,45,0.05)] backdrop-blur-md dark:border-white/10 dark:bg-[#0b1220]/55">
-        <div className="flex flex-col gap-3 border-b border-black/[0.07] px-6 py-6 sm:flex-row sm:items-center sm:justify-between sm:px-8 dark:border-white/10">
-          <div><p className="text-[10px] font-bold uppercase tracking-[0.22em] text-[#a30000]">Sferavis archive</p><h2 id="publication-archive-heading" className="mt-2 text-2xl font-semibold tracking-[-0.04em] text-[#202630] dark:text-white">Research library</h2></div>
-          <span className="inline-flex w-fit items-center rounded-full border border-black/10 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.15em] text-[#7b8490] dark:border-white/10 dark:text-zinc-400">Archive in preparation</span>
+      <section aria-label="Sferavis publication archive" className="overflow-hidden rounded-[1.5rem] border border-black/10 bg-white/60 shadow-[0_16px_50px_rgba(20,30,45,0.05)] backdrop-blur-md dark:border-white/10 dark:bg-[#0b1220]/55">
+        <div className="border-b border-black/[0.07] px-6 py-6 sm:px-8 dark:border-white/10">
+          <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-[#a30000]">Sferavis archive</p>
         </div>
         <div className="flex flex-col items-center px-6 py-16 text-center sm:px-10">
           <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-2xl border border-[#a30000]/15 bg-[#a30000]/[0.06] text-[#a30000]"><Microscope size={27} strokeWidth={1.4} /></div>
-          <h3 className="text-xl font-semibold tracking-tight text-[#202630] dark:text-white">The library is taking shape.</h3>
-          <p className="mt-3 max-w-lg text-sm leading-7 text-[#737d89] dark:text-zinc-400">Sferavis publications will appear here as research outputs are released. Each entry will include its authors, publication details, abstract and a link to the original work.</p>
           <div className="mt-7 inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-[#a30000]"><span>Research updates coming soon</span><ArrowUpRight size={14} /></div>
         </div>
       </section>
