@@ -153,26 +153,6 @@ export const DocsPage: React.FC<DocsPageProps> = ({ onNavigate }) => {
               );
             })}
 
-            {/* Quick Terminal Card */}
-            <div className="bg-white dark:bg-[#0e1628] border border-zinc-200 dark:border-slate-800 border-l-4 border-l-[#A30000] p-4 text-xs font-mono shadow-sm">
-              <span className="text-slate-600 dark:text-zinc-400 font-lexend uppercase tracking-wider block mb-2 text-[11px] font-bold">
-                Quick Install
-              </span>
-              <div className="bg-slate-100 dark:bg-black p-2.5 border border-zinc-200 dark:border-slate-800 text-slate-800 dark:text-zinc-200 flex items-center justify-between">
-                <code>pip install sferavis</code>
-                <button
-                  onClick={() => handleCopyCode('pip install sferavis', 'pip-install')}
-                  className="text-slate-500 dark:text-zinc-400 hover:text-slate-950 dark:hover:text-white cursor-pointer ml-2"
-                >
-                  {copiedCodeId === 'pip-install' ? (
-                    <Check className="w-3.5 h-3.5 text-emerald-500" />
-                  ) : (
-                    <Copy className="w-3.5 h-3.5" />
-                  )}
-                </button>
-              </div>
-            </div>
-
           </div>
 
 
