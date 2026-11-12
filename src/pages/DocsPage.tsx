@@ -7,7 +7,6 @@ import {
   Code2,
   Copy,
   Check,
-  Send,
   ExternalLink,
   ChevronRight,
   Terminal,
@@ -23,14 +22,6 @@ export const DocsPage: React.FC<DocsPageProps> = ({ onNavigate }) => {
   const [selectedDocId, setSelectedDocId] = useState<string>(DOC_SECTIONS[0].id);
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [copiedCodeId, setCopiedCodeId] = useState<string | null>(null);
-
-  // Interactive REST API Query Playground state
-  const [apiRa, setApiRa] = useState<string>('83.810');
-  const [apiDec, setApiDec] = useState<string>('-5.375');
-  const [apiRadius, setApiRadius] = useState<string>('6.2');
-  const [apiFormat, setApiFormat] = useState<string>('json');
-  const [apiLoading, setApiLoading] = useState<boolean>(false);
-  const [apiResult, setApiResult] = useState<any | null>(null);
 
   // Filter docs
   const filteredDocs = useMemo(() => {
@@ -54,35 +45,6 @@ export const DocsPage: React.FC<DocsPageProps> = ({ onNavigate }) => {
     navigator.clipboard.writeText(text);
     setCopiedCodeId(id);
     setTimeout(() => setCopiedCodeId(null), 2500);
-  };
-
-  const handleRunApiTest = () => {
-    setApiLoading(true);
-    setApiResult(null);
-
-    setTimeout(() => {
-      setApiLoading(false);
-      setApiResult({
-        status: 200,
-        query: {
-          ra: parseFloat(apiRa) || 83.81,
-          dec: parseFloat(apiDec) || -5.375,
-          radius_arcsec: parseFloat(apiRadius) || 6.2,
-          format: apiFormat,
-        },
-        survey: 'NASA SPHEREx Level-2 All-Sky',
-        target_designation: 'IRAS 05327-0529',
-        total_channels: 102,
-        wavelength_range_um: [0.75, 5.0],
-        spectral_data_summary: {
-          peak_flux_mjy: 42.5,
-          water_ice_tau_3_05um: 0.824,
-          co2_ice_tau_4_27um: 0.492,
-          pah_emission_detected: true,
-        },
-        execution_time_ms: 11.8,
-      });
-    }, 450);
   };
 
   return (
@@ -247,111 +209,7 @@ export const DocsPage: React.FC<DocsPageProps> = ({ onNavigate }) => {
             </div>
 
 
-            {/* INTERACTIVE REST API QUERY CONSOLE */}
-            <div className="bg-white dark:bg-[#0e1628] border border-zinc-200 dark:border-slate-800 p-6 sm:p-8 shadow-sm">
-              <div className="flex items-center gap-2 mb-2">
-                <span className="w-2.5 h-2.5 bg-[#A30000]"></span>
-                <span className="text-xs font-lexend uppercase tracking-widest font-bold text-[#A30000]">
-                  Live Developer Sandbox
-                </span>
-              </div>
 
-              <h3 className="text-xl sm:text-2xl font-oswald uppercase font-black text-slate-950 dark:text-white">
-                Interactive REST Query Console
-              </h3>
-              <p className="text-xs sm:text-sm text-slate-600 dark:text-zinc-300 font-merriweather mt-1 mb-6">
-                Test spatial cone-search and extract 102-band spectral profiles against the mock SFERAvis Level-2 database.
-              </p>
-
-              {/* Input Parameters Row */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-5">
-                <div>
-                  <label className="block text-[11px] font-lexend uppercase tracking-wider text-slate-500 dark:text-zinc-400 mb-1">
-                    RA (deg)
-                  </label>
-                  <input
-                    type="text"
-                    value={apiRa}
-                    onChange={(e) => setApiRa(e.target.value)}
-                    className="w-full px-3 py-2 bg-white dark:bg-black/60 border border-zinc-300 dark:border-zinc-800 font-mono text-xs text-slate-900 dark:text-white focus:outline-none focus:border-[#A30000]"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-[11px] font-lexend uppercase tracking-wider text-slate-500 dark:text-zinc-400 mb-1">
-                    Dec (deg)
-                  </label>
-                  <input
-                    type="text"
-                    value={apiDec}
-                    onChange={(e) => setApiDec(e.target.value)}
-                    className="w-full px-3 py-2 bg-white dark:bg-black/60 border border-zinc-300 dark:border-zinc-800 font-mono text-xs text-slate-900 dark:text-white focus:outline-none focus:border-[#A30000]"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-[11px] font-lexend uppercase tracking-wider text-slate-500 dark:text-zinc-400 mb-1">
-                    Radius (arcsec)
-                  </label>
-                  <input
-                    type="text"
-                    value={apiRadius}
-                    onChange={(e) => setApiRadius(e.target.value)}
-                    className="w-full px-3 py-2 bg-white dark:bg-black/60 border border-zinc-300 dark:border-zinc-800 font-mono text-xs text-slate-900 dark:text-white focus:outline-none focus:border-[#A30000]"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-[11px] font-lexend uppercase tracking-wider text-slate-500 dark:text-zinc-400 mb-1">
-                    Response Format
-                  </label>
-                  <select
-                    value={apiFormat}
-                    onChange={(e) => setApiFormat(e.target.value)}
-                    className="w-full px-3 py-2 bg-white dark:bg-black/60 border border-zinc-300 dark:border-zinc-800 font-mono text-xs text-slate-900 dark:text-white focus:outline-none focus:border-[#A30000]"
-                  >
-                    <option value="json">JSON Spectrum</option>
-                    <option value="fits">FITS Cube Header</option>
-                    <option value="csv">CSV Table</option>
-                  </select>
-                </div>
-              </div>
-
-              {/* Query Trigger Bar */}
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pt-4 border-t border-zinc-200 dark:border-slate-800">
-                <div className="font-mono text-xs text-slate-600 dark:text-zinc-400 break-all">
-                  <span className="text-[#A30000] font-bold">GET</span> /api/v2/spectral-cube?ra={apiRa}&dec={apiDec}&r={apiRadius}
-                </div>
-
-                <button
-                  onClick={handleRunApiTest}
-                  disabled={apiLoading}
-                  className="px-6 py-2.5 bg-[#A30000] hover:bg-[#8B0000] text-xs font-lexend uppercase font-bold tracking-wider text-white flex items-center gap-2 cursor-pointer disabled:opacity-50 transition-colors shadow-sm"
-                >
-                  <Send className="w-3.5 h-3.5" />
-                  <span>{apiLoading ? 'Querying...' : 'Send Request'}</span>
-                </button>
-              </div>
-
-              {/* API Response JSON */}
-              {apiResult && (
-                <div className="mt-6 pt-6 border-t border-zinc-200 dark:border-slate-800">
-                  <div className="flex items-center justify-between text-xs text-slate-500 dark:text-zinc-400 mb-2 font-lexend uppercase tracking-wider">
-                    <span className="text-emerald-600 dark:text-emerald-400 font-bold">Status 200 OK · {apiResult.execution_time_ms}ms</span>
-                    <button
-                      onClick={() => handleCopyCode(JSON.stringify(apiResult, null, 2), 'api-json')}
-                      className="text-slate-500 dark:text-zinc-400 hover:text-slate-950 dark:hover:text-white cursor-pointer"
-                    >
-                      Copy Response
-                    </button>
-                  </div>
-                  <pre className="p-4 bg-slate-950 border border-slate-800 font-mono text-xs text-slate-200 overflow-x-auto max-h-64 leading-relaxed">
-                    {JSON.stringify(apiResult, null, 2)}
-                  </pre>
-                </div>
-              )}
-
-            </div>
 
           </div>
 
