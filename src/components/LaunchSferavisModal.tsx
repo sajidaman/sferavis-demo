@@ -50,6 +50,13 @@ export const LaunchSferavisModal: React.FC<LaunchSferavisModalProps> = ({ isOpen
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isOpen, onClose]);
 
+  useEffect(() => {
+    if (isOpen) {
+      setActiveTab('atlas');
+      setIsFullscreen(false);
+    }
+  }, [isOpen]);
+
   const currentTarget = useMemo(() => {
     return CELESTIAL_TARGETS.find((t) => t.id === selectedTargetId) || CELESTIAL_TARGETS[0];
   }, [selectedTargetId]);
@@ -193,7 +200,7 @@ ICE_TAU =                ${currentTarget.iceAbsorptionDepth.toFixed(3)} / H2O Ic
 
         {/* Tab 1: Interactive Themed Sky Atlas */}
         {activeTab === 'atlas' && (
-          <div className="relative flex-1 w-full h-full overflow-hidden bg-black">
+          <div className="relative flex-1 min-h-0 w-full overflow-hidden bg-black">
             <AladinSkyViewer className="h-full" />
           </div>
         )}

@@ -25,19 +25,9 @@ const INITIAL_DEC = -29.006111;
 const INITIAL_FOV = 0.4580648549089874;
 
 function createSpherexHiPS(url = SPHEREX_HIPS_URL, onError?: (error: unknown) => void) {
-  // Aladin Lite v3 expects: new A.HiPS(id, locationUrl, options).
-  // Supplying the published HiPS metadata here avoids a separate properties-file
-  // lookup, which can fail independently of the actual survey tile service.
-  const api = A as unknown as {
-    HiPS: new (
-      id: string,
-      location: string,
-      options: Record<string, unknown>
-    ) => unknown;
-  };
-
-  return new api.HiPS(SPHEREX_HIPS, url, {
+  return A.HiPS(SPHEREX_HIPS, {
     name: 'NASA SPHEREx QR2 D3',
+    url,
     maxOrder: 7,
     minOrder: 0,
     tileSize: 512,
@@ -60,6 +50,7 @@ export const AladinSkyViewer: React.FC<AladinSkyViewerProps> = ({ className = ''
   const aladinRef = useRef<AladinInstance | null>(null);
   const rawId = useId().replace(/[^a-zA-Z0-9_-]/g, '');
   const containerId = `sferavis-aladin-${rawId}`;
+  const initializationIdRef = useRef(0);
 
   const [status, setStatus] = useState<ViewerStatus>('loading');
   const [initErrorMsg, setInitErrorMsg] = useState<string | null>(null);
@@ -81,6 +72,8 @@ export const AladinSkyViewer: React.FC<AladinSkyViewerProps> = ({ className = ''
 
   // Initialize Aladin Lite
   const initializeViewer = useCallback(async () => {
+    const initializationId = ++initializationIdRef.current;
+    const isCurrentInitialization = () => initializationId === initializationIdRef.current;
     setStatus('loading');
     setInitErrorMsg(null);
     setInitDiagnostic(null);
@@ -117,9 +110,11 @@ export const AladinSkyViewer: React.FC<AladinSkyViewerProps> = ({ className = ''
           `Aladin Lite WebAssembly core initialization failed: ${msg}. Check browser WebAssembly support or Content Security Policy.`
         );
       }
+      if (!isCurrentInitialization()) return;
 
       // Wait until the modal has completed layout; Aladin measures its mount node at creation.
       await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+      if (!isCurrentInitialization()) return;
       if (!containerRef.current) return;
       if (containerRef.current.clientWidth < 2 || containerRef.current.clientHeight < 2) {
         throw new Error('The planetarium viewport has no measurable size. Close and reopen Launch Sferavis, then retry.');
@@ -166,6 +161,7 @@ export const AladinSkyViewer: React.FC<AladinSkyViewerProps> = ({ className = ''
       // Load SPHEREx using its published HiPS URL and known metadata.
       loadSurveyLayer(targetSurvey);
     } catch (err) {
+      if (!isCurrentInitialization()) return;
       console.error('[Sferavis Aladin Lite Init Error]', err);
       const message = err instanceof Error ? err.message : String(err);
       setStatus('init-error');
@@ -214,8 +210,9 @@ export const AladinSkyViewer: React.FC<AladinSkyViewerProps> = ({ className = ''
   };
 
   useEffect(() => {
-    initializeViewer();
+    void initializeViewer();
     return () => {
+      initializationIdRef.current += 1;
       aladinRef.current = null;
     };
   }, [initializeViewer, retryCount]);
@@ -300,7 +297,7 @@ export const AladinSkyViewer: React.FC<AladinSkyViewerProps> = ({ className = ''
 
   return (
     <section
-      className={`relative flex h-full min-h-[540px] w-full flex-col overflow-hidden bg-[#0a1020] text-zinc-100 ${className}`}
+      className={`relative flex h-full min-h-0 w-full flex-col overflow-hidden bg-[#0a1020] text-zinc-100 ${className}`}
       aria-label="Sferavis SPHEREx planetarium"
     >
       {/* Top Header Bar */}
@@ -376,7 +373,7 @@ export const AladinSkyViewer: React.FC<AladinSkyViewerProps> = ({ className = ''
       {/* Main Content Area */}
       <div className="flex min-h-0 flex-1 flex-col lg:flex-row">
         {/* Sky View Canvas Container */}
-        <div className="relative min-h-[420px] flex-1 bg-[#080f20] lg:min-h-0">
+        <div className="relative min-h-0 flex-[0_0_45%] bg-[#080f20] lg:flex-1">
           {/* Aladin Mount Node */}
           <div
             id={containerId}
@@ -455,7 +452,7 @@ export const AladinSkyViewer: React.FC<AladinSkyViewerProps> = ({ className = ''
         </div>
 
         {/* Sidebar Controls */}
-        <aside className="planetarium-controls z-10 w-full shrink-0 border-t border-slate-700 bg-[#172235] shadow-[-12px_0_32px_rgba(0,0,0,0.22)] lg:w-[310px] lg:overflow-y-auto lg:border-l lg:border-t-0">
+        <aside className="planetarium-controls z-10 min-h-0 w-full flex-1 overflow-y-auto border-t border-slate-700 bg-[#172235] shadow-[-12px_0_32px_rgba(0,0,0,0.22)] lg:w-[310px] lg:flex-none lg:border-l lg:border-t-0">
           <div className="space-y-4 p-4">
             {/* Survey Switcher */}
             <section>
@@ -562,11 +559,11 @@ export const AladinSkyViewer: React.FC<AladinSkyViewerProps> = ({ className = ''
                 <input
                   aria-label="Field of view"
                   type="range"
-                  min="0.02"
-                  max="360"
+                  min={Math.log(0.02)}
+                  max={Math.log(360)}
                   step="0.01"
-                  value={fov}
-                  onChange={(e) => updateFov(Number(e.target.value))}
+                  value={Math.log(fov)}
+                  onChange={(e) => updateFov(Math.exp(Number(e.target.value)))}
                   className="min-w-0 flex-1 accent-[#A30000]"
                 />
                 <button
