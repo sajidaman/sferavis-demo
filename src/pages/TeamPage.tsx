@@ -77,6 +77,15 @@ export const TeamPage: React.FC<TeamPageProps> = () => {
     </div>
     <p className="mt-4 text-center text-[10px] uppercase tracking-[0.18em] text-[#929aa5] dark:text-zinc-600">6 members · 4 countries · 1 collective<br/>Map data: Natural Earth · Menelabs VectorAtlas (CC BY 4.0)</p>
    </section>
+   <section aria-labelledby="join-sferavis-title" className="mx-auto mt-24 max-w-5xl border-t border-black/[0.08] pt-16 text-center sm:mt-32 sm:pt-20 dark:border-white/[0.09]">
+    <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-[#a30000]">The next chapter is open</p>
+    <h2 id="join-sferavis-title" className="mt-4 text-3xl font-semibold tracking-[-0.045em] text-[#171b22] sm:text-5xl dark:text-white">Join Us.</h2>
+    <p className="mx-auto mt-5 max-w-2xl text-sm leading-7 text-[#737d89] sm:text-base dark:text-zinc-400">Sferavis brings together curious minds across disciplines and borders. If you are driven by science, research, technology, design, or the questions that connect them, we would love to hear from you.</p>
+    <a href="mailto:contact.sferavis@gmail.com?subject=Joining%20Sferavis&body=Hello%20Sferavis%20team%2C%0A%0AI%27m%20interested%20in%20joining%20the%20collective.%0A%0AName%3A%0ALocation%3A%0AAreas%20of%20interest%3A%0ARelevant%20experience%20or%20work%3A%0AHow%20I%27d%20like%20to%20contribute%3A%0A%0ABest%2C" className="mt-8 inline-flex items-center justify-center gap-3 rounded-full bg-[#a30000] px-7 py-3.5 text-xs font-semibold uppercase tracking-[0.16em] text-white shadow-[0_10px_30px_rgba(163,0,0,0.18)] transition-all hover:-translate-y-0.5 hover:bg-[#870000] hover:shadow-[0_14px_36px_rgba(163,0,0,0.24)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#a30000] focus-visible:ring-offset-4 dark:focus-visible:ring-offset-[#080a0e]">
+     <Mail size={15}/> Get in touch <ArrowUpRight size={15}/>
+    </a>
+    <p className="mt-4 text-[11px] text-[#929aa5] dark:text-zinc-500">Introduce yourself and tell us what you would like to bring to the collective.</p>
+   </section>
   </div>
   <AnimatePresence>{selected&&<motion.div className="fixed inset-0 z-[100] flex items-end justify-center bg-[#07090d]/70 p-0 backdrop-blur-md sm:items-center sm:p-6" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} onMouseDown={e=>{if(e.target===e.currentTarget)setSelected(null)}}>
    <motion.article role="dialog" aria-modal="true" aria-labelledby="team-profile-name" initial={{opacity:0,y:28,scale:.985}} animate={{opacity:1,y:0,scale:1}} exit={{opacity:0,y:18,scale:.99}} transition={{duration:.28,ease:[.2,.75,.25,1]}} className="relative grid max-h-[92vh] w-full max-w-4xl grid-cols-1 overflow-y-auto rounded-t-[1.6rem] border border-white/10 bg-[#f8f9fb] shadow-2xl sm:max-h-[min(760px,90vh)] sm:grid-cols-[.82fr_1.18fr] sm:rounded-[1.6rem] dark:bg-[#10151d]">
