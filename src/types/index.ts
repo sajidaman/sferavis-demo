@@ -47,7 +47,7 @@ export interface Tutorial {
 export interface DocSection {
   id: string;
   title: string;
-  category: 'Overview' | 'Python SDK' | 'FITS Format' | 'REST API' | 'Algorithms' | 'Data Releases';
+  category: 'Overview' | 'Object Detection Method' | 'AI & ML Integration Pipeline';
   content: string;
   codeBlock?: {
     language: string;
