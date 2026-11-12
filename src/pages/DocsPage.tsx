@@ -98,18 +98,18 @@ export const DocsPage: React.FC<DocsPageProps> = ({ onNavigate }) => {
             <span className="text-slate-700 dark:text-zinc-300">SFERAvis PROTOCOL & PIPELINE v2.4</span>
           </div>
 
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-            <div>
-              <h1 className="text-4xl sm:text-6xl font-oswald uppercase font-black tracking-tight text-slate-950 dark:text-white">
-                Technical Documentation.
+          <div className="flex flex-col gap-8">
+            <header className="mx-auto w-full max-w-3xl text-center">
+              <h1 className="text-4xl font-semibold tracking-[-0.055em] text-[#171b22] sm:text-6xl lg:text-7xl dark:text-white">
+                Technical Documentation<span className="text-[#a30000]">.</span>
               </h1>
-              <p className="mt-4 text-base sm:text-xl font-merriweather text-slate-600 dark:text-zinc-300 max-w-2xl leading-relaxed">
+              <p className="mx-auto mt-4 max-w-2xl text-base leading-relaxed text-slate-600 dark:text-zinc-300 sm:text-lg">
                 Developer reference, Python SDK methods, and REST endpoints for querying SPHEREx 102-band all-sky spectral databases.
               </p>
-            </div>
+            </header>
 
             {/* Search Input */}
-            <div className="w-full md:w-80 relative">
+            <div className="w-full md:w-80 relative self-end">
               <Search className="w-4 h-4 text-slate-400 dark:text-zinc-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
               <input
                 type="text"
