@@ -20,7 +20,7 @@ const REQUEST_TIMEOUT_MS = 15000;
 function parseMessages(body: unknown): ChatMessage[] {
   const raw = (body && typeof body === 'object' ? (body as { messages?: unknown }).messages : undefined);
   if (!Array.isArray(raw)) return [];
-  return raw.slice(-12)
+  const messages = raw.slice(-12)
     .filter((item): item is ChatMessage =>
       !!item &&
       typeof item === 'object' &&
@@ -28,6 +28,16 @@ function parseMessages(body: unknown): ChatMessage[] {
       typeof (item as ChatMessage).content === 'string')
     .map(item => ({ role: item.role, content: item.content.trim().slice(0, 2000) }))
     .filter(item => item.content.length > 0);
+
+  // The UI's canned greeting is an assistant message, not a Gemini response.
+  // Gemini conversations must begin with a user turn.
+  const firstUserIndex = messages.findIndex(message => message.role === 'user');
+  return firstUserIndex === -1 ? [] : messages.slice(firstUserIndex);
+}
+
+function getErrorStatus(error: unknown): number | undefined {
+  if (!error || typeof error !== 'object' || !('status' in error)) return undefined;
+  return typeof error.status === 'number' ? error.status : undefined;
 }
 
 export default async function handler(req: ApiRequest, res: ApiResponse) {
@@ -64,7 +74,29 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
     if (reply) return res.status(200).json({ reply });
     console.error('Redium: Gemini returned an empty reply.');
   } catch (error) {
-    console.error('Redium: Gemini request failed:', error instanceof Error ? error.message : String(error));
+    const status = getErrorStatus(error);
+    console.error('Redium: Gemini request failed:', {
+      status,
+      message: error instanceof Error ? error.message : String(error),
+    });
+
+    if (status === 401 || status === 403) {
+      return res.status(503).json({
+        error: 'Google rejected the API key. Check that GEMINI_API_KEY is valid and enabled for the deployed Vercel environment, then redeploy.',
+      });
+    }
+
+    if (status === 429) {
+      return res.status(429).json({
+        error: 'Gemini is rate-limited or its free-tier quota is exhausted. Check Google AI Studio quota and try again later.',
+      });
+    }
+
+    if (status === 400 || status === 404) {
+      return res.status(502).json({
+        error: 'Gemini rejected the request. Check the Vercel function logs for the provider error.',
+      });
+    }
   }
 
   return res.status(503).json({
