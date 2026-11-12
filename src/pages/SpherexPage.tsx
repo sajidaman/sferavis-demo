@@ -34,13 +34,14 @@ export const SpherexPage: React.FC<SpherexPageProps> = ({ onNavigate, onLaunchSf
             <span className="text-slate-700 dark:text-zinc-300">CALTECH · JPL · KASI · HARVARD CfA</span>
           </div>
 
-          <h1 className="text-4xl sm:text-6xl font-oswald uppercase font-black tracking-tight text-slate-950 dark:text-white max-w-4xl leading-[1.05] text-balance">
-            The SPHEREx Mission.
-            <br />
-            <span className="text-[#A30000]">
+          <header className="mx-auto max-w-4xl text-center">
+            <h1 className="text-4xl font-semibold tracking-[-0.055em] text-[#171b22] sm:text-6xl lg:text-7xl dark:text-white">
+              The SPHEREx Mission<span className="text-[#a30000]">.</span>
+            </h1>
+            <p className="mt-4 text-xl font-semibold tracking-tight text-slate-700 dark:text-zinc-300 sm:text-2xl">
               One Satellite. Four All-Sky Surveys.
-            </span>
-          </h1>
+            </p>
+          </header>
 
           <p className="mt-6 text-lg sm:text-2xl text-slate-700 dark:text-zinc-300 max-w-3xl font-merriweather leading-relaxed text-balance">
             SPHEREx is surveying the entire celestial sphere every six months across 102 distinct near-infrared bands (0.75 – 5.0 µm), delivering the first all-sky near-infrared hyperspectral atlas to humanity.
