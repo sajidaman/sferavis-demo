@@ -77,7 +77,7 @@ export const AccessibilityControls: React.FC<AccessibilityControlsProps> = ({ is
     <div className="fixed bottom-5 left-5 z-[80]">
       {open && (
         <section id="sferavis-accessibility-panel" aria-label="Accessibility and display settings"
-          className="mb-2.5 h-[min(30rem,calc(100dvh-7rem))] w-[min(21rem,calc(100vw-2.5rem))] overflow-y-auto rounded-xl border border-slate-200 bg-white p-3 text-slate-900 shadow-2xl dark:border-slate-700 dark:bg-[#11151e] dark:text-white">
+          className="mb-2.5 h-[min(30rem,calc(100dvh-7rem))] w-[min(21rem,calc(100vw-2.5rem))] overflow-y-auto rounded-2xl border border-slate-200 bg-white p-3 text-slate-900 shadow-2xl dark:border-slate-700 dark:bg-[#11151e] dark:text-white">
           <div className="mb-3 flex items-center justify-between gap-2">
             <h2 className="text-sm font-bold tracking-wide">Accessibility</h2>
             <button type="button" onClick={() => setOpen(false)} aria-label="Close accessibility settings"
