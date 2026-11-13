@@ -3,7 +3,10 @@ import { motion, AnimatePresence } from 'motion/react';
 import { CELESTIAL_TARGETS } from '../data/mockData';
 import { Logo } from './Logo';
 import { AladinSkyViewer } from './AladinSkyViewer';
-import { PlanetariumTutorial } from './PlanetariumTutorial';
+import {
+  PlanetariumTutorial,
+  PLANETARIUM_TUTORIAL_STORAGE_KEY,
+} from './PlanetariumTutorial';
 import {
   X,
   Download,
@@ -61,7 +64,9 @@ export const LaunchSferavisModal: React.FC<LaunchSferavisModalProps> = ({ isOpen
       if (!hasCheckedTutorialRef.current) {
         hasCheckedTutorialRef.current = true;
         try {
-          setIsPlanetariumTutorialOpen(localStorage.getItem('sferavisPlanetariumFinished') !== 'true');
+          setIsPlanetariumTutorialOpen(
+            localStorage.getItem(PLANETARIUM_TUTORIAL_STORAGE_KEY) !== 'true'
+          );
         } catch (error) {
           console.warn('Could not read the planetarium tutorial preference:', error);
           setIsPlanetariumTutorialOpen(true);
@@ -74,7 +79,7 @@ export const LaunchSferavisModal: React.FC<LaunchSferavisModalProps> = ({ isOpen
 
   const finishPlanetariumTutorial = () => {
     try {
-      localStorage.setItem('sferavisPlanetariumFinished', 'true');
+      localStorage.setItem(PLANETARIUM_TUTORIAL_STORAGE_KEY, 'true');
     } catch (error) {
       console.warn('Could not save the planetarium tutorial preference:', error);
     }

@@ -2,8 +2,11 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { PageId, Tutorial } from '../types';
 import { TUTORIALS } from '../data/mockData';
+import { PlanetariumTutorial, PLANETARIUM_TUTORIAL_STORAGE_KEY } from '../components/PlanetariumTutorial';
+import { createPortal } from 'react-dom';
 import {
   BookOpen,
+  Compass,
   Play,
   CheckCircle2,
   Copy,
@@ -18,15 +21,17 @@ import {
 
 interface TutorialsPageProps {
   onNavigate: (page: PageId) => void;
+  onLaunchSferavis: () => void;
 }
 
-export const TutorialsPage: React.FC<TutorialsPageProps> = ({ onNavigate }) => {
+export const TutorialsPage: React.FC<TutorialsPageProps> = ({ onNavigate, onLaunchSferavis }) => {
   const [selectedTutorialId, setSelectedTutorialId] = useState<string>(TUTORIALS[0].id);
   const [activeStepIndex, setActiveStepIndex] = useState<number>(0);
   const [codeContent, setCodeContent] = useState<string>(TUTORIALS[0].interactiveCode);
   const [isRunning, setIsRunning] = useState<boolean>(false);
   const [executionOutput, setExecutionOutput] = useState<string | null>(null);
   const [copiedNotification, setCopiedNotification] = useState<boolean>(false);
+  const [isPlanetariumTutorialOpen, setIsPlanetariumTutorialOpen] = useState(false);
 
   const currentTutorial = TUTORIALS.find((t) => t.id === selectedTutorialId) || TUTORIALS[0];
 
@@ -84,6 +89,16 @@ Delta-chi2: 142.8 (High confidence z-break match)`);
     setExecutionOutput(null);
   };
 
+  const handleFinishPlanetariumTutorial = () => {
+    try {
+      localStorage.setItem(PLANETARIUM_TUTORIAL_STORAGE_KEY, 'true');
+    } catch (error) {
+      console.warn('Could not save the planetarium tutorial preference:', error);
+    }
+    setIsPlanetariumTutorialOpen(false);
+    onLaunchSferavis();
+  };
+
   return (
     <div className="relative min-h-[75vh] w-full overflow-hidden bg-transparent text-[#15191f] dark:bg-transparent dark:text-white selection:bg-[#A30000] selection:text-white">
       
@@ -98,6 +113,42 @@ Delta-chi2: 142.8 (High confidence z-break match)`);
 
       {/* WORKSPACE */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-10">
+        <section className="mb-8 flex flex-col gap-5 border border-zinc-200 border-l-4 border-l-[#A30000] bg-white p-5 shadow-sm dark:border-slate-800 dark:border-l-[#A30000] dark:bg-[#0e1628] sm:flex-row sm:items-center sm:justify-between sm:p-7">
+          <div className="flex items-start gap-4">
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-[#A30000]/10 text-[#A30000]">
+              <Compass className="h-5 w-5" aria-hidden="true" />
+            </span>
+            <div>
+              <p className="font-lexend text-[10px] font-bold uppercase tracking-[0.16em] text-[#A30000]">
+                Planetarium guide · 5 steps
+              </p>
+              <h2 className="mt-1 font-oswald text-xl font-bold uppercase text-slate-950 dark:text-white sm:text-2xl">
+                Get started with the sky atlas
+              </h2>
+              <p className="mt-2 max-w-2xl font-merriweather text-xs leading-relaxed text-slate-600 dark:text-zinc-300 sm:text-sm">
+                Learn to navigate coordinates, compare the SPHEREx quicklook with DSS2, and use the atlas view controls.
+              </p>
+            </div>
+          </div>
+          <div className="flex shrink-0 flex-wrap gap-2 sm:justify-end">
+            <button
+              type="button"
+              onClick={() => setIsPlanetariumTutorialOpen(true)}
+              className="inline-flex items-center gap-2 border border-[#A30000] px-4 py-2.5 font-lexend text-xs font-bold uppercase tracking-wider text-[#A30000] transition hover:bg-[#A30000]/10"
+            >
+              <BookOpen className="h-4 w-4" aria-hidden="true" />
+              Start guide
+            </button>
+            <button
+              type="button"
+              onClick={onLaunchSferavis}
+              className="inline-flex items-center gap-2 bg-[#A30000] px-4 py-2.5 font-lexend text-xs font-bold uppercase tracking-wider text-white transition hover:bg-[#8B0000]"
+            >
+              Launch Sferavis <ChevronRight className="h-4 w-4" aria-hidden="true" />
+            </button>
+          </div>
+        </section>
+
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           
           {/* LEFT: TUTORIAL CURRICULUM SELECTION (4 COLS) */}
@@ -326,6 +377,16 @@ Delta-chi2: 142.8 (High confidence z-break match)`);
         </div>
       </div>
 
+      {isPlanetariumTutorialOpen &&
+        createPortal(
+          <div className="fixed inset-0 z-[1000]">
+            <PlanetariumTutorial
+              onDismiss={() => setIsPlanetariumTutorialOpen(false)}
+              onFinish={handleFinishPlanetariumTutorial}
+            />
+          </div>,
+          document.body
+        )}
     </div>
   );
 };
