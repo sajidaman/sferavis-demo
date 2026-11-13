@@ -309,112 +309,28 @@ print(f"Stellar Mass log(M*/M_sun): {z_fit.log_mass:.2f}")
 
 export const DOC_SECTIONS: DocSection[] = [
   {
-    id: 'intro-architecture',
-    title: 'Platform Architecture & SPHEREx Ingestion',
+    id: 'overview',
+    title: 'Overview',
     category: 'Overview',
-    content: `SFERAvis is the high-performance scientific visualization suite and Python ecosystem designed specifically for the NASA SPHEREx (Spectro-Photometer for the History of the Universe, Epoch of Reionization and Ices Explorer) mission.
+    content: `SFERAvis is a platform for exploring and analysing near-infrared sky-survey data from NASA's SPHEREx mission. It brings astronomical data, visual exploration, and object-candidate investigation together in one public-facing environment.
 
-SPHEREx scans the celestial sphere using three wide-field optical assemblies and six 2048 x 2048 HgCdTe focal plane arrays. Because each detector incorporates a Linear Variable Filter (LVF), the wavelength observed varies continuously along the focal plane dispersion axis. SFERAvis reconstructs these staggered spatial-spectral exposures into unified 102-band all-sky hyperspectral data cubes.`,
-    codeBlock: {
-      language: 'bash',
-      code: `# Install SFERAvis core and astronomical dependencies
-pip install sferavis astropy numpy scipy numba pyarrow`
-    }
+This documentation introduces the platform's purpose, the role of SPHEREx data, and the main stages through which observations become information that can be explored by researchers and the public.`
   },
   {
-    id: 'python-sdk-cube',
-    title: 'sferavis.cube — Hyperspectral Cube IO & Slicing',
-    category: 'Python SDK',
-    content: `The \`sferavis.cube\` module provides memory-mapped access to multi-gigabyte FITS and Zarr hyperspectral data structures. It automatically handles WCS distortion matrices, spatial reprojection, and instrument transmission curves.`,
-    codeBlock: {
-      language: 'python',
-      code: `from sferavis.cube import SpectralCube
+    id: 'public-detection',
+    title: 'Public Detection',
+    category: 'Public Detection',
+    content: `The Public Detection area presents object candidates identified for further inspection. Visitors can explore the available candidate information, examine the observational evidence provided by the platform, and contribute a reasoned assessment.
 
-# Memory-map an all-sky survey tile without loading full 4GB into RAM
-cube = SpectralCube.open("SPHEREx_L2_AllSky_R01.zarr", mode="r")
-
-# Extract sub-cube centered on RA/Dec with 1 arcmin box
-sub = cube.cutout(ra="05h35m14.5s", dec="-05d22m30s", size="1 arcmin")
-
-# Instant spectral energy distribution (SED) extraction
-sed = sub.to_sed(aperture="optimal")
-print(sed.wavelengths, sed.flux_mjy)`
-    }
+Public access to detection information does not require an account. An account is required when submitting a comment or written contribution. Submissions are associated with the relevant candidate so that community feedback can be reviewed alongside the detection record.`
   },
   {
-    id: 'api-cube-extract',
-    title: 'REST Endpoint: /api/v1/spectral/extract',
-    category: 'REST API',
-    content: `Remotely query the SPHEREx spectral archive for any coordinate on the sky. Returns the full 102-band calibrated SED, error bounds, and exposure flags in JSON or Astropy-compatible VOTable format.`,
-    endpoint: {
-      method: 'GET',
-      path: '/api/v1/spectral/extract',
-      params: [
-        { name: 'ra', type: 'string / float', required: true, description: 'Right ascension in degrees (e.g. 83.822) or sexagesimal (05h35m17s)' },
-        { name: 'dec', type: 'string / float', required: true, description: 'Declination in degrees (-5.391) or sexagesimal (-05d23m28s)' },
-        { name: 'radius_arcsec', type: 'float', required: false, description: 'Aperture radius in arcseconds (default: 6.2")' },
-        { name: 'bands', type: 'string', required: false, description: 'Comma-separated band list, e.g. "1,2,3,4,5,6" (default: all)' },
-        { name: 'format', type: 'string', required: false, description: 'Output format: "json", "fits", or "csv" (default: json)' }
-      ]
-    },
-    codeBlock: {
-      language: 'javascript',
-      code: `// Fetch 102-band SED from SFERAvis scientific gateway
-const response = await fetch(
-  "https://api.sferavis.org/v1/spectral/extract?ra=83.810&dec=-5.375&format=json"
-);
-const { target, bands, flux_mjy, errors_mjy } = await response.json();
-console.log(\`Retrieved \${bands.length} spectral bands for \${target}\`);`
-    }
-  },
-  {
-    id: 'fits-format-standard',
-    title: 'SPHEREx FITS Cube HDU Header Specification',
-    category: 'FITS Format',
-    content: `All SFERAvis Level-2 and Level-3 cubes adhere to the IAU FITS Standard 4.0 and IVOA Spectral Data Model.
+    id: 'ai-ml-pipeline',
+    title: 'AI-ML Pipeline',
+    category: 'AI-ML Pipeline',
+    content: `The AI-ML pipeline describes how SPHEREx observations can be transformed into candidate object detections. The workflow is organised into data preparation, feature extraction, model inference, candidate assessment, and presentation of results.
 
-Primary HDU contains global mission observation parameters, while HDU 1 (FLUX), HDU 2 (ERROR), HDU 3 (MASK), and HDU 4 (WAVELENGTH) define the hyperspectral raster.`,
-    codeBlock: {
-      language: 'text',
-      code: `XTENSION= 'IMAGE   '           / Extension type
-BITPIX  =                  -32 / 32-bit single precision floating point
-NAXIS   =                    3 / Number of coordinate axes
-NAXIS1  =                 2048 / Right Ascension pixels
-NAXIS2  =                 2048 / Declination pixels
-NAXIS3  =                  102 / SPHEREx Spectral Wavelength Channels
-CTYPE1  = 'RA---TAN'           / Gnomonic projection Right Ascension
-CTYPE2  = 'DEC--TAN'           / Gnomonic projection Declination
-CTYPE3  = 'WAVE-TAB'           / Linear Variable Filter tabular dispersion
-CUNIT1  = 'deg     '           / Degrees
-CUNIT2  = 'deg     '           / Degrees
-CUNIT3  = 'um      '           / Micrometers (0.75 to 5.00)
-BUNIT   = 'MJy/sr  '           / Calibrated Surface Brightness`
-    }
-  },
-  {
-    id: 'algorithms-ice-fit',
-    title: 'Prebiotic Ice Fitting & Baseline Decontamination',
-    category: 'Algorithms',
-    content: `The SFERAvis chemical decomposition pipeline employs laboratory optical constants from the NASA Ames Cosmic Ice Laboratory and Leiden Ice Database. 
-
-The optical depth tau(lambda) is computed via:
-τ(λ) = -ln( F_obs(λ) / F_cont(λ) )
-
-Where F_cont is modeled via a second-order polynomial fitted to the continuum windows:
-Band 3: 2.15 – 2.35 µm
-Band 4: 3.70 – 3.82 µm
-Band 6: 4.80 – 5.00 µm`,
-    codeBlock: {
-      language: 'python',
-      code: `import sferavis.chemistry as sc
-
-# Run full baseline subtraction and deconvolve overlapping ice bands
-fit_result = sc.deconvolve_ice_profile(
-    sed,
-    components=['H2O_pure_amorphous', 'CO2_pure', 'CO2_CH3OH_mixture', 'CO_polar']
-)
-print(fit_result.summary())`
-    }
+Input data are prepared with their relevant observational metadata and quality information. Spatial, temporal, and spectral features can then be evaluated by detection and classification methods. Model outputs are treated as candidate results rather than confirmed discoveries; they should be checked against the available evidence and may be refined through subsequent analysis and community review.`
   }
 ];
 
