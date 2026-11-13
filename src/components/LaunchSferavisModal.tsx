@@ -1,8 +1,9 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { CELESTIAL_TARGETS } from '../data/mockData';
 import { Logo } from './Logo';
 import { AladinSkyViewer } from './AladinSkyViewer';
+import { PlanetariumTutorial } from './PlanetariumTutorial';
 import {
   X,
   Download,
@@ -14,6 +15,7 @@ import {
   Activity,
   Sparkles,
   Info,
+  BookOpen,
 } from 'lucide-react';
 
 interface LaunchSferavisModalProps {
@@ -27,6 +29,8 @@ export const LaunchSferavisModal: React.FC<LaunchSferavisModalProps> = ({ isOpen
   const [hoveredPoint, setHoveredPoint] = useState<{ wavelengthUm: number; fluxMjy: number; error: number } | null>(null);
   const [copyFeedback, setCopyFeedback] = useState<string | null>(null);
   const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
+  const [isPlanetariumTutorialOpen, setIsPlanetariumTutorialOpen] = useState(false);
+  const hasCheckedTutorialRef = useRef(false);
 
   // Listen for message from embedded Sky Atlas to close
   useEffect(() => {
@@ -54,8 +58,28 @@ export const LaunchSferavisModal: React.FC<LaunchSferavisModalProps> = ({ isOpen
     if (isOpen) {
       setActiveTab('atlas');
       setIsFullscreen(false);
+      if (!hasCheckedTutorialRef.current) {
+        hasCheckedTutorialRef.current = true;
+        try {
+          setIsPlanetariumTutorialOpen(localStorage.getItem('sferavisPlanetariumFinished') !== 'true');
+        } catch (error) {
+          console.warn('Could not read the planetarium tutorial preference:', error);
+          setIsPlanetariumTutorialOpen(true);
+        }
+      }
+    } else {
+      setIsPlanetariumTutorialOpen(false);
     }
   }, [isOpen]);
+
+  const finishPlanetariumTutorial = () => {
+    try {
+      localStorage.setItem('sferavisPlanetariumFinished', 'true');
+    } catch (error) {
+      console.warn('Could not save the planetarium tutorial preference:', error);
+    }
+    setIsPlanetariumTutorialOpen(false);
+  };
 
   const currentTarget = useMemo(() => {
     return CELESTIAL_TARGETS.find((t) => t.id === selectedTargetId) || CELESTIAL_TARGETS[0];
@@ -179,6 +203,20 @@ ICE_TAU =                ${currentTarget.iceAbsorptionDepth.toFixed(3)} / H2O Ic
             </a>
 
             <button
+              type="button"
+              onClick={() => {
+                setActiveTab('atlas');
+                setIsPlanetariumTutorialOpen(true);
+              }}
+              className="flex items-center gap-1.5 border border-zinc-700 bg-zinc-900 px-2.5 py-1.5 text-xs font-lexend uppercase tracking-wider text-zinc-200 transition-colors hover:bg-zinc-800"
+              aria-label="Open planetarium guide"
+              title="Open planetarium guide"
+            >
+              <BookOpen className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">Guide</span>
+            </button>
+
+            <button
               onClick={toggleFullscreen}
               className="p-2 text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors cursor-pointer border border-transparent hover:border-zinc-700"
               aria-label={isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}
@@ -202,6 +240,12 @@ ICE_TAU =                ${currentTarget.iceAbsorptionDepth.toFixed(3)} / H2O Ic
         {activeTab === 'atlas' && (
           <div className="relative flex-1 min-h-0 w-full overflow-hidden bg-black">
             <AladinSkyViewer className="h-full" />
+            {isPlanetariumTutorialOpen && (
+              <PlanetariumTutorial
+                onDismiss={() => setIsPlanetariumTutorialOpen(false)}
+                onFinish={finishPlanetariumTutorial}
+              />
+            )}
           </div>
         )}
 
