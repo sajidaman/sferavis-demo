@@ -1,5 +1,7 @@
 import React, { useCallback, useEffect, useId, useRef, useState } from 'react';
-import A, { type AladinInstance } from 'aladin-lite';
+import A, { type AladinCatalog, type AladinGraphicOverlay, type AladinInstance } from 'aladin-lite';
+import { AnalysisDataExplorer } from './AnalysisDataExplorer';
+import { loadAnalysisDataset } from '../data/analysisDatasets';
 import {
   Activity,
   AlertTriangle,
@@ -12,6 +14,7 @@ import {
   RotateCcw,
   Search,
   Telescope,
+  X,
 } from 'lucide-react';
 
 const SPHEREX_HIPS = 'CDS/P/SPHEREx/QR2/D3';
@@ -23,6 +26,12 @@ const INITIAL_RA = 266.414089;
 const INITIAL_DEC = -29.006111;
 // The SPHEREx QR2 registry publishes this as its recommended observation FoV.
 const INITIAL_FOV = 0.4580648549089874;
+
+function numberOrNull(value: string | undefined): number | null {
+  if (!value?.trim()) return null;
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : null;
+}
 
 function createSpherexHiPS(url = SPHEREX_HIPS_URL, onError?: (error: unknown) => void) {
   return A.HiPS(SPHEREX_HIPS, {
@@ -51,6 +60,8 @@ export const AladinSkyViewer: React.FC<AladinSkyViewerProps> = ({ className = ''
   const rawId = useId().replace(/[^a-zA-Z0-9_-]/g, '');
   const containerId = `sferavis-aladin-${rawId}`;
   const initializationIdRef = useRef(0);
+  const analysisLayersRef = useRef<Array<AladinCatalog | AladinGraphicOverlay>>([]);
+  const analysisRequestIdRef = useRef(0);
 
   const [status, setStatus] = useState<ViewerStatus>('loading');
   const [initErrorMsg, setInitErrorMsg] = useState<string | null>(null);
@@ -65,6 +76,13 @@ export const AladinSkyViewer: React.FC<AladinSkyViewerProps> = ({ className = ''
   const [fov, setFov] = useState(INITIAL_FOV);
   const [coordinateError, setCoordinateError] = useState('');
   const [retryCount, setRetryCount] = useState(0);
+  const [showAnalyzedTracklets, setShowAnalyzedTracklets] = useState(false);
+  const [showKnownTracklets, setShowKnownTracklets] = useState(true);
+  const [showUnknownTracklets, setShowUnknownTracklets] = useState(true);
+  const [showFilteredDetections, setShowFilteredDetections] = useState(false);
+  const [analysisLoading, setAnalysisLoading] = useState(false);
+  const [analysisError, setAnalysisError] = useState<string | null>(null);
+  const [selectedAnalysisSource, setSelectedAnalysisSource] = useState<Record<string, string | number | boolean | null> | null>(null);
   const surveyRef = useRef(survey);
   const gridEnabledRef = useRef(gridEnabled);
   surveyRef.current = survey;
@@ -217,6 +235,160 @@ export const AladinSkyViewer: React.FC<AladinSkyViewerProps> = ({ className = ''
     };
   }, [initializeViewer, retryCount]);
 
+  useEffect(() => {
+    const aladin = aladinRef.current;
+    if (status !== 'ready' || !aladin) return;
+
+    const requestId = ++analysisRequestIdRef.current;
+    const removePreviousLayers = () => {
+      for (const layer of analysisLayersRef.current) {
+        aladin.removeOverlay(layer);
+      }
+      analysisLayersRef.current = [];
+    };
+
+    removePreviousLayers();
+    setAnalysisError(null);
+    setSelectedAnalysisSource(null);
+
+    if (!showAnalyzedTracklets) {
+      setAnalysisLoading(false);
+      return;
+    }
+
+    setAnalysisLoading(true);
+    const datasetIds = ['tracklets-known-check', 'tracklet-members'];
+    if (showFilteredDetections) datasetIds.push('detections-filtered');
+
+    void Promise.all(datasetIds.map((datasetId) => loadAnalysisDataset(datasetId)))
+      .then(([trackletTable, memberTable, detectionTable]) => {
+        if (analysisRequestIdRef.current !== requestId || aladinRef.current !== aladin) return;
+
+        const tracklets = trackletTable.rows;
+        const enabledTracklets = tracklets.filter((row) =>
+          (row.known_status === 'known' && showKnownTracklets)
+          || (row.known_status !== 'known' && showUnknownTracklets)
+        );
+
+        const addTrackletCatalog = (known: boolean) => {
+          const rows = enabledTracklets.filter((row) => (row.known_status === 'known') === known);
+          if (rows.length === 0) return;
+          const catalog = A.catalog({
+            name: known ? 'Known-object tracklets' : 'Unmatched tracklet candidates',
+            color: known ? '#f2b84b' : '#f06b6b',
+            sourceSize: 10,
+            shape: known ? 'rhomb' : 'circle',
+            onClick: (source) => setSelectedAnalysisSource(source.data),
+          });
+          catalog.addSources(rows.flatMap((row) => {
+            const ra = Number(row.ra_mid);
+            const dec = Number(row.dec_mid);
+            if (!Number.isFinite(ra) || !Number.isFinite(dec)) return [];
+            return [A.source(ra, dec, {
+              Tracklet: row.tracklet_id,
+              'Known-object status': row.known_status || 'not supplied',
+              'Known-object name': row.known_name || 'No name supplied',
+              'Detection count': numberOrNull(row.n_det),
+              'Motion rate (arcsec/hour)': numberOrNull(row.rate_arcsec_hr),
+              'Position angle (degrees)': numberOrNull(row.pa_deg),
+              'Tracklet RMS (arcsec)': numberOrNull(row.rms_arcsec),
+              'Mean SNR': numberOrNull(row.mean_snr),
+              'Midpoint MJD': numberOrNull(row.mjd_mid),
+            })];
+          }));
+          aladin.addCatalog(catalog);
+          analysisLayersRef.current.push(catalog);
+        };
+
+        addTrackletCatalog(true);
+        addTrackletCatalog(false);
+
+        const enabledIds = new Set(enabledTracklets.map((row) => row.tracklet_id));
+        const memberGroups = new Map<string, Array<Record<string, string>>>();
+        for (const member of memberTable.rows) {
+          if (!enabledIds.has(member.tracklet_id)) continue;
+          const group = memberGroups.get(member.tracklet_id) ?? [];
+          group.push(member);
+          memberGroups.set(member.tracklet_id, group);
+        }
+
+        for (const known of [true, false]) {
+          const trackletIds = enabledTracklets
+            .filter((row) => (row.known_status === 'known') === known)
+            .map((row) => row.tracklet_id);
+          if (trackletIds.length === 0) continue;
+
+          const overlay = A.graphicOverlay({
+            name: known ? 'Known-object track paths' : 'Unmatched candidate track paths',
+            color: known ? '#f2b84b' : '#f06b6b',
+            lineWidth: 2,
+          });
+          let hasPaths = false;
+          for (const trackletId of trackletIds) {
+            const coordinates = (memberGroups.get(trackletId) ?? [])
+              .sort((left, right) => Number(left.mjd) - Number(right.mjd))
+              .flatMap((member) => {
+                const ra = Number(member.ra);
+                const dec = Number(member.dec);
+                return Number.isFinite(ra) && Number.isFinite(dec) ? [[ra, dec] as [number, number]] : [];
+              });
+            if (coordinates.length < 2) continue;
+            overlay.add(A.polyline(coordinates, { color: known ? '#f2b84b' : '#f06b6b', opacity: 0.8, lineWidth: 2 }));
+            hasPaths = true;
+          }
+          if (hasPaths) {
+            aladin.addOverlay(overlay);
+            analysisLayersRef.current.push(overlay);
+          }
+        }
+
+        if (showFilteredDetections && detectionTable) {
+          const catalog = A.catalog({
+            name: 'Filtered individual detections',
+            color: '#8fd5e8',
+            sourceSize: 4,
+            shape: 'cross',
+            onClick: (source) => setSelectedAnalysisSource(source.data),
+          });
+          catalog.addSources(detectionTable.rows.flatMap((row) => {
+            const ra = Number(row.ra);
+            const dec = Number(row.dec);
+            if (!Number.isFinite(ra) || !Number.isFinite(dec)) return [];
+            return [A.source(ra, dec, {
+              'Detection ID': numberOrNull(row.det_id),
+              'Epoch index': numberOrNull(row.epoch_idx),
+              MJD: numberOrNull(row.mjd),
+              'SNR': numberOrNull(row.snr),
+              'Flux': numberOrNull(row.flux),
+              'Detection category': row.category || 'not classified',
+              'Gaia match': row.gaia_match || 'not supplied',
+              'SIMBAD match': row.simbad_match || 'not supplied',
+            })];
+          }));
+          aladin.addCatalog(catalog);
+          analysisLayersRef.current.push(catalog);
+        }
+      })
+      .catch((error: unknown) => {
+        if (analysisRequestIdRef.current !== requestId) return;
+        setAnalysisError(error instanceof Error ? error.message : String(error));
+      })
+      .finally(() => {
+        if (analysisRequestIdRef.current === requestId) setAnalysisLoading(false);
+      });
+
+    return () => {
+      analysisRequestIdRef.current += 1;
+      removePreviousLayers();
+    };
+  }, [
+    status,
+    showAnalyzedTracklets,
+    showKnownTracklets,
+    showUnknownTracklets,
+    showFilteredDetections,
+  ]);
+
   const handleRetry = () => {
     setRetryCount((prev) => prev + 1);
   };
@@ -293,6 +465,15 @@ export const AladinSkyViewer: React.FC<AladinSkyViewerProps> = ({ className = ''
       setDecInput(String(INITIAL_DEC));
       setCoordinateError('');
     }
+  };
+
+  const focusAnalyzedField = () => {
+    if (!aladinRef.current) return;
+    aladinRef.current.gotoRaDec(180, 0);
+    updateFov(0.25);
+    setRaInput('180');
+    setDecInput('0');
+    setCoordinateError('');
   };
 
   return (
@@ -449,6 +630,37 @@ export const AladinSkyViewer: React.FC<AladinSkyViewerProps> = ({ className = ''
               {survey === 'spherex' ? 'Near-Infrared Spectrophotometric Survey' : 'Digitized Sky Survey (Optical)'}
             </span>
           </div>
+
+          {selectedAnalysisSource && (
+            <section
+              aria-label="Selected analysis marker details"
+              className="absolute right-3 top-16 z-10 max-h-[55%] w-[min(19rem,calc(100%-1.5rem))] overflow-y-auto border border-sky-200/20 bg-[#0a1422]/95 p-3 text-white shadow-2xl backdrop-blur-md"
+            >
+              <div className="mb-2 flex items-center justify-between gap-2 border-b border-white/10 pb-2">
+                <h3 className="font-lexend text-[10px] font-bold uppercase tracking-wider text-sky-100">
+                  {selectedAnalysisSource.Tracklet !== undefined
+                    ? `Tracklet ${selectedAnalysisSource.Tracklet}`
+                    : `Detection ${selectedAnalysisSource['Detection ID'] ?? ''}`}
+                </h3>
+                <button
+                  type="button"
+                  onClick={() => setSelectedAnalysisSource(null)}
+                  aria-label="Close selected analysis marker details"
+                  className="inline-flex h-7 w-7 items-center justify-center text-zinc-400 hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#A30000]"
+                >
+                  <X className="h-3.5 w-3.5" aria-hidden="true" />
+                </button>
+              </div>
+              <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1.5 text-[9px]">
+                {Object.entries(selectedAnalysisSource).map(([label, value]) => (
+                  <React.Fragment key={label}>
+                    <dt className="text-zinc-500">{label}</dt>
+                    <dd className="min-w-0 break-words font-mono text-zinc-200">{value === null || value === '' ? '—' : String(value)}</dd>
+                  </React.Fragment>
+                ))}
+              </dl>
+            </section>
+          )}
         </div>
 
         {/* Sidebar Controls */}
@@ -618,6 +830,59 @@ export const AladinSkyViewer: React.FC<AladinSkyViewerProps> = ({ className = ''
               </button>
             </section>
 
+            <section className="border-t border-zinc-800 pt-4">
+              <div className="mb-2 flex items-center justify-between">
+                <h3 className="font-lexend text-[10px] font-bold uppercase tracking-[0.18em] text-zinc-300">
+                  Supplied Analysis Overlay
+                </h3>
+                <span className="font-mono text-[9px] text-zinc-500">RA 180° · Dec 0°</span>
+              </div>
+              <p className="mb-3 text-[10px] leading-relaxed text-zinc-500">
+                Tracklets and filtered detections from the supplied CSVs. Positions are overlaid for context and are not asserted to match the selected SPHEREx or DSS2 image data.
+              </p>
+              <button
+                type="button"
+                onClick={focusAnalyzedField}
+                disabled={status !== 'ready'}
+                className="mb-3 flex w-full items-center justify-center gap-2 border border-zinc-700 bg-black px-3 py-2 font-lexend text-[9px] font-bold uppercase tracking-wider text-zinc-200 transition-colors hover:border-[#A30000] hover:text-white disabled:opacity-40"
+              >
+                <Navigation className="h-3 w-3" /> Focus analyzed field
+              </button>
+              <label className="flex items-start gap-2 border border-zinc-800 bg-black/50 p-2.5 text-[10px] text-zinc-200">
+                <input
+                  type="checkbox"
+                  checked={showAnalyzedTracklets}
+                  onChange={(event) => setShowAnalyzedTracklets(event.target.checked)}
+                  disabled={status !== 'ready'}
+                  className="mt-0.5 accent-[#A30000]"
+                />
+                <span>Show tracklet candidates and motion paths</span>
+              </label>
+              {showAnalyzedTracklets && (
+                <div className="mt-2 space-y-2 border-l-2 border-zinc-700 pl-3">
+                  <label className="flex items-center gap-2 text-[10px] text-zinc-300">
+                    <input type="checkbox" checked={showKnownTracklets} onChange={(event) => setShowKnownTracklets(event.target.checked)} className="accent-amber-400" />
+                    <span className="h-2 w-2 rotate-45 bg-[#f2b84b]" aria-hidden="true" />
+                    Known-object matches
+                  </label>
+                  <label className="flex items-center gap-2 text-[10px] text-zinc-300">
+                    <input type="checkbox" checked={showUnknownTracklets} onChange={(event) => setShowUnknownTracklets(event.target.checked)} className="accent-red-400" />
+                    <span className="h-2 w-2 rounded-full bg-[#f06b6b]" aria-hidden="true" />
+                    Unmatched candidates
+                  </label>
+                  <label className="flex items-center gap-2 text-[10px] text-zinc-300">
+                    <input type="checkbox" checked={showFilteredDetections} onChange={(event) => setShowFilteredDetections(event.target.checked)} className="accent-sky-300" />
+                    <span className="h-2 w-2 text-center font-bold leading-[7px] text-[#8fd5e8]" aria-hidden="true">+</span>
+                    Filtered individual detections
+                  </label>
+                </div>
+              )}
+              {analysisLoading && <p className="mt-2 text-[10px] text-zinc-400">Loading analysis overlay…</p>}
+              {analysisError && <p role="alert" className="mt-2 border border-red-900/60 bg-red-950/30 p-2 text-[10px] text-red-200">{analysisError}</p>}
+            </section>
+
+            <AnalysisDataExplorer />
+
             {/* Scientific Notice */}
             <section className="border-t border-zinc-800 pt-4">
               <h3 className="mb-2 font-lexend text-[10px] font-bold uppercase tracking-[0.18em] text-zinc-300">
@@ -642,7 +907,7 @@ export const AladinSkyViewer: React.FC<AladinSkyViewerProps> = ({ className = ''
       {/* Footer Info Bar */}
       <div className="flex shrink-0 flex-wrap items-center justify-between gap-2 border-t border-slate-700 bg-[#111a2a] px-4 py-2 text-[9px] text-slate-400">
         <span className="font-lexend uppercase tracking-wider">Sferavis · Explore the Invisible Universe</span>
-        <span>Sky Rendering: Aladin Lite v3 (WASM) · Data: NASA / JPL-Caltech / CDS</span>
+        <span>Sky Rendering: Aladin Lite v3 (WASM) · Base surveys: NASA / JPL-Caltech / CDS · Overlays: user-supplied</span>
       </div>
     </section>
   );
