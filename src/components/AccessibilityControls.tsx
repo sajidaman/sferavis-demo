@@ -36,10 +36,14 @@ export const AccessibilityControls: React.FC<AccessibilityControlsProps> = ({ is
     root.style.setProperty('--a11y-font-scale', String(textScale / 100));
     root.style.setProperty('--a11y-line-height', String(lineSpacing / 100));
     root.style.setProperty('--a11y-focus-width', String(focusStrength) + 'px');
-    const defaultCursor = `<svg xmlns='http://www.w3.org/2000/svg' width='${cursorSize}' height='${cursorSize}' viewBox='0 0 28 28'><circle cx='14' cy='14' r='4' fill='#A30000'/><circle cx='14' cy='14' r='9' fill='none' stroke='#A30000' stroke-width='1.35'/><path d='M14 1.5v5M14 21.5v5M1.5 14h5M21.5 14h5' stroke='#A30000' stroke-width='1.25' stroke-linecap='round'/></svg>`;
-    const pointerCursor = `<svg xmlns='http://www.w3.org/2000/svg' width='${cursorSize}' height='${cursorSize}' viewBox='0 0 28 28'><circle cx='14' cy='14' r='3' fill='#A30000'/><circle cx='14' cy='14' r='9' fill='none' stroke='#A30000' stroke-width='1.6'/></svg>`;
-    root.style.setProperty('--a11y-cursor-default', `url("data:image/svg+xml,${encodeURIComponent(defaultCursor)}") ${cursorSize / 2} ${cursorSize / 2}, auto`);
-    root.style.setProperty('--a11y-cursor-pointer', `url("data:image/svg+xml,${encodeURIComponent(pointerCursor)}") ${cursorSize / 2} ${cursorSize / 2}, pointer`);
+    const center = cursorSize / 2;
+    const ringRadius = cursorSize * 0.32;
+    const dotRadius = cursorSize * 0.14;
+    const stroke = Math.max(1, cursorSize * 0.045);
+    const defaultCursor = `<svg xmlns='http://www.w3.org/2000/svg' width='${cursorSize}px' height='${cursorSize}px' viewBox='0 0 ${cursorSize} ${cursorSize}'><circle cx='${center}' cy='${center}' r='${dotRadius}' fill='#A30000'/><circle cx='${center}' cy='${center}' r='${ringRadius}' fill='none' stroke='#A30000' stroke-width='${stroke}'/><path d='M${center} ${cursorSize * 0.04}v${cursorSize * 0.18}M${center} ${cursorSize * 0.78}v${cursorSize * 0.18}M${cursorSize * 0.04} ${center}h${cursorSize * 0.18}M${cursorSize * 0.78} ${center}h${cursorSize * 0.18}' stroke='#A30000' stroke-width='${stroke}' stroke-linecap='round'/></svg>`;
+    const pointerCursor = `<svg xmlns='http://www.w3.org/2000/svg' width='${cursorSize}px' height='${cursorSize}px' viewBox='0 0 ${cursorSize} ${cursorSize}'><circle cx='${center}' cy='${center}' r='${cursorSize * 0.11}' fill='#A30000'/><circle cx='${center}' cy='${center}' r='${ringRadius}' fill='none' stroke='#A30000' stroke-width='${stroke * 1.2}'/></svg>`;
+    root.style.setProperty('--a11y-cursor-default', `url("data:image/svg+xml,${encodeURIComponent(defaultCursor)}") ${center} ${center}, auto`);
+    root.style.setProperty('--a11y-cursor-pointer', `url("data:image/svg+xml,${encodeURIComponent(pointerCursor)}") ${center} ${center}, pointer`);
     root.classList.toggle('a11y-contrast-1', contrast === 1);
     root.classList.toggle('a11y-contrast-2', contrast === 2);
     root.classList.toggle('a11y-link-style-1', linkStyle === 1);
