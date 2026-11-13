@@ -10,6 +10,79 @@ interface SpherexPageProps {
   onLaunchSferavis?: () => void;
 }
 
+const CustomSpherexModel: React.FC = () => {
+  const [rotation, setRotation] = useState(-24);
+  const face: React.CSSProperties = {
+    position: 'absolute',
+    inset: 0,
+    backfaceVisibility: 'hidden',
+    border: '1px solid rgba(255,255,255,.22)',
+  };
+  const panelStyle: React.CSSProperties = {
+    background: 'linear-gradient(135deg, #17365b, #071426)',
+    border: '1px solid rgba(125,190,235,.65)',
+    boxShadow: 'inset 0 0 24px rgba(40,125,190,.22)',
+  };
+  return (
+    <section className="mx-auto mt-14 max-w-5xl" aria-labelledby="custom-spherex-model-title">
+      <div className="mb-5 text-center">
+        <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-[#a30000]">Sferavis 3D concept</p>
+        <h2 id="custom-spherex-model-title" className="mt-2 text-xl sm:text-2xl font-oswald font-bold uppercase tracking-wide text-slate-950 dark:text-white">
+          SPHEREx — Interactive Spacecraft Model
+        </h2>
+        <p className="mt-2 text-xs sm:text-sm text-slate-600 dark:text-zinc-400 font-merriweather">
+          A custom-built, illustrative 3D model inspired by the spacecraft’s telescope, thermal shields and solar arrays.
+        </p>
+      </div>
+      <div className="relative flex min-h-[330px] items-center justify-center overflow-hidden rounded-xl border border-zinc-200 dark:border-slate-800 bg-[radial-gradient(ellipse_at_center,_#1a2a40_0%,_#080d16_68%)] px-4 py-12 shadow-xl sm:min-h-[420px]">
+        <div className="pointer-events-none absolute inset-0 opacity-30" style={{backgroundImage:'radial-gradient(#9bb4d0 0.7px, transparent 0.7px)',backgroundSize:'24px 24px'}} />
+        <div className="relative h-[190px] w-[300px] sm:h-[230px] sm:w-[390px]" style={{perspective:'900px'}}>
+          <div className="absolute inset-0" style={{transformStyle:'preserve-3d',transform:`rotateX(-19deg) rotateY(${rotation}deg)`,transition:'transform 650ms cubic-bezier(.2,.7,.2,1)'}}>
+            {/* Twin solar-array wings */}
+            <div className="absolute left-[3%] top-[39%] h-[58px] w-[31%] sm:h-[72px]" style={{...panelStyle,transform:'translateZ(-8px) rotateY(-8deg)'}}>
+              <div className="grid h-full grid-cols-5 gap-px p-1">{Array.from({length:15},(_,i)=><span key={i} className="border border-sky-300/35 bg-blue-900/60"/>)}</div>
+              <div className="absolute -right-3 top-1/2 h-1 w-4 bg-zinc-400"/>
+            </div>
+            <div className="absolute right-[3%] top-[39%] h-[58px] w-[31%] sm:h-[72px]" style={{...panelStyle,transform:'translateZ(-8px) rotateY(8deg)'}}>
+              <div className="grid h-full grid-cols-5 gap-px p-1">{Array.from({length:15},(_,i)=><span key={i} className="border border-sky-300/35 bg-blue-900/60"/>)}</div>
+              <div className="absolute -left-3 top-1/2 h-1 w-4 bg-zinc-400"/>
+            </div>
+            {/* Three layered thermal sunshields */}
+            <div className="absolute left-1/2 top-[18%] h-[126px] w-[118px] -translate-x-1/2 sm:h-[150px] sm:w-[145px]" style={{transform:'translateX(-50%) translateZ(-30px)',transformStyle:'preserve-3d'}}>
+              <div className="absolute inset-x-[18%] top-0 h-full border-x-[18px] border-t-[10px] border-[#d9d1b8] bg-gradient-to-b from-[#c6b99b]/70 to-[#4b5360]/60" style={{clipPath:'polygon(30% 0,70% 0,100% 100%,0 100%)',transform:'translateZ(-12px)'}}/>
+              <div className="absolute inset-x-[27%] top-[10%] h-[90%] border-x-[12px] border-t-[8px] border-[#a8a08e] bg-gradient-to-b from-[#e2d8c1]/70 to-[#303b4b]/70" style={{clipPath:'polygon(30% 0,70% 0,100% 100%,0 100%)',transform:'translateZ(0px)'}}/>
+              <div className="absolute inset-x-[36%] top-[20%] h-[80%] border-x-[8px] border-t-[7px] border-[#c8bda4] bg-gradient-to-b from-[#e8dfcb]/80 to-[#536071]/70" style={{clipPath:'polygon(30% 0,70% 0,100% 100%,0 100%)',transform:'translateZ(12px)'}}/>
+            </div>
+            {/* Spacecraft bus */}
+            <div className="absolute left-1/2 top-1/2 h-[68px] w-[68px] -translate-x-1/2 -translate-y-1/2" style={{transformStyle:'preserve-3d',transform:'translate(-50%,-50%) translateZ(30px)'}}>
+              <div style={{...face,background:'linear-gradient(145deg,#e7e4d9,#8d9294)',transform:'translateZ(34px)'}}/>
+              <div style={{...face,background:'linear-gradient(90deg,#777f88,#c5c3b8)',transform:'rotateY(90deg) translateZ(34px)'}}/>
+              <div style={{...face,background:'linear-gradient(135deg,#555f6d,#a9a99e)',transform:'rotateY(180deg) translateZ(34px)'}}/>
+              <div style={{...face,background:'#777e83',transform:'rotateY(-90deg) translateZ(34px)'}}/>
+              <div style={{...face,background:'linear-gradient(135deg,#f0e8d2,#a6a18e)',transform:'rotateX(90deg) translateZ(34px)'}}/>
+              <div style={{...face,background:'#515a66',transform:'rotateX(-90deg) translateZ(34px)'}}/>
+              <div className="absolute left-1/2 top-1/2 h-7 w-7 -translate-x-1/2 -translate-y-1/2 rounded-full border-[5px] border-[#a30000] bg-black shadow-[0_0_18px_rgba(163,0,0,.7)]" style={{transform:'translate(-50%,-50%) translateZ(35px)'}}/>
+            </div>
+            {/* Telescope barrel and aperture */}
+            <div className="absolute left-1/2 top-[48%] h-10 w-10 -translate-x-1/2 -translate-y-1/2 rounded-full border-[5px] border-zinc-300 bg-[#101923] shadow-[0_0_18px_rgba(120,180,220,.35)]" style={{transform:'translate(-50%,-50%) translateZ(72px)'}}/>
+            <div className="absolute left-1/2 top-[48%] h-5 w-5 -translate-x-1/2 -translate-y-1/2 rounded-full border border-sky-200/70 bg-sky-900/80" style={{transform:'translate(-50%,-50%) translateZ(78px)'}}/>
+            <div className="absolute left-1/2 top-[78%] h-2 w-24 -translate-x-1/2 rounded-full bg-[#a30000]/80" style={{transform:'translateX(-50%) translateZ(-42px)'}}/>
+          </div>
+        </div>
+        <div className="absolute bottom-4 left-4 text-[9px] font-mono uppercase tracking-[0.18em] text-slate-400">Concept visualization · Not to scale</div>
+        <div className="absolute bottom-3 right-3 flex items-center gap-2">
+          <button type="button" onClick={()=>setRotation(v=>v-35)} className="border border-white/20 bg-white/10 px-3 py-2 text-[10px] font-semibold uppercase tracking-wider text-white transition hover:bg-white/20" aria-label="Rotate model left">Rotate −</button>
+          <button type="button" onClick={()=>setRotation(-24)} className="border border-white/20 bg-white/10 px-3 py-2 text-[10px] font-semibold uppercase tracking-wider text-white transition hover:bg-white/20">Reset</button>
+          <button type="button" onClick={()=>setRotation(v=>v+35)} className="border border-white/20 bg-white/10 px-3 py-2 text-[10px] font-semibold uppercase tracking-wider text-white transition hover:bg-white/20" aria-label="Rotate model right">Rotate +</button>
+        </div>
+      </div>
+      <p className="mt-3 text-center text-[10px] text-slate-500 dark:text-zinc-500">
+        Original Sferavis-built CSS 3D concept. Geometry is illustrative and does not represent a flight-certified engineering model.
+      </p>
+    </section>
+  );
+};
+
 export const SpherexPage: React.FC<SpherexPageProps> = ({ onNavigate, onLaunchSferavis }) => {
   const [selectedBandIndex, setSelectedBandIndex] = useState<number>(3); // Default to Band 4 (Water Ice)
 
@@ -70,6 +143,8 @@ export const SpherexPage: React.FC<SpherexPageProps> = ({ onNavigate, onLaunchSf
               Interactive experience by NASA’s Eyes on the Solar System. If it does not load here, <a href="https://go.nasa.gov/eyesonspherex" target="_blank" rel="noopener noreferrer" className="font-semibold text-[#A30000] hover:underline underline-offset-4">open the 3D simulation directly</a>.
             </p>
           </section>
+
+          <CustomSpherexModel />
 
 </div>
       </section>
