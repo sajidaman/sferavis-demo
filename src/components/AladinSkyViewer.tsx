@@ -71,7 +71,7 @@ export const AladinSkyViewer: React.FC<AladinSkyViewerProps> = ({ className = ''
     const mirrorError = (cause: unknown) => {
       const detail = cause instanceof Error ? cause.message : String(cause);
       setSurveyErrorMsg(`SPHEREx QR2 could not be loaded from either official HiPS host. Details: ${detail}`);
-    }, []);
+    };
 
     const primaryError = (cause: unknown) => {
       const detail = cause instanceof Error ? cause.message : String(cause);
@@ -87,7 +87,7 @@ export const AladinSkyViewer: React.FC<AladinSkyViewerProps> = ({ className = ''
     } catch (error) {
       primaryError(error);
     }
-  };
+  }, []);
 
   const initializeViewer = useCallback(async () => {
     const initializationId = ++initializationIdRef.current;
