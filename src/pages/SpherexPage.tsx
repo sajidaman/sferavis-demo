@@ -118,6 +118,14 @@ export const SpherexPage: React.FC<SpherexPageProps> = ({ onNavigate, onLaunchSf
             >
               Official SPHEREx Website <ArrowRight size={13} />
             </a>
+            <a
+              href="https://irsa.ipac.caltech.edu/Missions/spherex.html"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mx-auto mt-2 inline-flex items-center gap-2 border border-[#a30000]/25 px-4 py-2.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-[#a30000] transition-colors hover:border-[#a30000] hover:bg-[#a30000] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#a30000]"
+            >
+              SPHEREx Archive & Data <ArrowRight size={13} />
+            </a>
           </div>
 
           <section className="mx-auto mt-12 max-w-5xl" aria-labelledby="spherex-3d-title">
