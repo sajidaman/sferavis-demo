@@ -41,9 +41,9 @@ export const SpherexPage: React.FC<SpherexPageProps> = ({ onNavigate, onLaunchSf
               href="https://science.nasa.gov/mission/spherex/"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 text-xs sm:text-sm font-lexend font-semibold text-[#A30000] hover:underline underline-offset-4"
+              className="mx-auto inline-flex items-center gap-2 border border-[#a30000]/25 px-4 py-2.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-[#a30000] transition-colors hover:border-[#a30000] hover:bg-[#a30000] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#a30000]"
             >
-              Explore the SPHEREx mission <ArrowRight size={14} />
+              Official SPHEREx Website <ArrowRight size={13} />
             </a>
           </div>
 
