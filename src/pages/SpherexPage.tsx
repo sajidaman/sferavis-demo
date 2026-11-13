@@ -47,6 +47,30 @@ export const SpherexPage: React.FC<SpherexPageProps> = ({ onNavigate, onLaunchSf
             </a>
           </div>
 
+          <section className="mx-auto mt-12 max-w-5xl" aria-labelledby="spherex-3d-title">
+            <div className="mb-5 text-center">
+              <h2 id="spherex-3d-title" className="text-xl sm:text-2xl font-oswald font-bold uppercase tracking-wide text-slate-950 dark:text-white">
+                Explore the Spacecraft
+              </h2>
+              <p className="mt-2 text-xs sm:text-sm text-slate-600 dark:text-zinc-400 font-merriweather">
+                Explore NASA’s interactive 3D view of SPHEREx in its observing orbit.
+              </p>
+            </div>
+            <div className="relative aspect-video w-full overflow-hidden rounded-xl border border-zinc-200 dark:border-slate-800 bg-[#080d16] shadow-xl">
+              <iframe
+                src="https://eyes.nasa.gov/apps/solar-system/"
+                title="NASA Eyes on the Solar System — SPHEREx 3D visualization"
+                className="absolute inset-0 h-full w-full"
+                loading="lazy"
+                allow="fullscreen; accelerometer; gyroscope"
+                referrerPolicy="strict-origin-when-cross-origin"
+              />
+            </div>
+            <p className="mt-3 text-center text-[10px] sm:text-xs text-slate-500 dark:text-zinc-500">
+              Interactive experience by NASA’s Eyes on the Solar System. If it does not load here, <a href="https://go.nasa.gov/eyesonspherex" target="_blank" rel="noopener noreferrer" className="font-semibold text-[#A30000] hover:underline underline-offset-4">open the 3D simulation directly</a>.
+            </p>
+          </section>
+
 </div>
       </section>
 
