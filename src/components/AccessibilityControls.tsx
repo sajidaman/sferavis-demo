@@ -30,10 +30,11 @@ export const AccessibilityControls: React.FC<AccessibilityControlsProps> = ({ is
   const [motion, setMotion] = useState(() => Number(localStorage.getItem('sferavis-a11y-motion')) || 0);
   const [focusStrength, setFocusStrength] = useState(() => Number(localStorage.getItem('sferavis-a11y-focus-strength')) || 3);
   const [cursorSize, setCursorSize] = useState(() => Number(localStorage.getItem('sferavis-a11y-cursor-size')) || 20);
+  const [brightness, setBrightness] = useState(() => Number(localStorage.getItem('sferavis-a11y-brightness')) || 100);
 
   useEffect(() => {
     localStorage.setItem('sferavis-a11y-settings', JSON.stringify({
-      textScale, lineSpacing, contrast, linkStyle, motion, focusStrength, cursorSize
+      textScale, lineSpacing, contrast, linkStyle, motion, focusStrength, cursorSize, brightness
     }));
     localStorage.setItem('sferavis-a11y-text-scale', String(textScale));
     localStorage.setItem('sferavis-a11y-line-spacing', String(lineSpacing));
@@ -42,11 +43,13 @@ export const AccessibilityControls: React.FC<AccessibilityControlsProps> = ({ is
     localStorage.setItem('sferavis-a11y-motion', String(motion));
     localStorage.setItem('sferavis-a11y-focus-strength', String(focusStrength));
     localStorage.setItem('sferavis-a11y-cursor-size', String(cursorSize));
-  }, [textScale, lineSpacing, contrast, linkStyle, motion, focusStrength, cursorSize]);
+    localStorage.setItem('sferavis-a11y-brightness', String(brightness));
+  }, [textScale, lineSpacing, contrast, linkStyle, motion, focusStrength, cursorSize, brightness]);
 
   useEffect(() => {
     const root = document.documentElement;
     root.style.setProperty('--a11y-font-scale', String(textScale / 100));
+    root.style.filter = `brightness(${brightness / 100})`;
     root.style.setProperty('--a11y-line-height', String(lineSpacing / 100));
     root.style.setProperty('--a11y-focus-width', String(focusStrength) + 'px');
     const center = cursorSize / 2;
@@ -63,11 +66,11 @@ export const AccessibilityControls: React.FC<AccessibilityControlsProps> = ({ is
     root.classList.toggle('a11y-link-style-2', linkStyle === 2);
     root.classList.toggle('a11y-motion-1', motion === 1);
     root.classList.toggle('a11y-motion-2', motion === 2);
-  }, [textScale, lineSpacing, contrast, linkStyle, motion, focusStrength, cursorSize]);
+  }, [textScale, lineSpacing, contrast, linkStyle, motion, focusStrength, cursorSize, brightness]);
 
   const reset = () => {
     setTextScale(100); setLineSpacing(150); setContrast(0);
-    setLinkStyle(0); setMotion(0); setFocusStrength(3); setCursorSize(20);
+    setLinkStyle(0); setMotion(0); setFocusStrength(3); setCursorSize(20); setBrightness(100);
   };
 
   return (
@@ -97,6 +100,7 @@ export const AccessibilityControls: React.FC<AccessibilityControlsProps> = ({ is
                   </button>
                 </div>
               </div>
+              <RangeSetting id="a11y-brightness" label="Brightness" value={brightness} min={50} max={150} step={1} output={String(brightness) + '%'} minLabel="Dim" maxLabel="Bright" onChange={setBrightness} />
               <RangeSetting id="a11y-text-scale" label="Text size" value={textScale} min={100} max={150} step={1} output={String(textScale) + '%'} minLabel="Default" maxLabel="Larger" onChange={setTextScale} />
               <RangeSetting id="a11y-line-spacing" label="Line spacing" value={lineSpacing} min={130} max={220} step={1} output={(lineSpacing / 100).toFixed(2) + '×'} minLabel="Compact" maxLabel="Spacious" onChange={setLineSpacing} />
             </section>
