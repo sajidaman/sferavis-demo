@@ -162,7 +162,6 @@ export const RediumChat: React.FC = () => {
                 <Send size={17} aria-hidden="true" />
               </button>
             </form>
-            <p className="mt-2 text-center text-[10px] text-slate-400">AI can be inaccurate. Google may use free-tier prompts to improve its products; avoid sharing sensitive information.</p>
           </div>
         </section>
       )}
