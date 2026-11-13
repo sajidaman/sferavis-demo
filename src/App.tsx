@@ -119,7 +119,7 @@ export default function App() {
       />
 
       <RediumChat />
-      <AccessibilityControls />
+      <AccessibilityControls isDark={isDark} onSetDark={setIsDark} />
     </div>
   );
 }
