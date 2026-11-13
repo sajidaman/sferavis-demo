@@ -7,6 +7,8 @@ interface PlanetariumTutorialProps {
   onFinish: () => void;
 }
 
+export const PLANETARIUM_TUTORIAL_STORAGE_KEY = 'sferavisPlanetariumFinished';
+
 const steps = [
   {
     title: 'Welcome to Sferavis',

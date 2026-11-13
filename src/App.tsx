@@ -93,7 +93,12 @@ export default function App() {
                 onLaunchSferavis={() => setIsLaunchModalOpen(true)}
               />
             )}
-            {currentPage === 'tutorials' && <TutorialsPage onNavigate={handleNavigate} />}
+            {currentPage === 'tutorials' && (
+              <TutorialsPage
+                onNavigate={handleNavigate}
+                onLaunchSferavis={() => setIsLaunchModalOpen(true)}
+              />
+            )}
             {currentPage === 'documentations' && <DocsPage onNavigate={handleNavigate} />}
             {currentPage === 'team' && <TeamPage onNavigate={handleNavigate} />}
             {currentPage === 'publications' && <PublicationsPage onNavigate={handleNavigate} />}
