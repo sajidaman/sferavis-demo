@@ -494,7 +494,7 @@ html.a11y-motion-2 *, html.a11y-motion-2 *::before, html.a11y-motion-2 *::after 
   .sferavis-site *,
   .sferavis-cursor-area,
   .sferavis-cursor-area * {
-    cursor: var(--a11y-cursor-default, auto);
+    cursor: var(--a11y-cursor-default, auto) !important;
   }
   .sferavis-site a,
   .sferavis-site button,
@@ -505,6 +505,6 @@ html.a11y-motion-2 *, html.a11y-motion-2 *::before, html.a11y-motion-2 *::after 
   .sferavis-cursor-area button,
   .sferavis-cursor-area [role="button"],
   .sferavis-cursor-area label {
-    cursor: var(--a11y-cursor-pointer, pointer);
+    cursor: var(--a11y-cursor-pointer, pointer) !important;
   }
 }
