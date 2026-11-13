@@ -8,14 +8,14 @@ type RangeSettingProps = {
 };
 
 const RangeSetting: React.FC<RangeSettingProps> = ({ id, label, value, min, max, step = 1, output, minLabel, maxLabel, onChange }) => (
-  <div className="rounded-xl border border-slate-200 px-3 py-3 dark:border-slate-700">
-    <div className="mb-2 flex items-center justify-between gap-3">
-      <label htmlFor={id} className="text-sm font-medium">{label}</label>
-      <output htmlFor={id} className="text-xs font-semibold text-[#8B0000] dark:text-red-300">{output}</output>
+  <div className="rounded-xl border border-slate-200 px-2.5 py-2.5 dark:border-slate-700">
+    <div className="mb-1.5 flex items-center justify-between gap-2">
+      <label htmlFor={id} className="text-[13px] font-medium">{label}</label>
+      <output htmlFor={id} className="text-[11px] font-semibold text-[#8B0000] dark:text-red-300">{output}</output>
     </div>
     <input id={id} type="range" min={min} max={max} step={step} value={value}
       onChange={(event) => onChange(Number(event.target.value))} className="sferavis-a11y-range w-full" />
-    <div className="mt-1 flex justify-between text-[10px] text-slate-500 dark:text-slate-400"><span>{minLabel}</span><span>{maxLabel}</span></div>
+    <div className="mt-1 flex justify-between text-[9px] text-slate-500 dark:text-slate-400"><span>{minLabel}</span><span>{maxLabel}</span></div>
   </div>
 );
 
@@ -77,26 +77,26 @@ export const AccessibilityControls: React.FC<AccessibilityControlsProps> = ({ is
     <div className="fixed bottom-5 left-5 z-[80]">
       {open && (
         <section id="sferavis-accessibility-panel" aria-label="Accessibility and display settings"
-          className="mb-3 max-h-[min(78vh,42rem)] w-[min(22rem,calc(100vw-2.5rem))] overflow-y-auto rounded-2xl border border-slate-200 bg-white p-4 text-slate-900 shadow-2xl dark:border-slate-700 dark:bg-[#11151e] dark:text-white">
-          <div className="mb-4 flex items-center justify-between gap-3">
+          className="mb-2.5 max-h-[min(78vh,38rem)] w-[min(20rem,calc(100vw-2.5rem))] overflow-y-auto rounded-xl border border-slate-200 bg-white p-3 text-slate-900 shadow-2xl dark:border-slate-700 dark:bg-[#11151e] dark:text-white">
+          <div className="mb-3 flex items-center justify-between gap-2">
             <h2 className="text-sm font-bold tracking-wide">Accessibility</h2>
             <button type="button" onClick={() => setOpen(false)} aria-label="Close accessibility settings"
               className="rounded-lg p-2 hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#A30000] dark:hover:bg-slate-800"><X size={17} aria-hidden="true" /></button>
           </div>
 
-          <div className="space-y-4">
-            <section aria-labelledby="a11y-display-heading" className="space-y-2">
-              <h3 id="a11y-display-heading" className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400"><Sun size={14} aria-hidden="true" /> Display</h3>
+          <div className="space-y-3">
+            <section aria-labelledby="a11y-display-heading" className="space-y-1.5">
+              <h3 id="a11y-display-heading" className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400"><Sun size={12} aria-hidden="true" /> Display</h3>
               <div className="rounded-xl border border-slate-200 px-3 py-3 dark:border-slate-700">
-                <span className="mb-2 block text-sm font-medium">Colour theme</span>
+                <span className="mb-1.5 block text-[13px] font-medium">Colour theme</span>
                 <div className="grid grid-cols-2 gap-2" role="group" aria-label="Colour theme">
                   <button type="button" aria-pressed={!isDark} onClick={() => onSetDark(false)}
-                    className={`inline-flex items-center justify-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#A30000] ${!isDark ? 'border-[#8B0000] bg-red-50 text-[#8B0000] dark:bg-red-950/40 dark:text-red-200' : 'border-slate-200 text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800'}`}>
-                    <Sun size={16} aria-hidden="true" /> Light
+                    className={`inline-flex items-center justify-center gap-2 rounded-md border px-2.5 py-1.5 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#A30000] ${!isDark ? 'border-[#8B0000] bg-red-50 text-[#8B0000] dark:bg-red-950/40 dark:text-red-200' : 'border-slate-200 text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800'}`}>
+                    <Sun size={14} aria-hidden="true" /> Light
                   </button>
                   <button type="button" aria-pressed={isDark} onClick={() => onSetDark(true)}
                     className={`inline-flex items-center justify-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#A30000] ${isDark ? 'border-[#8B0000] bg-red-50 text-[#8B0000] dark:bg-red-950/40 dark:text-red-200' : 'border-slate-200 text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800'}`}>
-                    <Moon size={16} aria-hidden="true" /> Dark
+                    <Moon size={14} aria-hidden="true" /> Dark
                   </button>
                 </div>
               </div>
@@ -106,27 +106,27 @@ export const AccessibilityControls: React.FC<AccessibilityControlsProps> = ({ is
             </section>
 
             <section aria-labelledby="a11y-reading-heading" className="space-y-2">
-              <h3 id="a11y-reading-heading" className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400"><Type size={14} aria-hidden="true" /> Reading support</h3>
+              <h3 id="a11y-reading-heading" className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400"><Type size={12} aria-hidden="true" /> Reading support</h3>
               <RangeSetting id="a11y-contrast" label="Contrast" value={contrast} min={0} max={2} step={1} output={['Standard', 'High', 'Maximum'][contrast]} minLabel="Standard" maxLabel="Maximum" onChange={setContrast} />
               <RangeSetting id="a11y-links" label="Link emphasis" value={linkStyle} min={0} max={2} step={1} output={['Standard', 'Underline', 'Underline + bold'][linkStyle]} minLabel="Standard" maxLabel="Strong" onChange={setLinkStyle} />
             </section>
 
             <section aria-labelledby="a11y-navigation-heading" className="space-y-2">
-              <h3 id="a11y-navigation-heading" className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400"><Accessibility size={14} aria-hidden="true" /> Navigation</h3>
+              <h3 id="a11y-navigation-heading" className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400"><Accessibility size={12} aria-hidden="true" /> Navigation</h3>
               <RangeSetting id="a11y-motion" label="Motion" value={motion} min={0} max={2} step={1} output={['Full', 'Reduced', 'Minimal'][motion]} minLabel="Full" maxLabel="Minimal" onChange={setMotion} />
               <RangeSetting id="a11y-focus" label="Keyboard focus indicator" value={focusStrength} min={1} max={6} step={0.25} output={String(focusStrength) + 'px'} minLabel="Subtle" maxLabel="Strong" onChange={setFocusStrength} />
               <RangeSetting id="a11y-cursor-size" label="Cursor size" value={cursorSize} min={16} max={48} step={1} output={String(cursorSize) + "px"} minLabel="Small" maxLabel="Large" onChange={setCursorSize} />
             </section>
           </div>
 
-          <button type="button" onClick={reset} className="mt-4 inline-flex items-center gap-2 rounded-lg px-2 py-2 text-xs font-semibold text-[#8B0000] hover:bg-red-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#A30000] dark:text-red-300 dark:hover:bg-red-950/40">
-            <RotateCcw size={14} aria-hidden="true" /> Reset accessibility settings
+          <button type="button" onClick={reset} className="mt-3 inline-flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-[11px] font-semibold text-[#8B0000] hover:bg-red-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#A30000] dark:text-red-300 dark:hover:bg-red-950/40">
+            <RotateCcw size={12} aria-hidden="true" /> Reset accessibility settings
           </button>
         </section>
       )}
       <button type="button" aria-label="Open accessibility settings" aria-expanded={open} aria-controls="sferavis-accessibility-panel"
-        onClick={() => setOpen(v => !v)} className="flex h-12 w-12 items-center justify-center rounded-full border border-white bg-[#8B0000] text-white shadow-xl transition hover:bg-[#700000] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-red-300">
-        <Accessibility size={23} aria-hidden="true" />
+        onClick={() => setOpen(v => !v)} className="flex h-10 w-10 items-center justify-center rounded-full border border-white bg-[#8B0000] text-white shadow-xl transition hover:bg-[#700000] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-red-300">
+        <Accessibility size={20} aria-hidden="true" />
       </button>
     </div>
   );
