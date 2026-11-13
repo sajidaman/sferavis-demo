@@ -13,7 +13,7 @@ const TEAM_MEMBERS: Member[] = [
  {id:'01',name:'Sajid Aman',role:'Co-lead & Frontend',institution:'Notre Dame College',location:'Dhaka, Bangladesh',image:'https://drive.google.com/thumbnail?id=1pUnSZiif5lS4ElkkcXzM5Nmln8-aQBSC&sz=w1200',biography:'Biography to be added.',expertise:['Frontend development','Project coordination'],socialLinks:[{label:'Portfolio',url:'',platform:'website'},{label:'GitHub',url:'',platform:'github'},{label:'LinkedIn',url:'https://www.linkedin.com/in/sajidaman01/',platform:'linkedin'},{label:'Mail',url:'mailto:sajidaman01@outlook.com',platform:'email'}]},
  {id:'02',name:'Radit Raian',role:'Co-lead & Backend',institution:'',location:'',image:'',biography:'Biography to be added.',expertise:['Backend development'],socialLinks:[]},
  {id:'03',name:'Elisabeth Tagobert',role:'UI/UX',institution:'',location:'',image:'',biography:'Biography to be added.',expertise:['UI/UX design'],socialLinks:[]},
- {id:'04',name:'Emils',role:'AI & ML',institution:'',location:'',image:'',biography:'Biography to be added.',expertise:['Artificial intelligence','Machine learning'],socialLinks:[]},
+ {id:'04',name:'Emils',role:'AI & ML',institution:'',location:'Poland',image:'',biography:'Biography to be added.',expertise:['Artificial intelligence','Machine learning'],socialLinks:[]},
  {id:'05',name:'Ioanna Tsolaki',role:'AI & ML',institution:'',location:'',image:'',biography:'Biography to be added.',expertise:['Artificial intelligence','Machine learning'],socialLinks:[]},
  {id:'06',name:'Sofia',role:'Research & Content',institution:'',location:'',image:'',biography:'Biography to be added.',expertise:['Research','Content development'],socialLinks:[]},
 ];
@@ -66,13 +66,13 @@ export const TeamPage: React.FC<TeamPageProps> = () => {
         <circle cx="1506" cy="450" r="9"/>
         <circle cx="1129" cy="356" r="9"/>
         <circle cx="1137" cy="364" r="9"/>
-        <circle cx="1138" cy="260" r="9"/>
+        <circle cx="1108" cy="287" r="9"/>
         <circle cx="1142" cy="250" r="9"/>
        </g>
       </svg>
      </div>
      <div className="mt-3 grid grid-cols-2 gap-3 border-t border-black/[0.07] pt-5 sm:grid-cols-4 dark:border-white/[0.08]">
-      {[{country:'Bangladesh',count:'02',city:'South Asia'},{country:'Greece',count:'02',city:'Southern Europe'},{country:'Latvia',count:'01',city:'Northern Europe'},{country:'Estonia',count:'01',city:'Northern Europe'}].map(item=><div key={item.country} className="rounded-xl bg-white/70 px-3 py-3 dark:bg-white/[0.035]"><p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#8a929d] dark:text-zinc-500">{item.city}</p><p className="mt-1 text-sm font-medium text-[#303944] dark:text-zinc-200">{item.country}</p><p className="mt-1 font-mono text-xl text-[#a30000]">{item.count}</p></div>)}
+      {[{country:'Bangladesh',count:'02',city:'South Asia'},{country:'Greece',count:'02',city:'Southern Europe'},{country:'Poland',count:'01',city:'Central Europe'},{country:'Estonia',count:'01',city:'Northern Europe'}].map(item=><div key={item.country} className="rounded-xl bg-white/70 px-3 py-3 dark:bg-white/[0.035]"><p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#8a929d] dark:text-zinc-500">{item.city}</p><p className="mt-1 text-sm font-medium text-[#303944] dark:text-zinc-200">{item.country}</p><p className="mt-1 font-mono text-xl text-[#a30000]">{item.count}</p></div>)}
      </div>
     </div>
     <p className="mt-4 text-center text-[10px] uppercase tracking-[0.18em] text-[#929aa5] dark:text-zinc-600">6 members · 4 countries · 1 collective<br/>Map data: Natural Earth · Menelabs VectorAtlas (CC BY 4.0)</p>
