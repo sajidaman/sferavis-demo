@@ -29,23 +29,28 @@ export const AccessibilityControls: React.FC<AccessibilityControlsProps> = ({ is
   const [linkStyle, setLinkStyle] = useState(0);
   const [motion, setMotion] = useState(0);
   const [focusStrength, setFocusStrength] = useState(3);
+  const [cursorSize, setCursorSize] = useState(28);
 
   useEffect(() => {
     const root = document.documentElement;
     root.style.setProperty('--a11y-font-scale', String(textScale / 100));
     root.style.setProperty('--a11y-line-height', String(lineSpacing / 100));
     root.style.setProperty('--a11y-focus-width', String(focusStrength) + 'px');
+    const defaultCursor = `<svg xmlns='http://www.w3.org/2000/svg' width='${cursorSize}' height='${cursorSize}' viewBox='0 0 28 28'><circle cx='14' cy='14' r='4' fill='#A30000'/><circle cx='14' cy='14' r='9' fill='none' stroke='#A30000' stroke-width='1.35'/><path d='M14 1.5v5M14 21.5v5M1.5 14h5M21.5 14h5' stroke='#A30000' stroke-width='1.25' stroke-linecap='round'/></svg>`;
+    const pointerCursor = `<svg xmlns='http://www.w3.org/2000/svg' width='${cursorSize}' height='${cursorSize}' viewBox='0 0 28 28'><circle cx='14' cy='14' r='3' fill='#A30000'/><circle cx='14' cy='14' r='9' fill='none' stroke='#A30000' stroke-width='1.6'/></svg>`;
+    root.style.setProperty('--a11y-cursor-default', `url("data:image/svg+xml,${encodeURIComponent(defaultCursor)}") ${cursorSize / 2} ${cursorSize / 2}, auto`);
+    root.style.setProperty('--a11y-cursor-pointer', `url("data:image/svg+xml,${encodeURIComponent(pointerCursor)}") ${cursorSize / 2} ${cursorSize / 2}, pointer`);
     root.classList.toggle('a11y-contrast-1', contrast === 1);
     root.classList.toggle('a11y-contrast-2', contrast === 2);
     root.classList.toggle('a11y-link-style-1', linkStyle === 1);
     root.classList.toggle('a11y-link-style-2', linkStyle === 2);
     root.classList.toggle('a11y-motion-1', motion === 1);
     root.classList.toggle('a11y-motion-2', motion === 2);
-  }, [textScale, lineSpacing, contrast, linkStyle, motion, focusStrength]);
+  }, [textScale, lineSpacing, contrast, linkStyle, motion, focusStrength, cursorSize]);
 
   const reset = () => {
     setTextScale(100); setLineSpacing(150); setContrast(0);
-    setLinkStyle(0); setMotion(0); setFocusStrength(3);
+    setLinkStyle(0); setMotion(0); setFocusStrength(3); setCursorSize(28);
   };
 
   return (
@@ -89,6 +94,7 @@ export const AccessibilityControls: React.FC<AccessibilityControlsProps> = ({ is
               <h3 id="a11y-navigation-heading" className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400"><Accessibility size={14} aria-hidden="true" /> Navigation</h3>
               <RangeSetting id="a11y-motion" label="Motion" value={motion} min={0} max={2} step={1} output={['Full', 'Reduced', 'Minimal'][motion]} minLabel="Full" maxLabel="Minimal" onChange={setMotion} />
               <RangeSetting id="a11y-focus" label="Keyboard focus indicator" value={focusStrength} min={1} max={6} step={0.25} output={String(focusStrength) + 'px'} minLabel="Subtle" maxLabel="Strong" onChange={setFocusStrength} />
+              <RangeSetting id="a11y-cursor-size" label="Cursor size" value={cursorSize} min={16} max={48} step={1} output={String(cursorSize) + "px"} minLabel="Small" maxLabel="Large" onChange={setCursorSize} />
             </section>
           </div>
 
