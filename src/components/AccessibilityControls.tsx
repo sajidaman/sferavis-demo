@@ -54,8 +54,7 @@ export const AccessibilityControls: React.FC<AccessibilityControlsProps> = ({ is
         <section id="sferavis-accessibility-panel" aria-label="Accessibility and display settings"
           className="mb-3 max-h-[min(78vh,42rem)] w-[min(22rem,calc(100vw-2.5rem))] overflow-y-auto rounded-2xl border border-slate-200 bg-white p-4 text-slate-900 shadow-2xl dark:border-slate-700 dark:bg-[#11151e] dark:text-white">
           <div className="mb-4 flex items-center justify-between gap-3">
-            <div><h2 className="text-sm font-bold tracking-wide">Accessibility</h2>
-              <p className="mt-0.5 text-[11px] text-slate-500 dark:text-slate-400">Adjust how Sferavis looks and feels</p></div>
+            <h2 className="text-sm font-bold tracking-wide">Accessibility</h2>
             <button type="button" onClick={() => setOpen(false)} aria-label="Close accessibility settings"
               className="rounded-lg p-2 hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#A30000] dark:hover:bg-slate-800"><X size={17} aria-hidden="true" /></button>
           </div>
@@ -64,30 +63,32 @@ export const AccessibilityControls: React.FC<AccessibilityControlsProps> = ({ is
             <section aria-labelledby="a11y-display-heading" className="space-y-2">
               <h3 id="a11y-display-heading" className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400"><Sun size={14} aria-hidden="true" /> Display</h3>
               <div className="rounded-xl border border-slate-200 px-3 py-3 dark:border-slate-700">
-                <div className="mb-2 flex items-center justify-between"><span className="text-sm font-medium">Colour theme</span>
-                  <span className="text-xs font-semibold text-[#8B0000] dark:text-red-300">{isDark ? 'Dark' : 'Light'}</span></div>
-                <div className="flex items-center gap-3">
-                  <Sun size={17} aria-hidden="true" />
-                  <input aria-label="Colour theme: light to dark" type="range" min="0" max="1" step="1" value={isDark ? 1 : 0}
-                    onChange={(event) => onSetDark(event.target.value === '1')} className="sferavis-a11y-range flex-1" />
-                  <Moon size={17} aria-hidden="true" />
+                <span className="mb-2 block text-sm font-medium">Colour theme</span>
+                <div className="grid grid-cols-2 gap-2" role="group" aria-label="Colour theme">
+                  <button type="button" aria-pressed={!isDark} onClick={() => onSetDark(false)}
+                    className={`inline-flex items-center justify-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#A30000] ${!isDark ? 'border-[#8B0000] bg-red-50 text-[#8B0000] dark:bg-red-950/40 dark:text-red-200' : 'border-slate-200 text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800'}`}>
+                    <Sun size={16} aria-hidden="true" /> Light
+                  </button>
+                  <button type="button" aria-pressed={isDark} onClick={() => onSetDark(true)}
+                    className={`inline-flex items-center justify-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#A30000] ${isDark ? 'border-[#8B0000] bg-red-50 text-[#8B0000] dark:bg-red-950/40 dark:text-red-200' : 'border-slate-200 text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800'}`}>
+                    <Moon size={16} aria-hidden="true" /> Dark
+                  </button>
                 </div>
-                <div className="mt-1 flex justify-between text-[10px] text-slate-500 dark:text-slate-400"><span>Light</span><span>Dark</span></div>
               </div>
-              <RangeSetting id="a11y-text-scale" label="Text size" value={textScale} min={100} max={150} step={5} output={String(textScale) + '%'} minLabel="Default" maxLabel="Larger" onChange={setTextScale} />
-              <RangeSetting id="a11y-line-spacing" label="Line spacing" value={lineSpacing} min={130} max={220} step={5} output={(lineSpacing / 100).toFixed(2) + '×'} minLabel="Compact" maxLabel="Spacious" onChange={setLineSpacing} />
+              <RangeSetting id="a11y-text-scale" label="Text size" value={textScale} min={100} max={150} step={1} output={String(textScale) + '%'} minLabel="Default" maxLabel="Larger" onChange={setTextScale} />
+              <RangeSetting id="a11y-line-spacing" label="Line spacing" value={lineSpacing} min={130} max={220} step={1} output={(lineSpacing / 100).toFixed(2) + '×'} minLabel="Compact" maxLabel="Spacious" onChange={setLineSpacing} />
             </section>
 
             <section aria-labelledby="a11y-reading-heading" className="space-y-2">
               <h3 id="a11y-reading-heading" className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400"><Type size={14} aria-hidden="true" /> Reading support</h3>
-              <RangeSetting id="a11y-contrast" label="Contrast" value={contrast} min={0} max={2} output={['Standard', 'High', 'Maximum'][contrast]} minLabel="Standard" maxLabel="Maximum" onChange={setContrast} />
-              <RangeSetting id="a11y-links" label="Link emphasis" value={linkStyle} min={0} max={2} output={['Standard', 'Underline', 'Underline + bold'][linkStyle]} minLabel="Standard" maxLabel="Strong" onChange={setLinkStyle} />
+              <RangeSetting id="a11y-contrast" label="Contrast" value={contrast} min={0} max={2} step={1} output={['Standard', 'High', 'Maximum'][contrast]} minLabel="Standard" maxLabel="Maximum" onChange={setContrast} />
+              <RangeSetting id="a11y-links" label="Link emphasis" value={linkStyle} min={0} max={2} step={1} output={['Standard', 'Underline', 'Underline + bold'][linkStyle]} minLabel="Standard" maxLabel="Strong" onChange={setLinkStyle} />
             </section>
 
             <section aria-labelledby="a11y-navigation-heading" className="space-y-2">
               <h3 id="a11y-navigation-heading" className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400"><Accessibility size={14} aria-hidden="true" /> Navigation</h3>
-              <RangeSetting id="a11y-motion" label="Motion" value={motion} min={0} max={2} output={['Full', 'Reduced', 'Minimal'][motion]} minLabel="Full" maxLabel="Minimal" onChange={setMotion} />
-              <RangeSetting id="a11y-focus" label="Keyboard focus indicator" value={focusStrength} min={2} max={6} output={String(focusStrength) + 'px'} minLabel="Subtle" maxLabel="Strong" onChange={setFocusStrength} />
+              <RangeSetting id="a11y-motion" label="Motion" value={motion} min={0} max={2} step={1} output={['Full', 'Reduced', 'Minimal'][motion]} minLabel="Full" maxLabel="Minimal" onChange={setMotion} />
+              <RangeSetting id="a11y-focus" label="Keyboard focus indicator" value={focusStrength} min={1} max={6} step={0.25} output={String(focusStrength) + 'px'} minLabel="Subtle" maxLabel="Strong" onChange={setFocusStrength} />
             </section>
           </div>
 
