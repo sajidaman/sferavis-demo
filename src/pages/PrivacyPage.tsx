@@ -81,6 +81,7 @@ export const PrivacyPage: React.FC = () => (
           <ul className="list-disc space-y-2 pl-5 marker:text-[#A30000]">
             <li><strong className="text-[#303944] dark:text-zinc-200">Vercel</strong> — website hosting and serverless request handling. See the <ExternalLink href="https://vercel.com/legal/privacy-notice">Vercel Privacy Notice</ExternalLink>.</li>
             <li><strong className="text-[#303944] dark:text-zinc-200">Google Gemini API</strong> — AI processing for Redium. See Google’s <ExternalLink href="https://ai.google.dev/gemini-api/terms">Gemini API terms</ExternalLink>.</li>
+            <li><strong className="text-[#303944] dark:text-zinc-200">Google (Gmail)</strong> — processing and storage of messages delivered to our Sferavis contact mailbox. See Google’s <ExternalLink href="https://policies.google.com/privacy">Privacy Policy</ExternalLink>.</li>
             <li><strong className="text-[#303944] dark:text-zinc-200">Google Fonts</strong> — delivery of the typefaces used on the website. See the <ExternalLink href="https://fonts.google.com/faq">Google Fonts FAQ</ExternalLink>.</li>
             <li><strong className="text-[#303944] dark:text-zinc-200">CDS / Strasbourg astronomical data services</strong> — delivery of HiPS sky-survey imagery used by the Aladin Lite viewer, including SPHEREx and reference-sky layers. See the <ExternalLink href="https://aladin.cds.unistra.fr/">Aladin service website</ExternalLink>.</li>
           </ul>
@@ -102,6 +103,7 @@ export const PrivacyPage: React.FC = () => (
 
         <Section number="10" title="Your choices and privacy rights">
           <p>Depending on the laws that apply to you, you may have the right to ask for access to personal information, request correction or deletion, receive a portable copy where available, object to or restrict certain processing, or withdraw consent where processing is based on consent. You may also clear the preferences stored in your browser at any time.</p>
+          <p>For visitors in Bangladesh, applicable rights may also arise under the <ExternalLink href="https://bdlaws.minlaw.gov.bd/act-1692.html">Personal Data Protection Act, 2026</ExternalLink>. The rights available to you depend on the law that applies to your circumstances.</p>
           <p>To make a privacy request, email <a className="font-semibold text-[#A30000] underline underline-offset-4" href="mailto:contact.sferavis@gmail.com?subject=Privacy%20request">contact.sferavis@gmail.com</a> with the subject “Privacy request”. Please describe the request and the relevant interaction. We may ask for proportionate information to verify that a request relates to you. We will handle requests in accordance with applicable law and explain where a request cannot be fulfilled.</p>
         </Section>
 
