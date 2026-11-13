@@ -23,13 +23,26 @@ type AccessibilityControlsProps = { isDark: boolean; onSetDark: (dark: boolean) 
 
 export const AccessibilityControls: React.FC<AccessibilityControlsProps> = ({ isDark, onSetDark }) => {
   const [open, setOpen] = useState(false);
-  const [textScale, setTextScale] = useState(100);
-  const [lineSpacing, setLineSpacing] = useState(150);
-  const [contrast, setContrast] = useState(0);
-  const [linkStyle, setLinkStyle] = useState(0);
-  const [motion, setMotion] = useState(0);
-  const [focusStrength, setFocusStrength] = useState(3);
-  const [cursorSize, setCursorSize] = useState(28);
+  const [textScale, setTextScale] = useState(() => Number(localStorage.getItem('sferavis-a11y-text-scale')) || 100);
+  const [lineSpacing, setLineSpacing] = useState(() => Number(localStorage.getItem('sferavis-a11y-line-spacing')) || 150);
+  const [contrast, setContrast] = useState(() => Number(localStorage.getItem('sferavis-a11y-contrast')) || 0);
+  const [linkStyle, setLinkStyle] = useState(() => Number(localStorage.getItem('sferavis-a11y-link-style')) || 0);
+  const [motion, setMotion] = useState(() => Number(localStorage.getItem('sferavis-a11y-motion')) || 0);
+  const [focusStrength, setFocusStrength] = useState(() => Number(localStorage.getItem('sferavis-a11y-focus-strength')) || 3);
+  const [cursorSize, setCursorSize] = useState(() => Number(localStorage.getItem('sferavis-a11y-cursor-size')) || 20);
+
+  useEffect(() => {
+    localStorage.setItem('sferavis-a11y-settings', JSON.stringify({
+      textScale, lineSpacing, contrast, linkStyle, motion, focusStrength, cursorSize
+    }));
+    localStorage.setItem('sferavis-a11y-text-scale', String(textScale));
+    localStorage.setItem('sferavis-a11y-line-spacing', String(lineSpacing));
+    localStorage.setItem('sferavis-a11y-contrast', String(contrast));
+    localStorage.setItem('sferavis-a11y-link-style', String(linkStyle));
+    localStorage.setItem('sferavis-a11y-motion', String(motion));
+    localStorage.setItem('sferavis-a11y-focus-strength', String(focusStrength));
+    localStorage.setItem('sferavis-a11y-cursor-size', String(cursorSize));
+  }, [textScale, lineSpacing, contrast, linkStyle, motion, focusStrength, cursorSize]);
 
   useEffect(() => {
     const root = document.documentElement;
@@ -54,7 +67,7 @@ export const AccessibilityControls: React.FC<AccessibilityControlsProps> = ({ is
 
   const reset = () => {
     setTextScale(100); setLineSpacing(150); setContrast(0);
-    setLinkStyle(0); setMotion(0); setFocusStrength(3); setCursorSize(28);
+    setLinkStyle(0); setMotion(0); setFocusStrength(3); setCursorSize(20);
   };
 
   return (
