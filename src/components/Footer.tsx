@@ -235,7 +235,16 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate, onLaunchSferavis }) 
           </div>
 
           <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-xs text-zinc-500 font-lexend">
-            <span className="hover:text-zinc-950 dark:hover:text-white cursor-pointer transition-colors">Privacy Policy</span>
+            <a
+              href="#privacy"
+              onClick={(event) => {
+                event.preventDefault();
+                onNavigate('privacy');
+              }}
+              className="hover:text-zinc-950 dark:hover:text-white transition-colors"
+            >
+              Privacy Policy
+            </a>
             <span aria-hidden="true">·</span>
             <span className="hover:text-zinc-950 dark:hover:text-white cursor-pointer transition-colors">Terms of Use</span>
             <span aria-hidden="true">·</span>
