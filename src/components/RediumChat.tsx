@@ -72,7 +72,7 @@ export const RediumChat: React.FC = () => {
           role="dialog"
           aria-labelledby="redium-chat-title"
           aria-modal="false"
-          className="flex h-[min(34rem,calc(100dvh-7rem))] w-[min(24rem,calc(100vw-2.5rem))] flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white text-slate-900 shadow-2xl dark:border-slate-700 dark:bg-[#101722] dark:text-slate-100"
+          className="flex h-[min(30rem,calc(100dvh-7rem))] w-[min(21rem,calc(100vw-2.5rem))] flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white text-slate-900 shadow-2xl dark:border-slate-700 dark:bg-[#101722] dark:text-slate-100"
         >
           <header className="flex items-center justify-between border-b border-slate-200 bg-white px-4 py-3 dark:border-slate-700 dark:bg-[#111a27]">
             <div className="flex items-center gap-3">
