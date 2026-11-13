@@ -10,6 +10,7 @@ import { DocsPage } from './pages/DocsPage';
 import { TeamPage } from './pages/TeamPage';
 import { ContactPage } from './pages/ContactPage';
 import { PublicationsPage } from './pages/PublicationsPage';
+import { PrivacyPage } from './pages/PrivacyPage';
 import { LaunchSferavisModal } from './components/LaunchSferavisModal';
 import { AccessibilityControls } from './components/AccessibilityControls';
 import { RediumChat } from './components/RediumChat';
@@ -40,7 +41,7 @@ export default function App() {
   useEffect(() => {
     const handleHash = () => {
       const hash = window.location.hash.replace('#', '') as PageId;
-      if (['home', 'spherex', 'tutorials', 'documentations', 'team', 'contact', 'publications'].includes(hash)) {
+      if (['home', 'spherex', 'tutorials', 'documentations', 'team', 'contact', 'publications', 'privacy'].includes(hash)) {
         setCurrentPage(hash);
       }
     };
@@ -109,6 +110,7 @@ export default function App() {
             {currentPage === 'team' && <TeamPage onNavigate={handleNavigate} />}
             {currentPage === 'contact' && <ContactPage />}
             {currentPage === 'publications' && <PublicationsPage onNavigate={handleNavigate} />}
+            {currentPage === 'privacy' && <PrivacyPage />}
           </motion.div>
         </AnimatePresence>
       </main>
