@@ -125,8 +125,8 @@ export const AccessibilityControls: React.FC<AccessibilityControlsProps> = ({ is
         </section>
       )}
       <button type="button" aria-label="Open accessibility settings" aria-expanded={open} aria-controls="sferavis-accessibility-panel"
-        onClick={() => setOpen(v => !v)} className="flex h-10 w-10 items-center justify-center rounded-full border border-white bg-[#8B0000] text-white shadow-xl transition hover:bg-[#700000] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-red-300">
-        <Accessibility size={20} aria-hidden="true" />
+        onClick={() => setOpen(v => !v)} className="flex h-12 w-12 items-center justify-center rounded-full border border-white bg-[#8B0000] text-white shadow-xl transition hover:bg-[#700000] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-red-300">
+        <Accessibility size={23} aria-hidden="true" />
       </button>
     </div>
   );
