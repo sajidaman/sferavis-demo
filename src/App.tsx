@@ -8,6 +8,7 @@ import { SpherexPage } from './pages/SpherexPage';
 import { TutorialsPage } from './pages/TutorialsPage';
 import { DocsPage } from './pages/DocsPage';
 import { TeamPage } from './pages/TeamPage';
+import { ContactPage } from './pages/ContactPage';
 import { PublicationsPage } from './pages/PublicationsPage';
 import { LaunchSferavisModal } from './components/LaunchSferavisModal';
 import { AccessibilityControls } from './components/AccessibilityControls';
@@ -39,7 +40,7 @@ export default function App() {
   useEffect(() => {
     const handleHash = () => {
       const hash = window.location.hash.replace('#', '') as PageId;
-      if (['home', 'spherex', 'tutorials', 'documentations', 'team', 'publications'].includes(hash)) {
+      if (['home', 'spherex', 'tutorials', 'documentations', 'team', 'contact', 'publications'].includes(hash)) {
         setCurrentPage(hash);
       }
     };
@@ -106,6 +107,7 @@ export default function App() {
             )}
             {currentPage === 'documentations' && <DocsPage onNavigate={handleNavigate} />}
             {currentPage === 'team' && <TeamPage onNavigate={handleNavigate} />}
+            {currentPage === 'contact' && <ContactPage />}
             {currentPage === 'publications' && <PublicationsPage onNavigate={handleNavigate} />}
           </motion.div>
         </AnimatePresence>
