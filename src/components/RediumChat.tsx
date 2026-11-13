@@ -81,7 +81,7 @@ export const RediumChat: React.FC = () => {
               </span>
               <div>
                 <h2 id="redium-chat-title" className="text-sm font-bold">Redium</h2>
-                <p className="text-xs text-slate-500 dark:text-slate-400">Sferavis science assistant</p>
+                <p className="text-xs text-slate-500 dark:text-slate-400">AI Assistant</p>
               </div>
             </div>
             <button
