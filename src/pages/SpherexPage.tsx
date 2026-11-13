@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import spherexObservatoryImage from '../assets/images/spherex_observatory_orbit_1794254683688.jpg';
 import { motion } from 'motion/react';
 import { PageId, SpectralBand } from '../types';
 import { SPHEREX_BANDS } from '../data/mockData';
-import { ArrowRight, Orbit, Compass, Layers, ShieldCheck } from 'lucide-react';
+import { ArrowRight, Orbit, Compass, Layers, ShieldCheck, RotateCcw, RotateCw } from 'lucide-react';
 
 interface SpherexPageProps {
   onNavigate: (page: PageId) => void;
@@ -11,73 +11,143 @@ interface SpherexPageProps {
 }
 
 const CustomSpherexModel: React.FC = () => {
-  const [rotation, setRotation] = useState(-24);
-  const face: React.CSSProperties = {
-    position: 'absolute',
-    inset: 0,
-    backfaceVisibility: 'hidden',
-    border: '1px solid rgba(255,255,255,.22)',
+  const [orientation, setOrientation] = useState({ x: -18, y: -28 });
+  const [isDragging, setIsDragging] = useState(false);
+  const dragStart = useRef<{ x: number; y: number; rotateX: number; rotateY: number } | null>(null);
+
+  const rotateBy = (amount: number) => {
+    setOrientation((current) => ({ ...current, y: current.y + amount }));
   };
-  const panelStyle: React.CSSProperties = {
-    background: 'linear-gradient(135deg, #17365b, #071426)',
-    border: '1px solid rgba(125,190,235,.65)',
-    boxShadow: 'inset 0 0 24px rgba(40,125,190,.22)',
+
+  const handlePointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (event.button !== 0) return;
+    event.currentTarget.setPointerCapture(event.pointerId);
+    dragStart.current = {
+      x: event.clientX,
+      y: event.clientY,
+      rotateX: orientation.x,
+      rotateY: orientation.y,
+    };
+    setIsDragging(true);
   };
+
+  const handlePointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (!dragStart.current) return;
+    const deltaX = event.clientX - dragStart.current.x;
+    const deltaY = event.clientY - dragStart.current.y;
+    setOrientation({
+      x: Math.max(-48, Math.min(32, dragStart.current.rotateX - deltaY * 0.35)),
+      y: dragStart.current.rotateY + deltaX * 0.55,
+    });
+  };
+
+  const stopDragging = () => {
+    dragStart.current = null;
+    setIsDragging(false);
+  };
+
+  const resetOrientation = () => setOrientation({ x: -18, y: -28 });
   return (
     <section className="mx-auto mt-14 max-w-5xl" aria-labelledby="custom-spherex-model-title">
-      <div className="mb-5 text-center">
+      <div className="mb-6 text-center">
         <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-[#a30000]">Sferavis 3D concept</p>
-        <h2 id="custom-spherex-model-title" className="mt-2 text-xl sm:text-2xl font-oswald font-bold uppercase tracking-wide text-slate-950 dark:text-white">
+        <h2 id="custom-spherex-model-title" className="mt-2 text-xl font-oswald font-bold uppercase tracking-wide text-slate-950 dark:text-white sm:text-2xl">
           SPHEREx — Interactive Spacecraft Model
         </h2>
-        <p className="mt-2 text-xs sm:text-sm text-slate-600 dark:text-zinc-400 font-merriweather">
-          A custom-built, illustrative 3D model inspired by the spacecraft’s telescope, thermal shields and solar arrays.
+        <p className="mx-auto mt-2 max-w-2xl text-xs leading-relaxed text-slate-600 dark:text-zinc-400 sm:text-sm">
+          Explore an illustrative concept of the observatory’s telescope, sunshield and solar arrays. Drag to rotate.
         </p>
       </div>
-      <div className="relative flex min-h-[330px] items-center justify-center overflow-hidden rounded-xl border border-zinc-200 dark:border-slate-800 bg-[radial-gradient(ellipse_at_center,_#1a2a40_0%,_#080d16_68%)] px-4 py-12 shadow-xl sm:min-h-[420px]">
-        <div className="pointer-events-none absolute inset-0 opacity-30" style={{backgroundImage:'radial-gradient(#9bb4d0 0.7px, transparent 0.7px)',backgroundSize:'24px 24px'}} />
-        <div className="relative h-[190px] w-[300px] sm:h-[230px] sm:w-[390px]" style={{perspective:'900px'}}>
-          <div className="absolute inset-0" style={{transformStyle:'preserve-3d',transform:`rotateX(-19deg) rotateY(${rotation}deg)`,transition:'transform 650ms cubic-bezier(.2,.7,.2,1)'}}>
-            {/* Twin solar-array wings */}
-            <div className="absolute left-[3%] top-[39%] h-[58px] w-[31%] sm:h-[72px]" style={{...panelStyle,transform:'translateZ(-8px) rotateY(-8deg)'}}>
-              <div className="grid h-full grid-cols-5 gap-px p-1">{Array.from({length:15},(_,i)=><span key={i} className="border border-sky-300/35 bg-blue-900/60"/>)}</div>
-              <div className="absolute -right-3 top-1/2 h-1 w-4 bg-zinc-400"/>
+      <div className="relative isolate flex min-h-[390px] items-center justify-center overflow-hidden rounded-2xl border border-white/10 bg-[#07101d] px-3 py-12 shadow-[0_30px_90px_rgba(2,8,18,.45)] sm:min-h-[500px] sm:px-8">
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 opacity-60"
+          style={{
+            backgroundImage: 'radial-gradient(circle at 20% 28%, rgba(255,255,255,.9) 0 1px, transparent 1.5px), radial-gradient(circle at 78% 17%, rgba(180,215,255,.8) 0 1px, transparent 1.5px), radial-gradient(circle at 70% 72%, rgba(255,255,255,.7) 0 1px, transparent 1.5px), radial-gradient(circle at 31% 78%, rgba(160,198,235,.7) 0 1px, transparent 1.5px), radial-gradient(ellipse at 50% 48%, rgba(42,91,138,.32), transparent 58%)',
+          }}
+        />
+        <div aria-hidden="true" className="pointer-events-none absolute left-1/2 top-1/2 h-56 w-[min(78vw,38rem)] -translate-x-1/2 -translate-y-1/2 rotate-[-18deg] rounded-[50%] border border-sky-200/10 sm:h-72" />
+        <div
+          className="relative z-10 h-[260px] w-[min(92vw,650px)] touch-none select-none sm:h-[330px]"
+          style={{ perspective: '1100px', cursor: isDragging ? 'grabbing' : 'grab' }}
+          onPointerDown={handlePointerDown}
+          onPointerMove={handlePointerMove}
+          onPointerUp={stopDragging}
+          onPointerCancel={stopDragging}
+          onLostPointerCapture={stopDragging}
+          role="img"
+          aria-label="Interactive illustrative 3D concept of the SPHEREx spacecraft. Drag to rotate the model."
+        >
+          <div
+            className="absolute inset-0"
+            style={{
+              transformStyle: 'preserve-3d',
+              transform: `rotateX(${orientation.x}deg) rotateY(${orientation.y}deg)`,
+              transition: isDragging ? 'none' : 'transform 450ms cubic-bezier(.2,.7,.25,1)',
+            }}
+          >
+            <div className="absolute left-[2%] top-[39%] h-[78px] w-[31%] -skew-y-2 border border-sky-100/70 bg-gradient-to-br from-slate-300 via-slate-100 to-slate-500 p-[5px] shadow-[0_0_24px_rgba(93,174,238,.18)] sm:h-[94px]">
+              <div className="grid h-full grid-cols-6 gap-[2px] border border-slate-500/60 bg-slate-600 p-[2px]">
+                {Array.from({ length: 24 }, (_, i) => <span key={i} className="border border-sky-200/40 bg-gradient-to-br from-[#28628b] via-[#123756] to-[#071b30]" />)}
+              </div>
+              <div className="absolute -right-5 top-1/2 h-1.5 w-5 -translate-y-1/2 bg-gradient-to-r from-zinc-500 to-zinc-200" />
             </div>
-            <div className="absolute right-[3%] top-[39%] h-[58px] w-[31%] sm:h-[72px]" style={{...panelStyle,transform:'translateZ(-8px) rotateY(8deg)'}}>
-              <div className="grid h-full grid-cols-5 gap-px p-1">{Array.from({length:15},(_,i)=><span key={i} className="border border-sky-300/35 bg-blue-900/60"/>)}</div>
-              <div className="absolute -left-3 top-1/2 h-1 w-4 bg-zinc-400"/>
+            <div className="absolute right-[2%] top-[39%] h-[78px] w-[31%] skew-y-2 border border-sky-100/70 bg-gradient-to-bl from-slate-300 via-slate-100 to-slate-500 p-[5px] shadow-[0_0_24px_rgba(93,174,238,.18)] sm:h-[94px]">
+              <div className="grid h-full grid-cols-6 gap-[2px] border border-slate-500/60 bg-slate-600 p-[2px]">
+                {Array.from({ length: 24 }, (_, i) => <span key={i} className="border border-sky-200/40 bg-gradient-to-br from-[#28628b] via-[#123756] to-[#071b30]" />)}
+              </div>
+              <div className="absolute -left-5 top-1/2 h-1.5 w-5 -translate-y-1/2 bg-gradient-to-l from-zinc-500 to-zinc-200" />
             </div>
-            {/* Three layered thermal sunshields */}
-            <div className="absolute left-1/2 top-[18%] h-[126px] w-[118px] -translate-x-1/2 sm:h-[150px] sm:w-[145px]" style={{transform:'translateX(-50%) translateZ(-30px)',transformStyle:'preserve-3d'}}>
-              <div className="absolute inset-x-[18%] top-0 h-full border-x-[18px] border-t-[10px] border-[#d9d1b8] bg-gradient-to-b from-[#c6b99b]/70 to-[#4b5360]/60" style={{clipPath:'polygon(30% 0,70% 0,100% 100%,0 100%)',transform:'translateZ(-12px)'}}/>
-              <div className="absolute inset-x-[27%] top-[10%] h-[90%] border-x-[12px] border-t-[8px] border-[#a8a08e] bg-gradient-to-b from-[#e2d8c1]/70 to-[#303b4b]/70" style={{clipPath:'polygon(30% 0,70% 0,100% 100%,0 100%)',transform:'translateZ(0px)'}}/>
-              <div className="absolute inset-x-[36%] top-[20%] h-[80%] border-x-[8px] border-t-[7px] border-[#c8bda4] bg-gradient-to-b from-[#e8dfcb]/80 to-[#536071]/70" style={{clipPath:'polygon(30% 0,70% 0,100% 100%,0 100%)',transform:'translateZ(12px)'}}/>
+
+            <div className="absolute left-1/2 top-[18%] h-[68%] w-[27%] -translate-x-1/2" style={{ transformStyle: 'preserve-3d' }}>
+              <div className="absolute inset-0 border border-[#f1e4c2]/70 bg-gradient-to-b from-[#efe5ca]/70 via-[#9b927f]/55 to-[#273444]/80 shadow-[0_10px_30px_rgba(0,0,0,.45)]" style={{ clipPath: 'polygon(32% 0,68% 0,100% 100%,0 100%)', transform: 'translateZ(-20px)' }} />
+              <div className="absolute inset-x-[12%] top-[8%] h-[90%] border-x-[3px] border-t-[3px] border-[#e7d6ae]/80 bg-gradient-to-b from-[#d6c7a6]/70 via-[#706c62]/70 to-[#182638]/85" style={{ clipPath: 'polygon(32% 0,68% 0,100% 100%,0 100%)', transform: 'translateZ(-4px)' }} />
+              <div className="absolute inset-x-[24%] top-[17%] h-[80%] border-x-2 border-t-2 border-[#f2e7ca]/80 bg-gradient-to-b from-[#f2e7ca]/70 via-[#9c927b]/75 to-[#26384a]/90" style={{ clipPath: 'polygon(32% 0,68% 0,100% 100%,0 100%)', transform: 'translateZ(12px)' }} />
+              <div className="absolute left-1/2 top-[25%] h-[55%] w-[2px] -translate-x-1/2 bg-[#eadbb9]/80" style={{ transform: 'translateX(-50%) translateZ(14px)' }} />
             </div>
-            {/* Spacecraft bus */}
-            <div className="absolute left-1/2 top-1/2 h-[68px] w-[68px] -translate-x-1/2 -translate-y-1/2" style={{transformStyle:'preserve-3d',transform:'translate(-50%,-50%) translateZ(30px)'}}>
-              <div style={{...face,background:'linear-gradient(145deg,#e7e4d9,#8d9294)',transform:'translateZ(34px)'}}/>
-              <div style={{...face,background:'linear-gradient(90deg,#777f88,#c5c3b8)',transform:'rotateY(90deg) translateZ(34px)'}}/>
-              <div style={{...face,background:'linear-gradient(135deg,#555f6d,#a9a99e)',transform:'rotateY(180deg) translateZ(34px)'}}/>
-              <div style={{...face,background:'#777e83',transform:'rotateY(-90deg) translateZ(34px)'}}/>
-              <div style={{...face,background:'linear-gradient(135deg,#f0e8d2,#a6a18e)',transform:'rotateX(90deg) translateZ(34px)'}}/>
-              <div style={{...face,background:'#515a66',transform:'rotateX(-90deg) translateZ(34px)'}}/>
-              <div className="absolute left-1/2 top-1/2 h-7 w-7 -translate-x-1/2 -translate-y-1/2 rounded-full border-[5px] border-[#a30000] bg-black shadow-[0_0_18px_rgba(163,0,0,.7)]" style={{transform:'translate(-50%,-50%) translateZ(35px)'}}/>
+
+            <div className="absolute left-1/2 top-[52%] h-[76px] w-[76px]" style={{ transformStyle: 'preserve-3d', transform: 'translate(-50%,-50%) translateZ(42px)' }}>
+              <div className="absolute inset-0 border border-white/70 bg-gradient-to-br from-[#f2efe6] via-[#b8b8b2] to-[#646d77] shadow-[inset_-12px_-10px_18px_rgba(20,30,40,.35)]" style={{ transform: 'translateZ(38px)' }}>
+                <div className="absolute inset-2 border border-slate-500/60 bg-[linear-gradient(135deg,rgba(255,255,255,.35),transparent_48%),repeating-linear-gradient(90deg,transparent_0_7px,rgba(42,52,62,.18)_7px_9px)]" />
+                <div className="absolute left-2 top-2 h-2 w-2 rounded-full bg-[#a30000] shadow-[0_0_9px_rgba(163,0,0,.8)]" />
+                <div className="absolute bottom-2 right-2 h-3 w-5 border border-slate-600/70 bg-slate-700/80" />
+              </div>
+              <div className="absolute inset-0 border border-white/30 bg-gradient-to-r from-[#59616b] via-[#c8c8c0] to-[#747a80]" style={{ transform: 'rotateY(90deg) translateZ(38px)' }} />
+              <div className="absolute inset-0 border border-white/25 bg-gradient-to-br from-[#424b57] to-[#a5a79f]" style={{ transform: 'rotateY(180deg) translateZ(38px)' }} />
+              <div className="absolute inset-0 border border-white/30 bg-gradient-to-l from-[#555e68] via-[#c2c2b9] to-[#727980]" style={{ transform: 'rotateY(-90deg) translateZ(38px)' }} />
+              <div className="absolute inset-0 border border-white/30 bg-gradient-to-br from-[#eee7d6] to-[#8c9295]" style={{ transform: 'rotateX(90deg) translateZ(38px)' }} />
+              <div className="absolute inset-0 border border-white/20 bg-[#4b5663]" style={{ transform: 'rotateX(-90deg) translateZ(38px)' }} />
+              <div className="absolute left-1/2 top-1/2 h-12 w-12 -translate-x-1/2 -translate-y-1/2 rounded-full border-[7px] border-[#d6d3ca] bg-[#111c2a] shadow-[0_0_20px_rgba(107,185,235,.38)]" style={{ transform: 'translate(-50%,-50%) translateZ(40px)' }}>
+                <div className="absolute inset-1 rounded-full border border-sky-200/70 bg-[radial-gradient(circle_at_35%_30%,#c9f0ff,#377ca7_35%,#0b2137_75%)]" />
+              </div>
             </div>
-            {/* Telescope barrel and aperture */}
-            <div className="absolute left-1/2 top-[48%] h-10 w-10 -translate-x-1/2 -translate-y-1/2 rounded-full border-[5px] border-zinc-300 bg-[#101923] shadow-[0_0_18px_rgba(120,180,220,.35)]" style={{transform:'translate(-50%,-50%) translateZ(72px)'}}/>
-            <div className="absolute left-1/2 top-[48%] h-5 w-5 -translate-x-1/2 -translate-y-1/2 rounded-full border border-sky-200/70 bg-sky-900/80" style={{transform:'translate(-50%,-50%) translateZ(78px)'}}/>
-            <div className="absolute left-1/2 top-[78%] h-2 w-24 -translate-x-1/2 rounded-full bg-[#a30000]/80" style={{transform:'translateX(-50%) translateZ(-42px)'}}/>
+            <div className="absolute left-1/2 top-[48%] h-11 w-11 rounded-full border-[6px] border-[#a9aaa5] bg-gradient-to-b from-[#727a81] to-[#252e38] shadow-[0_12px_18px_rgba(0,0,0,.55)]" style={{ transform: 'translate(-50%,-50%) translateZ(92px)' }}>
+              <div className="absolute inset-1 rounded-full border border-sky-100/70 bg-[radial-gradient(circle_at_35%_30%,#d7f4ff,#467d9a_38%,#071523_78%)]" />
+              <div className="absolute left-1/2 top-1/2 h-2 w-2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white/80 shadow-[0_0_8px_white]" />
+            </div>
+            <div className="absolute left-1/2 top-[71%] h-[2px] w-20 bg-gradient-to-r from-transparent via-zinc-300 to-transparent" style={{ transform: 'translateX(-50%) translateZ(-26px)' }} />
+            <div className="absolute left-1/2 top-[31%] h-12 w-12 rounded-full border border-[#d4c9ac]/70 bg-[radial-gradient(circle_at_40%_35%,#f4ead1,#77776f_58%,#333d49)] shadow-lg" style={{ transform: 'translate(-50%,-50%) translateZ(20px)' }}>
+              <div className="absolute inset-[28%] rounded-full border border-white/40 bg-[#182637]" />
+            </div>
           </div>
         </div>
-        <div className="absolute bottom-4 left-4 text-[9px] font-mono uppercase tracking-[0.18em] text-slate-400">Concept visualization · Not to scale</div>
-        <div className="absolute bottom-3 right-3 flex items-center gap-2">
-          <button type="button" onClick={()=>setRotation(v=>v-35)} className="border border-white/20 bg-white/10 px-3 py-2 text-[10px] font-semibold uppercase tracking-wider text-white transition hover:bg-white/20" aria-label="Rotate model left">Rotate −</button>
-          <button type="button" onClick={()=>setRotation(-24)} className="border border-white/20 bg-white/10 px-3 py-2 text-[10px] font-semibold uppercase tracking-wider text-white transition hover:bg-white/20">Reset</button>
-          <button type="button" onClick={()=>setRotation(v=>v+35)} className="border border-white/20 bg-white/10 px-3 py-2 text-[10px] font-semibold uppercase tracking-wider text-white transition hover:bg-white/20" aria-label="Rotate model right">Rotate +</button>
+        <div className="absolute bottom-4 left-4 hidden text-[9px] font-mono uppercase tracking-[0.18em] text-slate-400 sm:block">
+          Illustrative concept · Not to scale
+        </div>
+        <div className="absolute bottom-3 right-3 z-20 flex items-center gap-1.5 rounded-full border border-white/10 bg-[#0a1422]/80 p-1.5 backdrop-blur-md sm:bottom-4 sm:right-4">
+          <button type="button" onClick={() => rotateBy(-35)} className="inline-flex h-9 items-center gap-1.5 rounded-full px-3 text-[10px] font-semibold uppercase tracking-wider text-white/80 transition hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300" aria-label="Rotate model left">
+            <RotateCcw size={14} aria-hidden="true" /><span className="hidden sm:inline">Rotate</span>
+          </button>
+          <button type="button" onClick={resetOrientation} className="h-9 rounded-full px-3 text-[10px] font-semibold uppercase tracking-wider text-white/70 transition hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300">
+            Reset
+          </button>
+          <button type="button" onClick={() => rotateBy(35)} className="inline-flex h-9 items-center gap-1.5 rounded-full px-3 text-[10px] font-semibold uppercase tracking-wider text-white/80 transition hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300" aria-label="Rotate model right">
+            <RotateCw size={14} aria-hidden="true" /><span className="hidden sm:inline">Rotate</span>
+          </button>
         </div>
       </div>
       <p className="mt-3 text-center text-[10px] text-slate-500 dark:text-zinc-500">
-        Original Sferavis-built CSS 3D concept. Geometry is illustrative and does not represent a flight-certified engineering model.
+        Sferavis-built visual concept for exploration; proportions and component details are illustrative, not engineering specifications.
       </p>
     </section>
   );
