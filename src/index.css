@@ -486,3 +486,25 @@ html.a11y-motion-2 *, html.a11y-motion-2 *::before, html.a11y-motion-2 *::after 
 }
 .sferavis-a11y-range { height: 1.25rem; accent-color: #8B0000; cursor: pointer; }
 .sferavis-a11y-range:focus-visible { outline: 2px solid #A30000; outline-offset: 4px; }
+
+
+/* Cursor size is controlled by the Accessibility panel. */
+@media (hover: hover) and (pointer: fine) {
+  .sferavis-site,
+  .sferavis-site *,
+  .sferavis-cursor-area,
+  .sferavis-cursor-area * {
+    cursor: var(--a11y-cursor-default, auto);
+  }
+  .sferavis-site a,
+  .sferavis-site button,
+  .sferavis-site [role="button"],
+  .sferavis-site input[type="range"],
+  .sferavis-site label,
+  .sferavis-cursor-area a,
+  .sferavis-cursor-area button,
+  .sferavis-cursor-area [role="button"],
+  .sferavis-cursor-area label {
+    cursor: var(--a11y-cursor-pointer, pointer);
+  }
+}
