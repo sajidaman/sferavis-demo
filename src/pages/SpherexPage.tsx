@@ -36,6 +36,16 @@ export const SpherexPage: React.FC<SpherexPageProps> = ({ onNavigate, onLaunchSf
           <p className="mt-6 text-sm sm:text-base text-slate-700 dark:text-zinc-300 max-w-3xl mx-auto text-center font-merriweather leading-relaxed text-balance">
             SPHEREx is surveying the entire celestial sphere every six months across 102 distinct near-infrared bands (0.75 – 5.0 µm), delivering the first all-sky near-infrared hyperspectral atlas to humanity.
           </p>
+          <div className="mt-4 text-center">
+            <a
+              href="https://science.nasa.gov/mission/spherex/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 text-xs sm:text-sm font-lexend font-semibold text-[#A30000] hover:underline underline-offset-4"
+            >
+              Explore the SPHEREx mission <ArrowRight size={14} />
+            </a>
+          </div>
 
 </div>
       </section>
