@@ -445,3 +445,44 @@ html.a11y-reduced-motion *::after {
     transition-duration: .01ms !important;
   }
 }
+
+
+/* Expanded accessibility controls: adjustable text, spacing and focus settings. */
+html { font-size: calc(16px * var(--a11y-font-scale, 1)); }
+body, .sferavis-site { line-height: var(--a11y-line-height, 1.5); }
+:where(button, a, input, textarea, select, [tabindex]):focus-visible {
+  outline-width: var(--a11y-focus-width, 3px) !important;
+}
+html.a11y-contrast-1 {
+  --sfera-text: #111827; --sfera-text-muted: #374151; --sfera-border: #64748b;
+}
+html.dark.a11y-contrast-1 {
+  --sfera-text: #ffffff; --sfera-text-muted: #e2e8f0; --sfera-border: #94a3b8;
+}
+html.a11y-contrast-2 {
+  --sfera-page: #ffffff; --sfera-surface: #ffffff; --sfera-surface-muted: #f1f1f1;
+  --sfera-text: #000000; --sfera-text-muted: #111111; --sfera-border: #222222;
+}
+html.dark.a11y-contrast-2 {
+  --sfera-page: #000000; --sfera-surface: #050505; --sfera-surface-muted: #101010;
+  --sfera-text: #ffffff; --sfera-text-muted: #ffffff; --sfera-border: #ffffff;
+}
+html.a11y-link-style-1 .sferavis-site a,
+html.a11y-link-style-2 .sferavis-site a,
+html.a11y-link-style-1 .sferavis-site [role="link"],
+html.a11y-link-style-2 .sferavis-site [role="link"] {
+  text-decoration: underline !important; text-underline-offset: .2em;
+}
+html.a11y-link-style-2 .sferavis-site a,
+html.a11y-link-style-2 .sferavis-site [role="link"] {
+  text-decoration-thickness: 2px !important; font-weight: 700 !important;
+}
+html.a11y-motion-1 *, html.a11y-motion-1 *::before, html.a11y-motion-1 *::after {
+  scroll-behavior: auto !important; animation-duration: .15ms !important;
+  animation-iteration-count: 1 !important; transition-duration: .15ms !important;
+}
+html.a11y-motion-2 *, html.a11y-motion-2 *::before, html.a11y-motion-2 *::after {
+  scroll-behavior: auto !important; animation: none !important; transition: none !important;
+}
+.sferavis-a11y-range { height: 1.25rem; accent-color: #8B0000; cursor: pointer; }
+.sferavis-a11y-range:focus-visible { outline: 2px solid #A30000; outline-offset: 4px; }
