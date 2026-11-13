@@ -18,8 +18,13 @@ import { AstroBackground } from './components/AstroBackground';
 export default function App() {
   // Page state (Atlas excluded as requested)
   const [currentPage, setCurrentPage] = useState<PageId>('home');
-  const [isDark, setIsDark] = useState<boolean>(false);
+  const [isDark, setIsDark] = useState<boolean>(() => localStorage.getItem('sferavis-theme') === 'dark');
   const [isLaunchModalOpen, setIsLaunchModalOpen] = useState<boolean>(false);
+
+  // Remember each visitor's theme preference on this device/browser.
+  useEffect(() => {
+    localStorage.setItem('sferavis-theme', isDark ? 'dark' : 'light');
+  }, [isDark]);
 
   // Sync dark class on <html> document element
   useEffect(() => {
