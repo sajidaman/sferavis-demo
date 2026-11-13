@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Bot, LoaderCircle, MessageCircle, Send, Sparkles, X } from 'lucide-react';
+import { Bot, LoaderCircle, Send, Sparkles, X } from 'lucide-react';
 
 type Message = {
   role: 'user' | 'assistant';
@@ -175,7 +175,7 @@ export const RediumChat: React.FC = () => {
         aria-controls={open ? 'redium-chat-panel' : undefined}
         className="flex h-14 w-14 items-center justify-center rounded-full bg-[#A30000] text-white shadow-xl transition hover:scale-105 hover:bg-[#8B0000] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-red-300"
       >
-        {open ? <X size={23} aria-hidden="true" /> : <MessageCircle size={23} aria-hidden="true" />}
+        {open ? <X size={23} aria-hidden="true" /> : <Bot size={26} strokeWidth={2.1} aria-hidden="true" />}
       </button>
     </div>
   );
