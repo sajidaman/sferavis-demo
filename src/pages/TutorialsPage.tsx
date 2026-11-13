@@ -9,10 +9,9 @@ import {
   Check,
   RotateCcw,
   Terminal,
-  Code2,
+  BookOpen,
   Clock,
   ChevronRight,
-  ArrowRight,
 } from 'lucide-react';
 
 interface TutorialsPageProps {
@@ -29,6 +28,7 @@ export const TutorialsPage: React.FC<TutorialsPageProps> = ({ onNavigate, onLaun
   const [copiedNotification, setCopiedNotification] = useState<boolean>(false);
 
   const currentTutorial = TUTORIALS.find((t) => t.id === selectedTutorialId) || TUTORIALS[0];
+  const isCourseworkTutorial = Boolean(currentTutorial.coursework);
 
   const handleSelectTutorial = (t: Tutorial) => {
     setSelectedTutorialId(t.id);
@@ -195,6 +195,21 @@ Delta-chi2: 142.8 (High confidence z-break match)`);
                   </span>
                 ))}
               </div>
+              {currentTutorial.learningObjectives && (
+                <div className="mt-6 border-t border-zinc-200 pt-5 dark:border-slate-800">
+                  <h3 className="font-lexend text-[10px] font-bold uppercase tracking-widest text-slate-500 dark:text-zinc-400">
+                    Learning objectives
+                  </h3>
+                  <ul className="mt-3 grid gap-2 sm:grid-cols-2">
+                    {currentTutorial.learningObjectives.map((objective) => (
+                      <li key={objective} className="flex items-start gap-2 text-xs leading-relaxed text-slate-700 dark:text-zinc-300">
+                        <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#A30000]" aria-hidden="true" />
+                        <span>{objective}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </div>
 
             {/* Interactive Steps Accordion */}
@@ -248,6 +263,16 @@ Delta-chi2: 142.8 (High confidence z-break match)`);
                             <code>{step.codeSnippet}</code>
                           </div>
                         )}
+                        {step.expectedOutput && (
+                          <div className="border-l-2 border-[#A30000] bg-slate-50 p-3 dark:bg-black/30">
+                            <p className="mb-1 font-lexend text-[10px] font-bold uppercase tracking-wider text-[#A30000]">
+                              {isCourseworkTutorial ? 'Field note / checkpoint' : 'Expected output'}
+                            </p>
+                            <p className="text-xs leading-relaxed text-slate-700 dark:text-zinc-300">
+                              {step.expectedOutput}
+                            </p>
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
@@ -255,7 +280,37 @@ Delta-chi2: 142.8 (High confidence z-break match)`);
               })}
             </div>
 
-            {/* Interactive Code Playground */}
+            {currentTutorial.coursework ? (
+              <section className="border border-zinc-200 border-l-4 border-l-[#A30000] bg-white p-6 shadow-sm dark:border-slate-800 dark:border-l-[#A30000] dark:bg-[#0e1628] sm:p-8">
+                <div className="flex items-center gap-2">
+                  <BookOpen className="h-4 w-4 text-[#A30000]" aria-hidden="true" />
+                  <h3 className="font-lexend text-xs font-bold uppercase tracking-widest text-slate-900 dark:text-white">
+                    Coursework: navigation field notes
+                  </h3>
+                </div>
+                <p className="mt-3 text-sm leading-relaxed text-slate-600 dark:text-zinc-300">
+                  {currentTutorial.coursework.deliverable}
+                </p>
+                <button
+                  onClick={onLaunchSferavis}
+                  className="mt-5 inline-flex items-center gap-2 bg-[#A30000] px-4 py-2 text-xs font-lexend font-bold uppercase tracking-wider text-white transition-colors hover:bg-[#8B0000]"
+                >
+                  <Play className="h-3.5 w-3.5 fill-current" aria-hidden="true" />
+                  <span>Open the planetarium</span>
+                </button>
+                <h4 className="mt-6 font-lexend text-[10px] font-bold uppercase tracking-widest text-slate-500 dark:text-zinc-400">
+                  Self-assessment rubric
+                </h4>
+                <ul className="mt-3 space-y-2">
+                  {currentTutorial.coursework.assessmentCriteria.map((criterion) => (
+                    <li key={criterion} className="flex items-start gap-2 text-xs leading-relaxed text-slate-700 dark:text-zinc-300">
+                      <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#A30000]" aria-hidden="true" />
+                      <span>{criterion}</span>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            ) : (
             <div className="bg-white dark:bg-[#0e1628] border border-zinc-200 dark:border-slate-800 overflow-hidden shadow-2xl">
               <div className="px-5 py-3 bg-slate-100 dark:bg-[#090f1d] border-b border-zinc-200 dark:border-slate-800 flex items-center justify-between">
                 <div className="flex items-center gap-2">
@@ -320,6 +375,7 @@ Delta-chi2: 142.8 (High confidence z-break match)`);
                 </div>
               )}
             </div>
+            )}
 
           </div>
 
