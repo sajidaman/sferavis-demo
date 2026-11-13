@@ -27,43 +27,17 @@ export const SpherexPage: React.FC<SpherexPageProps> = ({ onNavigate, onLaunchSf
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           
-          <div className="inline-flex items-center gap-3 text-xs font-lexend uppercase tracking-widest text-slate-600 dark:text-zinc-400 border-b border-zinc-200 dark:border-slate-800 pb-2 mb-6">
-            <span className="w-2 h-2 bg-[#A30000]"></span>
-            <span className="text-[#A30000] font-bold">NASA ASTROPHYSICS MIDEX MISSION</span>
-            <span className="text-zinc-400 dark:text-zinc-600">/</span>
-            <span className="text-slate-700 dark:text-zinc-300">CALTECH · JPL · KASI · HARVARD CfA</span>
-          </div>
-
           <header className="mx-auto max-w-4xl text-center">
             <h1 className="text-4xl font-semibold tracking-[-0.055em] text-[#171b22] sm:text-6xl lg:text-7xl dark:text-white">
               The SPHEREx Mission<span className="text-[#a30000]">.</span>
             </h1>
-            <p className="mt-4 text-xl font-semibold tracking-tight text-slate-700 dark:text-zinc-300 sm:text-2xl">
-              One Satellite. Four All-Sky Surveys.
-            </p>
-          </header>
+</header>
 
           <p className="mt-6 text-lg sm:text-2xl text-slate-700 dark:text-zinc-300 max-w-3xl font-merriweather leading-relaxed text-balance">
             SPHEREx is surveying the entire celestial sphere every six months across 102 distinct near-infrared bands (0.75 – 5.0 µm), delivering the first all-sky near-infrared hyperspectral atlas to humanity.
           </p>
 
-          <div className="mt-9 flex flex-wrap gap-4">
-            <button
-              onClick={onLaunchSferavis}
-              className="px-8 py-3.5 text-xs font-lexend uppercase tracking-widest font-bold text-white bg-[#A30000] hover:bg-[#8B0000] transition-colors flex items-center gap-2 cursor-pointer shadow-lg"
-            >
-              <span>Launch Sferavis</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </button>
-            <button
-              onClick={() => onNavigate('tutorials')}
-              className="px-6 py-3.5 text-xs font-lexend uppercase tracking-widest font-semibold text-slate-700 dark:text-zinc-300 bg-white dark:bg-[#0e1628] hover:bg-slate-100 dark:hover:bg-[#152038] border border-zinc-300 dark:border-slate-700 transition-colors cursor-pointer shadow-sm"
-            >
-              Data Reduction Tutorials
-            </button>
-          </div>
-
-        </div>
+</div>
       </section>
 
 
