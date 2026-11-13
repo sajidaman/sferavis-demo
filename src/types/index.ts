@@ -1,4 +1,4 @@
-export type PageId = 'home' | 'spherex' | 'tutorials' | 'documentations' | 'team' | 'contact' | 'publications';
+export type PageId = 'home' | 'spherex' | 'tutorials' | 'documentations' | 'team' | 'contact' | 'publications' | 'privacy';
 
 export interface CelestialTarget {
   id: string;
