@@ -195,6 +195,83 @@ export const CELESTIAL_TARGETS: CelestialTarget[] = [
 
 export const TUTORIALS: Tutorial[] = [
   {
+    id: 'website-navigation-course',
+    title: 'Sferavis Website Navigation: A Guided Field Course',
+    level: 'Beginner',
+    durationMin: 30,
+    category: 'Website Navigation',
+    summary:
+      'Learn how to move through Sferavis, choose the right place for mission information or learning resources, and explore the planetarium without confusing its quicklook imagery with calibrated science data.',
+    prerequisites: ['A web browser', 'No astronomy or coding experience required'],
+    learningObjectives: [
+      'Find the main sections from the primary navigation and explain what each is for.',
+      'Use the planetarium’s coordinate, survey, zoom, projection, and grid controls.',
+      'Distinguish learning tutorials, technical documentation, and publication updates.',
+      'Record a concise, accurate route through the website for a science question.',
+    ],
+    coursework: {
+      deliverable:
+        'Create a short set of field notes (about 5–8 sentences) describing where you went, which controls or resources you used, and what you learned. You can keep the notes for yourself; no upload is required.',
+      assessmentCriteria: [
+        'Correctly matches at least three website sections to their purpose.',
+        'Records one valid RA/Dec position and describes a survey or view control used.',
+        'Identifies the SPHEREx layer as a quicklook rather than calibrated spectral data.',
+        'Uses a relevant tutorial or documentation page to support the exploration.',
+      ],
+    },
+    steps: [
+      {
+        stepNumber: 1,
+        title: 'Orient yourself on the Home page',
+        explanation:
+          'Use the Sferavis logo to return Home. Read the opening overview, then locate the two distinct next steps: Launch Sferavis opens the interactive planetarium, while The SPHEREx Mission takes you to mission information. Use the primary navigation to find the other sections.',
+        expectedOutput:
+          'In your notes, write one question you would take to the interactive planetarium and one you would take to the SPHEREx mission page.',
+      },
+      {
+        stepNumber: 2,
+        title: 'Visit the SPHEREx mission page',
+        explanation:
+          'Choose SPHEREx in the main menu. Browse the mission overview and the page’s science sections. Use the primary navigation to find Tutorials and see how the site separates mission information from learning resources.',
+        expectedOutput:
+          'Record one mission or science topic the page explains, and note that mission information is different from querying or analyzing archive data.',
+      },
+      {
+        stepNumber: 3,
+        title: 'Navigate the planetarium',
+        explanation:
+          'Open Launch Sferavis from the header or Home page. In the atlas, enter RA 266.414089 and Dec -29.006111 in decimal degrees and submit. Switch between SPHEREx QR2 and DSS2 Reference, adjust the field of view, try another projection, toggle the coordinate grid, then use Reset View.',
+        expectedOutput:
+          'Record the coordinates you tried and two controls you used. The SPHEREx QR2 D3 image is a quicklook composite; it is not the individual calibrated 102-channel science product.',
+      },
+      {
+        stepNumber: 4,
+        title: 'Choose a learning resource',
+        explanation:
+          'Open Tutorials from the primary navigation to browse the available step-by-step lessons. Then open Documentations to inspect its technical references. Use the resource whose format best fits your goal: a guided lesson for learning, or documentation for looking up a technical detail.',
+        expectedOutput:
+          'Write down one tutorial topic and one documentation topic you would consult for a future project.',
+      },
+      {
+        stepNumber: 5,
+        title: 'Explore Publications and The Team',
+        explanation:
+          'Visit Publications and The Team from the primary navigation. Check what is available now rather than assuming every section is complete: the publication archive currently says updates are coming soon, while the team page provides member profiles and ways to get in touch.',
+        expectedOutput:
+          'Note one thing you can currently find on each page, and one limitation or next step you noticed.',
+      },
+      {
+        stepNumber: 6,
+        title: 'Complete your navigation field notes',
+        explanation:
+          'Use the self-assessment below to review your route. Your notes should connect a question to the right Sferavis page, describe how you explored the atlas, and make clear what the quicklook can and cannot tell you.',
+        expectedOutput:
+          'You are ready when your notes satisfy the four assessment criteria and you can explain where you would go next for mission information, learning material, or technical details.',
+      },
+    ],
+    interactiveCode: '',
+  },
+  {
     id: 'quickstart-fits-cubes',
     title: 'SPHEREx Hyperspectral Cubes: First Light Ingestion',
     level: 'Beginner',

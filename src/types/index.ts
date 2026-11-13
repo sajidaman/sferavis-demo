@@ -31,9 +31,14 @@ export interface Tutorial {
   title: string;
   level: 'Beginner' | 'Intermediate' | 'Advanced';
   durationMin: number;
-  category: 'Data Reduction' | 'Spectral Extraction' | 'Galaxy Catalogs' | 'Astropy SDK' | 'Cosmology';
+  category: 'Website Navigation' | 'Data Reduction' | 'Spectral Extraction' | 'Galaxy Catalogs' | 'Astropy SDK' | 'Cosmology';
   summary: string;
   prerequisites: string[];
+  learningObjectives?: string[];
+  coursework?: {
+    deliverable: string;
+    assessmentCriteria: string[];
+  };
   steps: Array<{
     stepNumber: number;
     title: string;
