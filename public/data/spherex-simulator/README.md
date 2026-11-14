@@ -1,18 +1,40 @@
 # SPHEREx simulator samples
 
-## Low-resolution all-sky view
+## SPHEREx DR1 all-sky cube & resolution limits
 
-The Atlas uses the public SPHEREx DR1 all-sky HiPS cube, containing 102
-spectral channels from 0.753 to 4.988 μm with full-sky coverage. Its channel
-slider exposes every frame; frames 50 and 51 are blank dichroic channels. The
-HiPS product has a maximum order of 5 (512-pixel tiles), providing a
-low-resolution all-sky view. At zooms of 0.4° or smaller, the Atlas can fetch
-a real DR1 spectral exposure cutout at 6.15 arcsec per detector pixel. This is
-one exposure, not a coadded mosaic; its pixels span a range of wavelengths
-across the detector and are not an exact single-channel cube slice. Both
-products are observed SPHEREx data, not data from the simulator paper. The
-2MASS reference is available separately in the Atlas; it is not blended into
-SPHEREx data.
+The Atlas uses the official NASA/IPAC IRSA SPHEREx DR1 all-sky HiPS cube,
+containing 102 verified spectral channels from 0.753 to 4.988 μm with full-sky
+coverage (MOC sky fraction = 1.0).
+
+- **Channel availability & 102 vs. 106 discrepancy**:
+  The official IRSA DR1 HiPS cube metadata reports `hips_cube_depth=102` with 102
+  distinct wavelengths in `data_cube_crval3_arr`. The SPHEREx focal plane has 6
+  detector arrays (D1 to D6), each configured with 17 linear-variable filter
+  channels in this release product ($6 \times 17 = 102$). Two frames in the
+  sequence (Frame 50 / Band 3 Channel 17 at 2.345 μm and Frame 51 / Band 4
+  Channel 1 at 2.399 μm) are documented blank dichroic channels where the beam
+  splitter transitions between detectors. Other proposed/unreleased mission
+  catalogs (such as prospective 106-channel QR versions) are not part of the
+  official DR1 all-sky cube.
+- **Native resolution & zoom behavior**:
+  The DR1 all-sky cube is published at HiPS order 5 (`hips_order = 5`, 512×512
+  pixel tiles), corresponding to a native pixel scale of ~0.00358° (~12.9 arcsec
+  per pixel). This provides full all-sky coverage, but zooming into sub-arcminute
+  scales hits the native resolution boundary of this cube. The Atlas preserves
+  observation-derived data without AI interpolation or fake detail.
+- **Progressive observed exposure detail**:
+  At zooms of 0.4° or smaller, the Atlas can fetch a real DR1 spectral exposure
+  cutout at 6.15 arcsec per detector pixel. This is one exposure, not a
+  coadded mosaic; its pixels span a range of wavelengths across the detector
+  and are not an exact single-channel cube slice.
+- **Display color mapping**:
+  The Atlas renders true pixel intensities in grayscale by default and offers a
+  magma/purple-gold display mapping option. The purple coloring seen in
+  presentations and papers is a false-color visualization mapping, not an
+  intrinsic physical property of the infrared photons.
+- **Separate reference surveys**:
+  2MASS and DSS2 are kept as separate reference layers and are never blended or
+  substituted for SPHEREx observations.
 
 The DR1 all-sky cube is separate from the simulator outputs described in Crill
 et al. (2025). The simulator FITS cutouts below are small single-exposure

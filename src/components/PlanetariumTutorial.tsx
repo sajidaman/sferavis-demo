@@ -25,9 +25,9 @@ const steps = [
   {
     title: 'Compare the image surveys',
     description:
-      'Choose a SPHEREx DR1 wavelength channel, or switch to DSS2 Reference for an optical view of the same region.',
+      'Browse all SPHEREx DR1 wavelength channels, or switch to 2MASS or DSS2 Reference for multi-wavelength comparison.',
     detail:
-      'The slider browses all 102 released cube frames. Frames 50 and 51 are blank in DR1; deep zooms can load real exposure detail.',
+      'The cube contains 102 frames, including two documented blank dichroic channels. Deep zooms can load real exposure detail; that single exposure is not an exact cube-channel slice.',
   },
   {
     title: 'Adjust your view',

@@ -59,6 +59,8 @@ declare module 'aladin-lite' {
   export interface AladinHiPSLayer {
     setSliceNumber: (slice: number) => void;
     setFrequency: (options: { value: number; unit?: 'Hz' | 'm' }) => void;
+    setColormap?: (colormap: string) => void;
+    getColormap?: () => string;
   }
 
   export interface AladinOptions {

@@ -4,7 +4,7 @@
   "version": "2.4.0",
   "description": "Interactive NASA SPHEREx All-Sky Hyperspectral Atlas & Planetarium",
   "type": "module",
-  "license": "BSD-3-Clause",
+  "license": "Apache-2.0",
   "repository": {
     "type": "git",
     "url": "https://github.com/sferavis/sferavis.git"
