@@ -62,6 +62,7 @@ type ViewerStatus = 'loading' | 'ready' | 'init-error';
 export const AladinSkyViewer: React.FC<AladinSkyViewerProps> = ({ className = '', isDark }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const detailPanelRef = useRef<HTMLElement>(null);
+  const toolPanelRef = useRef<HTMLElement>(null);
   const aladinRef = useRef<AladinInstance | null>(null);
   const rawId = useId().replace(/[^a-zA-Z0-9_-]/g, '');
   const containerId = `sferavis-aladin-${rawId}`;
@@ -69,6 +70,13 @@ export const AladinSkyViewer: React.FC<AladinSkyViewerProps> = ({ className = ''
   const analysisLayersRef = useRef<Array<AladinCatalog | AladinGraphicOverlay>>([]);
   const analysisRequestIdRef = useRef(0);
   const panelDragRef = useRef<{
+    pointerId: number;
+    clientX: number;
+    clientY: number;
+    left: number;
+    top: number;
+  } | null>(null);
+  const toolPanelDragRef = useRef<{
     pointerId: number;
     clientX: number;
     clientY: number;
@@ -86,6 +94,8 @@ export const AladinSkyViewer: React.FC<AladinSkyViewerProps> = ({ className = ''
   const [detailPanelPosition, setDetailPanelPosition] = useState<{ left: number; top: number } | null>(null);
   const [isDetailsExpanded, setIsDetailsExpanded] = useState(true);
   const [openTrackletTool, setOpenTrackletTool] = useState<'plots' | 'suggestions' | null>(null);
+  const [isToolPanelExpanded, setIsToolPanelExpanded] = useState(true);
+  const [toolPanelPosition, setToolPanelPosition] = useState<{ left: number; top: number } | null>(null);
   const [suggestions, setSuggestions] = useState<ClassificationSuggestion[]>([]);
   const [suggestionsVersion, setSuggestionsVersion] = useState(0);
   const [suggestionLoading, setSuggestionLoading] = useState(false);
@@ -417,6 +427,12 @@ export const AladinSkyViewer: React.FC<AladinSkyViewerProps> = ({ className = ''
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [openTrackletTool]);
 
+  useEffect(() => {
+    if (!openTrackletTool) return;
+    setToolPanelPosition(null);
+    setIsToolPanelExpanded(true);
+  }, [openTrackletTool]);
+
   const submitClassificationSuggestion = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!selectedTracklet || suggestionSaving) return;
@@ -548,6 +564,82 @@ export const AladinSkyViewer: React.FC<AladinSkyViewerProps> = ({ className = ''
     ));
   };
 
+  const clampToolPanelPosition = useCallback((left: number, top: number) => {
+    const viewport = containerRef.current;
+    const panel = toolPanelRef.current;
+    if (!viewport || !panel) return { left, top };
+    return {
+      left: Math.max(0, Math.min(left, viewport.clientWidth - panel.offsetWidth)),
+      top: Math.max(0, Math.min(top, viewport.clientHeight - panel.offsetHeight)),
+    };
+  }, []);
+
+  const startToolPanelDrag = (event: React.PointerEvent<HTMLButtonElement>) => {
+    if (event.button !== 0) return;
+    const panel = toolPanelRef.current;
+    const viewport = containerRef.current;
+    if (!panel || !viewport) return;
+
+    const panelRect = panel.getBoundingClientRect();
+    const viewportRect = viewport.getBoundingClientRect();
+    const position = toolPanelPosition ?? {
+      left: panelRect.left - viewportRect.left,
+      top: panelRect.top - viewportRect.top,
+    };
+    toolPanelDragRef.current = {
+      pointerId: event.pointerId,
+      clientX: event.clientX,
+      clientY: event.clientY,
+      ...position,
+    };
+    setToolPanelPosition(position);
+    event.currentTarget.setPointerCapture(event.pointerId);
+    event.preventDefault();
+  };
+
+  const moveToolPanelDrag = (event: React.PointerEvent<HTMLButtonElement>) => {
+    const drag = toolPanelDragRef.current;
+    if (!drag || drag.pointerId !== event.pointerId) return;
+    setToolPanelPosition(clampToolPanelPosition(
+      drag.left + event.clientX - drag.clientX,
+      drag.top + event.clientY - drag.clientY,
+    ));
+  };
+
+  const finishToolPanelDrag = (event: React.PointerEvent<HTMLButtonElement>) => {
+    if (toolPanelDragRef.current?.pointerId !== event.pointerId) return;
+    toolPanelDragRef.current = null;
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+  };
+
+  const moveToolPanelWithKeyboard = (event: React.KeyboardEvent<HTMLButtonElement>) => {
+    const movements: Record<string, [number, number]> = {
+      ArrowUp: [0, -16],
+      ArrowDown: [0, 16],
+      ArrowLeft: [-16, 0],
+      ArrowRight: [16, 0],
+    };
+    const movement = movements[event.key];
+    if (!movement) return;
+    const panel = toolPanelRef.current;
+    const viewport = containerRef.current;
+    if (!panel || !viewport) return;
+
+    event.preventDefault();
+    const panelRect = panel.getBoundingClientRect();
+    const viewportRect = viewport.getBoundingClientRect();
+    const position = toolPanelPosition ?? {
+      left: panelRect.left - viewportRect.left,
+      top: panelRect.top - viewportRect.top,
+    };
+    setToolPanelPosition(clampToolPanelPosition(
+      position.left + movement[0],
+      position.top + movement[1],
+    ));
+  };
+
   useEffect(() => {
     if (!detailPanelPosition) return;
     const clampPanel = () => {
@@ -558,6 +650,17 @@ export const AladinSkyViewer: React.FC<AladinSkyViewerProps> = ({ className = ''
     window.addEventListener('resize', clampPanel);
     return () => window.removeEventListener('resize', clampPanel);
   }, [detailPanelPosition, clampDetailPanelPosition]);
+
+  useEffect(() => {
+    if (!toolPanelPosition) return;
+    const clampPanel = () => {
+      setToolPanelPosition((position) => (
+        position ? clampToolPanelPosition(position.left, position.top) : null
+      ));
+    };
+    window.addEventListener('resize', clampPanel);
+    return () => window.removeEventListener('resize', clampPanel);
+  }, [toolPanelPosition, clampToolPanelPosition]);
 
   return (
     <section
@@ -768,7 +871,11 @@ export const AladinSkyViewer: React.FC<AladinSkyViewerProps> = ({ className = ''
                   <button
                     type="button"
                     disabled={!selectedTracklet.plotPath}
-                    onClick={() => setOpenTrackletTool('plots')}
+                    onClick={() => {
+                      setToolPanelPosition(null);
+                      setIsToolPanelExpanded(true);
+                      setOpenTrackletTool('plots');
+                    }}
                     className="inline-flex items-center justify-center gap-1.5 bg-[#A30000] px-2 py-2 text-[10px] font-semibold text-white transition-colors hover:bg-[#8B0000] disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     <ImageIcon className="h-3.5 w-3.5" aria-hidden="true" />
@@ -776,7 +883,11 @@ export const AladinSkyViewer: React.FC<AladinSkyViewerProps> = ({ className = ''
                   </button>
                   <button
                     type="button"
-                    onClick={() => setOpenTrackletTool('suggestions')}
+                    onClick={() => {
+                      setToolPanelPosition(null);
+                      setIsToolPanelExpanded(true);
+                      setOpenTrackletTool('suggestions');
+                    }}
                     className={`inline-flex items-center justify-center gap-1.5 border px-2 py-2 text-[10px] font-semibold transition-colors ${
                       isDark
                         ? 'border-white/20 text-zinc-100 hover:bg-white/10'
@@ -795,35 +906,77 @@ export const AladinSkyViewer: React.FC<AladinSkyViewerProps> = ({ className = ''
           <>
             <div aria-hidden="true" className="absolute inset-0 z-20 bg-black/40" />
             <section
+              ref={toolPanelRef}
               role="dialog"
               aria-modal="true"
               aria-labelledby={`${containerId}-plots-title`}
-              className={`absolute left-1/2 top-1/2 z-30 flex max-h-[calc(100%-2rem)] w-[min(60rem,calc(100%-2rem))] -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden border shadow-2xl ${
+              style={toolPanelPosition ? { left: toolPanelPosition.left, top: toolPanelPosition.top } : undefined}
+              className={`absolute z-30 flex max-h-[calc(100%-2rem)] w-[min(60rem,calc(100%-2rem))] flex-col overflow-hidden border shadow-2xl ${
+                toolPanelPosition ? '' : 'left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2'
+              } ${
               isDark ? 'border-slate-600 bg-[#0a1422] text-white' : 'border-slate-300 bg-white text-slate-900'
               }`}
             >
               <header className={`flex shrink-0 items-center justify-between border-b px-4 py-3 ${
               isDark ? 'border-white/10' : 'border-slate-200'
               }`}>
-                <h2 id={`${containerId}-plots-title`} className="text-sm font-semibold">
-                  Diagnostic plot — Tracklet {selectedTracklet.id}
-                </h2>
-                <button
-                  type="button"
-                  onClick={() => setOpenTrackletTool(null)}
-                  aria-label="Close diagnostic plot"
-                  className={`inline-flex h-8 w-8 items-center justify-center ${
-                  isDark ? 'text-zinc-400 hover:bg-white/10 hover:text-white' : 'text-slate-500 hover:bg-slate-100 hover:text-slate-900'
-                  }`}
-                >
-                  <X className="h-4 w-4" aria-hidden="true" />
-                </button>
+                <div className="flex min-w-0 items-center gap-2">
+                  <button
+                    type="button"
+                    aria-label="Move plot panel; drag or use arrow keys"
+                    title="Drag to move; arrow keys also move the panel"
+                    onPointerDown={startToolPanelDrag}
+                    onPointerMove={moveToolPanelDrag}
+                    onPointerUp={finishToolPanelDrag}
+                    onPointerCancel={finishToolPanelDrag}
+                    onKeyDown={moveToolPanelWithKeyboard}
+                    className={`touch-none cursor-move rounded p-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#A30000] ${
+                      isDark ? 'text-zinc-400 hover:bg-white/10 hover:text-white' : 'text-slate-500 hover:bg-slate-100 hover:text-slate-900'
+                    }`}
+                  >
+                    <Move className="h-4 w-4" aria-hidden="true" />
+                  </button>
+                  <h2 id={`${containerId}-plots-title`} className="truncate text-sm font-semibold">
+                    Diagnostic plot — Tracklet {selectedTracklet.id}
+                  </h2>
+                </div>
+                <div className="flex shrink-0 items-center">
+                  <button
+                    type="button"
+                    onClick={() => setIsToolPanelExpanded((expanded) => !expanded)}
+                    aria-label={isToolPanelExpanded ? 'Collapse plot panel' : 'Expand plot panel'}
+                    aria-expanded={isToolPanelExpanded}
+                    aria-controls={`${containerId}-plots-content`}
+                    title={isToolPanelExpanded ? 'Collapse panel' : 'Expand panel'}
+                    className={`inline-flex h-8 w-8 items-center justify-center ${
+                      isDark ? 'text-zinc-400 hover:bg-white/10 hover:text-white' : 'text-slate-500 hover:bg-slate-100 hover:text-slate-900'
+                    }`}
+                  >
+                    {isToolPanelExpanded
+                      ? <ChevronUp className="h-4 w-4" aria-hidden="true" />
+                      : <ChevronDown className="h-4 w-4" aria-hidden="true" />}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setOpenTrackletTool(null)}
+                    aria-label="Close diagnostic plot"
+                    className={`inline-flex h-8 w-8 items-center justify-center ${
+                      isDark ? 'text-zinc-400 hover:bg-white/10 hover:text-white' : 'text-slate-500 hover:bg-slate-100 hover:text-slate-900'
+                    }`}
+                  >
+                    <X className="h-4 w-4" aria-hidden="true" />
+                  </button>
+                </div>
               </header>
-              <div className="overflow-auto p-4">
+              <div
+                id={`${containerId}-plots-content`}
+                hidden={!isToolPanelExpanded}
+                className="max-h-[80vh] overflow-auto p-4"
+              >
                 <img
                   src={selectedTracklet.plotPath}
                   alt={`Diagnostic plot for tracklet ${selectedTracklet.id}`}
-                  className="mx-auto block h-auto max-h-[72vh] w-full object-contain"
+                  className="mx-auto block h-auto max-h-[76vh] w-full object-contain"
                 />
                 <p className={`mt-3 text-xs ${isDark ? 'text-zinc-400' : 'text-slate-500'}`}>
                   This supplied diagnostic plot is not a SPHEREx infrared image.
@@ -837,31 +990,73 @@ export const AladinSkyViewer: React.FC<AladinSkyViewerProps> = ({ className = ''
           <>
             <div aria-hidden="true" className="absolute inset-0 z-20 bg-black/40" />
             <section
+              ref={toolPanelRef}
               role="dialog"
               aria-modal="true"
               aria-labelledby={`${containerId}-suggestions-title`}
-              className={`absolute left-1/2 top-1/2 z-30 flex max-h-[calc(100%-2rem)] w-[min(26rem,calc(100%-2rem))] -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden border shadow-2xl ${
+              style={toolPanelPosition ? { left: toolPanelPosition.left, top: toolPanelPosition.top } : undefined}
+              className={`absolute z-30 flex max-h-[calc(100%-2rem)] w-[min(26rem,calc(100%-2rem))] flex-col overflow-hidden border shadow-2xl ${
+                toolPanelPosition ? '' : 'left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2'
+              } ${
               isDark ? 'border-slate-600 bg-[#0a1422] text-white' : 'border-slate-300 bg-white text-slate-900'
               }`}
             >
               <header className={`flex shrink-0 items-center justify-between border-b px-4 py-3 ${
               isDark ? 'border-white/10' : 'border-slate-200'
               }`}>
-                <h2 id={`${containerId}-suggestions-title`} className="text-sm font-semibold">
-                  Community input — Tracklet {selectedTracklet.id}
-                </h2>
-                <button
-                  type="button"
-                  onClick={() => setOpenTrackletTool(null)}
-                  aria-label="Close community input"
-                  className={`inline-flex h-8 w-8 items-center justify-center ${
-                  isDark ? 'text-zinc-400 hover:bg-white/10 hover:text-white' : 'text-slate-500 hover:bg-slate-100 hover:text-slate-900'
-                  }`}
-                >
-                  <X className="h-4 w-4" aria-hidden="true" />
-                </button>
+                <div className="flex min-w-0 items-center gap-2">
+                  <button
+                    type="button"
+                    aria-label="Move community input panel; drag or use arrow keys"
+                    title="Drag to move; arrow keys also move the panel"
+                    onPointerDown={startToolPanelDrag}
+                    onPointerMove={moveToolPanelDrag}
+                    onPointerUp={finishToolPanelDrag}
+                    onPointerCancel={finishToolPanelDrag}
+                    onKeyDown={moveToolPanelWithKeyboard}
+                    className={`touch-none cursor-move rounded p-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#A30000] ${
+                      isDark ? 'text-zinc-400 hover:bg-white/10 hover:text-white' : 'text-slate-500 hover:bg-slate-100 hover:text-slate-900'
+                    }`}
+                  >
+                    <Move className="h-4 w-4" aria-hidden="true" />
+                  </button>
+                  <h2 id={`${containerId}-suggestions-title`} className="truncate text-sm font-semibold">
+                    Community input — Tracklet {selectedTracklet.id}
+                  </h2>
+                </div>
+                <div className="flex shrink-0 items-center">
+                  <button
+                    type="button"
+                    onClick={() => setIsToolPanelExpanded((expanded) => !expanded)}
+                    aria-label={isToolPanelExpanded ? 'Collapse community input panel' : 'Expand community input panel'}
+                    aria-expanded={isToolPanelExpanded}
+                    aria-controls={`${containerId}-suggestions-content`}
+                    title={isToolPanelExpanded ? 'Collapse panel' : 'Expand panel'}
+                    className={`inline-flex h-8 w-8 items-center justify-center ${
+                      isDark ? 'text-zinc-400 hover:bg-white/10 hover:text-white' : 'text-slate-500 hover:bg-slate-100 hover:text-slate-900'
+                    }`}
+                  >
+                    {isToolPanelExpanded
+                      ? <ChevronUp className="h-4 w-4" aria-hidden="true" />
+                      : <ChevronDown className="h-4 w-4" aria-hidden="true" />}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setOpenTrackletTool(null)}
+                    aria-label="Close community input"
+                    className={`inline-flex h-8 w-8 items-center justify-center ${
+                      isDark ? 'text-zinc-400 hover:bg-white/10 hover:text-white' : 'text-slate-500 hover:bg-slate-100 hover:text-slate-900'
+                    }`}
+                  >
+                    <X className="h-4 w-4" aria-hidden="true" />
+                  </button>
+                </div>
               </header>
-              <div className="overflow-y-auto p-4">
+              <div
+                id={`${containerId}-suggestions-content`}
+                hidden={!isToolPanelExpanded}
+                className="overflow-y-auto p-4"
+              >
                 <p className={`text-xs leading-relaxed ${
                 isDark ? 'text-zinc-400' : 'text-slate-600'
                 }`}>
