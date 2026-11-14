@@ -14,7 +14,7 @@ const steps = [
     title: 'Welcome to Sferavis',
     description:
       'Explore the sky with the Sferavis planetarium. This short guide introduces the atlas controls and helps you get started.',
-    detail: 'The atlas opens on the Galactic Center using a SPHEREx infrared quicklook.',
+    detail: 'The atlas opens on the Galactic Center using a representative SPHEREx DR1 channel from its all-sky cube.',
   },
   {
     title: 'Choose a sky position',
@@ -25,9 +25,9 @@ const steps = [
   {
     title: 'Compare the image surveys',
     description:
-      'Use SPHEREx QR2 to view the infrared quicklook, or switch to DSS2 Reference for an optical view of the same region.',
+      'Choose a SPHEREx DR1 band to view one spectral channel, or switch to DSS2 Reference for an optical view of the same region.',
     detail:
-      'These are sky-image layers, not a time sequence or the individual 102-channel SPHEREx science data.',
+      'SPHEREx DR1 is an observed 102-channel all-sky cube. The band choices show representative channels from that cube.',
   },
   {
     title: 'Adjust your view',

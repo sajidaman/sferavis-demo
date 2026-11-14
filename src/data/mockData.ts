@@ -240,9 +240,9 @@ export const TUTORIALS: Tutorial[] = [
         stepNumber: 3,
         title: 'Navigate the planetarium',
         explanation:
-          'Open Launch Sferavis from the header or Home page. In the atlas, enter RA 266.414089 and Dec -29.006111 in decimal degrees and submit. Switch between SPHEREx QR2 and DSS2 Reference, adjust the field of view, try another projection, toggle the coordinate grid, then use Reset View.',
+          'Open Launch Sferavis from the header or Home page. In the atlas, enter RA 266.414089 and Dec -29.006111 in decimal degrees and submit. Switch between a SPHEREx DR1 band and DSS2 Reference, adjust the field of view, try another projection, toggle the coordinate grid, then use Reset View.',
         expectedOutput:
-          'Record the coordinates you tried and two controls you used. The SPHEREx QR2 D3 image is a quicklook composite; it is not the individual calibrated 102-channel science product.',
+          'Record the coordinates you tried and two controls you used. The SPHEREx DR1 D3 view is one representative channel from the full 102-channel all-sky cube.',
       },
       {
         stepNumber: 4,

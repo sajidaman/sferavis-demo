@@ -51,6 +51,11 @@ declare module 'aladin-lite' {
     [key: string]: unknown;
   }
 
+  export interface AladinHiPSLayer {
+    setSliceNumber: (slice: number) => void;
+    setFrequency: (options: { value: number; unit?: 'Hz' | 'm' }) => void;
+  }
+
   export interface AladinOptions {
     survey?: string;
     target?: string;
@@ -90,13 +95,13 @@ declare module 'aladin-lite' {
     requestMode?: string;
     requestCredentials?: RequestCredentials;
     errorCallback?: (error: unknown) => void;
-    successCallback?: () => void;
+    successCallback?: (layer: AladinHiPSLayer) => void;
   }
 
   export interface AladinStatic {
     init: Promise<void>;
     aladin: (container: string | HTMLElement, options?: AladinOptions) => AladinInstance;
-    HiPS: (id: string, options?: AladinHiPSOptions) => unknown;
+    HiPS: (id: string, options?: AladinHiPSOptions) => AladinHiPSLayer;
     catalog: (options?: AladinCatalogOptions) => AladinCatalog;
     source: (ra: number, dec: number, data?: Record<string, string | number | boolean | null>) => AladinSource;
     graphicOverlay: (options?: { name?: string; color?: string; lineWidth?: number }) => AladinGraphicOverlay;
