@@ -1,15 +1,29 @@
 import React, { useCallback, useEffect, useId, useRef, useState } from 'react';
 import A, { type AladinCatalog, type AladinGraphicOverlay, type AladinInstance } from 'aladin-lite';
-import { AlertTriangle, RefreshCw, RotateCcw, X } from 'lucide-react';
+import { AlertTriangle, Move, RefreshCw, RotateCcw, X } from 'lucide-react';
 import { loadAnalysisDataset } from '../data/analysisDatasets';
 
 const SPHEREX_HIPS = 'CDS/P/SPHEREx/QR2/D3';
-const SPHEREX_HIPS_URL = 'https://alasky.cds.unistra.fr/SPHEREx/D3';
-const SPHEREX_HIPS_MIRROR_URL = 'https://alaskybis.cds.unistra.fr/SPHEREx/D3';
-const DSS2_HIPS_URL = 'https://alasky.cds.unistra.fr/DSS/DSSColor';
+const DSS2_HIPS = 'P/DSS2/color';
 const INITIAL_RA = 180;
 const INITIAL_DEC = 0;
 const INITIAL_FOV = 0.25;
+const TRACKLET_FOV = 0.12;
+
+interface Tracklet {
+  id: string;
+  ra: number;
+  dec: number;
+  knownStatus: string;
+  knownName: string;
+  plotPath: string | null;
+  details: Record<string, string | number | boolean | null>;
+}
+
+interface ClassificationSuggestion {
+  classification: string;
+  count: number;
+}
 
 function numberOrNull(value: string | undefined): number | null {
   if (!value?.trim()) return null;
@@ -17,10 +31,9 @@ function numberOrNull(value: string | undefined): number | null {
   return Number.isFinite(parsed) ? parsed : null;
 }
 
-function createSpherexHiPS(url = SPHEREX_HIPS_URL, onError?: (error: unknown) => void) {
+function createSpherexHiPS(onError?: (error: unknown) => void) {
   return A.HiPS(SPHEREX_HIPS, {
     name: 'NASA SPHEREx QR2 D3',
-    url,
     maxOrder: 7,
     minOrder: 0,
     tileSize: 512,
@@ -32,60 +45,104 @@ function createSpherexHiPS(url = SPHEREX_HIPS_URL, onError?: (error: unknown) =>
   });
 }
 
+function createReferenceHiPS(onError?: (error: unknown) => void) {
+  return A.HiPS(DSS2_HIPS, {
+    name: 'DSS2 color',
+    errorCallback: (error: unknown) => onError?.(error),
+  });
+}
+
 interface AladinSkyViewerProps {
   className?: string;
+  isDark: boolean;
 }
 
 type ViewerStatus = 'loading' | 'ready' | 'init-error';
 
-export const AladinSkyViewer: React.FC<AladinSkyViewerProps> = ({ className = '' }) => {
+export const AladinSkyViewer: React.FC<AladinSkyViewerProps> = ({ className = '', isDark }) => {
   const containerRef = useRef<HTMLDivElement>(null);
+  const detailPanelRef = useRef<HTMLElement>(null);
   const aladinRef = useRef<AladinInstance | null>(null);
   const rawId = useId().replace(/[^a-zA-Z0-9_-]/g, '');
   const containerId = `sferavis-aladin-${rawId}`;
   const initializationIdRef = useRef(0);
   const analysisLayersRef = useRef<Array<AladinCatalog | AladinGraphicOverlay>>([]);
   const analysisRequestIdRef = useRef(0);
+  const panelDragRef = useRef<{
+    pointerId: number;
+    clientX: number;
+    clientY: number;
+    left: number;
+    top: number;
+  } | null>(null);
 
   const [status, setStatus] = useState<ViewerStatus>('loading');
   const [initErrorMsg, setInitErrorMsg] = useState<string | null>(null);
   const [initDiagnostic, setInitDiagnostic] = useState<string | null>(null);
   const [surveyErrorMsg, setSurveyErrorMsg] = useState<string | null>(null);
   const [analysisError, setAnalysisError] = useState<string | null>(null);
-  const [selectedAnalysisSource, setSelectedAnalysisSource] = useState<Record<string, string | number | boolean | null> | null>(null);
+  const [tracklets, setTracklets] = useState<Tracklet[]>([]);
+  const [selectedTrackletId, setSelectedTrackletId] = useState<string | null>(null);
+  const [detailPanelPosition, setDetailPanelPosition] = useState<{ left: number; top: number } | null>(null);
+  const [suggestions, setSuggestions] = useState<ClassificationSuggestion[]>([]);
+  const [suggestionsVersion, setSuggestionsVersion] = useState(0);
+  const [suggestionLoading, setSuggestionLoading] = useState(false);
+  const [suggestionSaving, setSuggestionSaving] = useState(false);
+  const [suggestionMessage, setSuggestionMessage] = useState<string | null>(null);
+  const [suggestionError, setSuggestionError] = useState<string | null>(null);
+  const [classificationInput, setClassificationInput] = useState('');
+  const [rationaleInput, setRationaleInput] = useState('');
   const [survey, setSurvey] = useState<'spherex' | 'reference'>('spherex');
   const [retryCount, setRetryCount] = useState(0);
   const surveyRef = useRef(survey);
   surveyRef.current = survey;
+  const selectedTracklet = tracklets.find((tracklet) => tracklet.id === selectedTrackletId) ?? null;
 
-  const loadSurveyLayer = useCallback((surveyUrl: string) => {
+  useEffect(() => {
+    setSuggestions([]);
+    setSuggestionMessage(null);
+    setSuggestionError(null);
+    setClassificationInput('');
+    setRationaleInput('');
+  }, [selectedTrackletId]);
+
+  const loadSurveyLayer = useCallback((nextSurvey: 'spherex' | 'reference') => {
     const aladin = aladinRef.current;
     if (!aladin) return;
 
-    if (surveyUrl !== SPHEREX_HIPS_URL) {
-      aladin.setBaseImageLayer(DSS2_HIPS_URL);
-      setSurveyErrorMsg(null);
+    setSurvey(nextSurvey);
+    setSurveyErrorMsg(null);
+    if (nextSurvey === 'reference') {
+      try {
+        aladin.setBaseImageLayer(createReferenceHiPS((error) => {
+          const detail = error instanceof Error ? error.message : String(error);
+          setSurveyErrorMsg(`The DSS2 optical survey could not be loaded. Details: ${detail}`);
+        }));
+      } catch (error) {
+        const detail = error instanceof Error ? error.message : String(error);
+        setSurveyErrorMsg(`The DSS2 optical survey could not be loaded. Details: ${detail}`);
+      }
       return;
     }
 
-    const mirrorError = (cause: unknown) => {
+    const showReferenceFallback = (cause: unknown) => {
       const detail = cause instanceof Error ? cause.message : String(cause);
-      setSurveyErrorMsg(`SPHEREx QR2 could not be loaded from either official HiPS host. Details: ${detail}`);
-    };
-
-    const primaryError = (cause: unknown) => {
-      const detail = cause instanceof Error ? cause.message : String(cause);
-      setSurveyErrorMsg(`The primary SPHEREx host failed (${detail}). Trying the official mirror…`);
-      if (aladinRef.current) {
-        aladinRef.current.setBaseImageLayer(createSpherexHiPS(SPHEREX_HIPS_MIRROR_URL, mirrorError));
+      setSurveyErrorMsg(`SPHEREx infrared tiles could not be loaded. Showing the DSS2 optical fallback. Details: ${detail}`);
+      try {
+        aladinRef.current?.setBaseImageLayer(createReferenceHiPS((fallbackError) => {
+          const fallbackDetail = fallbackError instanceof Error ? fallbackError.message : String(fallbackError);
+          setSurveyErrorMsg(`SPHEREx and the DSS2 fallback could not be loaded. Details: ${detail}; ${fallbackDetail}`);
+        }));
+      } catch (fallbackError) {
+        const fallbackDetail = fallbackError instanceof Error ? fallbackError.message : String(fallbackError);
+        setSurveyErrorMsg(`SPHEREx and the DSS2 fallback could not be loaded. Details: ${detail}; ${fallbackDetail}`);
       }
     };
 
     try {
-      aladin.setBaseImageLayer(createSpherexHiPS(SPHEREX_HIPS_URL, primaryError));
-      setSurveyErrorMsg(null);
+      aladin.setBaseImageLayer(createSpherexHiPS(showReferenceFallback));
     } catch (error) {
-      primaryError(error);
+      showReferenceFallback(error);
     }
   }, []);
 
@@ -127,9 +184,8 @@ export const AladinSkyViewer: React.FC<AladinSkyViewerProps> = ({ className = ''
       }
 
       containerRef.current.id = containerId;
-      const targetSurvey = surveyRef.current === 'spherex' ? SPHEREX_HIPS_URL : DSS2_HIPS_URL;
       const aladin = A.aladin(`#${containerId}`, {
-        survey: DSS2_HIPS_URL,
+        survey: DSS2_HIPS,
         target: `${INITIAL_RA} ${INITIAL_DEC}`,
         fov: INITIAL_FOV,
         projection: 'AIT',
@@ -149,7 +205,7 @@ export const AladinSkyViewer: React.FC<AladinSkyViewerProps> = ({ className = ''
       aladin.setCooGrid({ enabled: true, color: '#A30000', opacity: 0.42, labelSize: 10 });
       aladinRef.current = aladin;
       setStatus('ready');
-      loadSurveyLayer(targetSurvey);
+      loadSurveyLayer(surveyRef.current);
     } catch (error) {
       if (!isCurrentInitialization()) return;
       console.error('[Sferavis Aladin Lite Init Error]', error);
@@ -181,7 +237,8 @@ export const AladinSkyViewer: React.FC<AladinSkyViewerProps> = ({ className = ''
 
     removePreviousLayers();
     setAnalysisError(null);
-    setSelectedAnalysisSource(null);
+    setTracklets([]);
+    setSelectedTrackletId(null);
 
     void Promise.all([
       loadAnalysisDataset('tracklets-known-check'),
@@ -190,16 +247,47 @@ export const AladinSkyViewer: React.FC<AladinSkyViewerProps> = ({ className = ''
       .then(([trackletTable, memberTable]) => {
         if (analysisRequestIdRef.current !== requestId || aladinRef.current !== aladin) return;
 
-        const tracklets = trackletTable.rows;
+        const trackletRows = trackletTable.rows;
+        const mappedTracklets = trackletRows.flatMap((row): Tracklet[] => {
+          const ra = numberOrNull(row.ra_mid);
+          const dec = numberOrNull(row.dec_mid);
+          const id = row.tracklet_id?.trim();
+          if (!id || ra === null || dec === null) return [];
+          const numericId = Number(id);
+          return [{
+            id,
+            ra,
+            dec,
+            knownStatus: row.known_status || 'unknown',
+            knownName: row.known_name || '',
+            plotPath: Number.isInteger(numericId)
+              ? `${import.meta.env.BASE_URL}data/analyzed/diagnostics/candidate_${String(numericId).padStart(4, '0')}.png`
+              : null,
+            details: {
+              Tracklet: id,
+              'Object type': 'Not provided in the supplied data',
+              'Known-object status': row.known_status || 'not supplied',
+              'Known-object name': row.known_name || 'No name supplied',
+              'Detection count': numberOrNull(row.n_det),
+              'Motion rate (arcsec/hour)': numberOrNull(row.rate_arcsec_hr),
+              'Position angle (degrees)': numberOrNull(row.pa_deg),
+              'Tracklet RMS (arcsec)': numberOrNull(row.rms_arcsec),
+              'Mean SNR': numberOrNull(row.mean_snr),
+              'Midpoint MJD': numberOrNull(row.mjd_mid),
+            },
+          }];
+        });
+        setTracklets(mappedTracklets);
+
         const addTrackletCatalog = (known: boolean) => {
-          const rows = tracklets.filter((row) => (row.known_status === 'known') === known);
+          const rows = trackletRows.filter((row) => (row.known_status === 'known') === known);
           if (rows.length === 0) return;
           const catalog = A.catalog({
             name: known ? 'Known-object tracklets' : 'Unmatched tracklet candidates',
             color: known ? '#f2b84b' : '#f06b6b',
             sourceSize: 10,
             shape: known ? 'rhomb' : 'circle',
-            onClick: (source) => setSelectedAnalysisSource(source.data),
+            onClick: (source) => setSelectedTrackletId(String(source.data.Tracklet)),
           });
           catalog.addSources(rows.flatMap((row) => {
             const ra = Number(row.ra_mid);
@@ -224,7 +312,7 @@ export const AladinSkyViewer: React.FC<AladinSkyViewerProps> = ({ className = ''
         addTrackletCatalog(true);
         addTrackletCatalog(false);
 
-        const trackletIds = new Set(tracklets.map((row) => row.tracklet_id));
+        const trackletIds = new Set(trackletRows.map((row) => row.tracklet_id));
         const memberGroups = new Map<string, Array<Record<string, string>>>();
         for (const member of memberTable.rows) {
           if (!trackletIds.has(member.tracklet_id)) continue;
@@ -234,7 +322,7 @@ export const AladinSkyViewer: React.FC<AladinSkyViewerProps> = ({ className = ''
         }
 
         for (const known of [true, false]) {
-          const groupTrackletIds = tracklets
+          const groupTrackletIds = trackletRows
             .filter((row) => (row.known_status === 'known') === known)
             .map((row) => row.tracklet_id);
           if (groupTrackletIds.length === 0) continue;
@@ -275,13 +363,93 @@ export const AladinSkyViewer: React.FC<AladinSkyViewerProps> = ({ className = ''
     };
   }, [status]);
 
+  useEffect(() => {
+    if (!selectedTracklet) return;
+    const aladin = aladinRef.current;
+    if (!aladin) return;
+    aladin.gotoRaDec(selectedTracklet.ra, selectedTracklet.dec);
+    aladin.setFoV(TRACKLET_FOV);
+  }, [selectedTracklet]);
+
+  useEffect(() => {
+    if (!selectedTrackletId) {
+      setSuggestions([]);
+      setSuggestionLoading(false);
+      return;
+    }
+
+    const controller = new AbortController();
+    const loadSuggestions = async () => {
+      setSuggestionLoading(true);
+      setSuggestionError(null);
+      const endpoint = new URL(`${import.meta.env.BASE_URL}api/tracklet-verification`, window.location.href);
+      endpoint.searchParams.set('trackletId', selectedTrackletId);
+      try {
+        const response = await fetch(endpoint, { signal: controller.signal });
+        const result = await response.json() as {
+          error?: string;
+          suggestions?: ClassificationSuggestion[];
+        };
+        if (!response.ok) throw new Error(result.error || 'Could not load community suggestions.');
+        setSuggestions(Array.isArray(result.suggestions) ? result.suggestions : []);
+      } catch (error) {
+        if (controller.signal.aborted) return;
+        setSuggestionError(error instanceof Error ? error.message : String(error));
+      } finally {
+        if (!controller.signal.aborted) setSuggestionLoading(false);
+      }
+    };
+
+    void loadSuggestions();
+    return () => controller.abort();
+  }, [selectedTrackletId, suggestionsVersion]);
+
+  const submitClassificationSuggestion = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!selectedTracklet || suggestionSaving) return;
+    setSuggestionSaving(true);
+    setSuggestionError(null);
+    setSuggestionMessage(null);
+
+    try {
+      const voterKey = `sferavis-tracklet-voter-${selectedTracklet.id}`;
+      let voterId = localStorage.getItem(voterKey);
+      if (!voterId) {
+        voterId = crypto.randomUUID();
+        localStorage.setItem(voterKey, voterId);
+      }
+
+      const endpoint = new URL(`${import.meta.env.BASE_URL}api/tracklet-verification`, window.location.href);
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          trackletId: selectedTracklet.id,
+          classification: classificationInput.trim(),
+          rationale: rationaleInput.trim(),
+          voterId,
+        }),
+      });
+      const result = await response.json() as { error?: string };
+      if (!response.ok) throw new Error(result.error || 'Could not save your suggestion.');
+
+      setSuggestionMessage('Your community suggestion was saved. The object remains unclassified pending an AI prediction.');
+      setSuggestionsVersion((version) => version + 1);
+    } catch (error) {
+      setSuggestionError(error instanceof Error ? error.message : String(error));
+    } finally {
+      setSuggestionSaving(false);
+    }
+  };
+
   const handleRetry = () => setRetryCount((current) => current + 1);
 
   const showReferenceSurvey = () => {
-    setSurvey('reference');
-    setSurveyErrorMsg(null);
-    if (aladinRef.current) loadSurveyLayer(DSS2_HIPS_URL);
-    else setRetryCount((current) => current + 1);
+    if (aladinRef.current) loadSurveyLayer('reference');
+    else {
+      setSurvey('reference');
+      setRetryCount((current) => current + 1);
+    }
   };
 
   const resetView = () => {
@@ -291,9 +459,98 @@ export const AladinSkyViewer: React.FC<AladinSkyViewerProps> = ({ className = ''
     aladinRef.current.setProjection('AIT');
   };
 
+  const clampDetailPanelPosition = useCallback((left: number, top: number) => {
+    const viewport = containerRef.current;
+    const panel = detailPanelRef.current;
+    if (!viewport || !panel) return { left, top };
+    return {
+      left: Math.max(0, Math.min(left, viewport.clientWidth - panel.offsetWidth)),
+      top: Math.max(0, Math.min(top, viewport.clientHeight - panel.offsetHeight)),
+    };
+  }, []);
+
+  const startPanelDrag = (event: React.PointerEvent<HTMLButtonElement>) => {
+    if (event.button !== 0) return;
+    const panel = detailPanelRef.current;
+    const viewport = containerRef.current;
+    if (!panel || !viewport) return;
+
+    const panelRect = panel.getBoundingClientRect();
+    const viewportRect = viewport.getBoundingClientRect();
+    const position = detailPanelPosition ?? {
+      left: panelRect.left - viewportRect.left,
+      top: panelRect.top - viewportRect.top,
+    };
+    panelDragRef.current = {
+      pointerId: event.pointerId,
+      clientX: event.clientX,
+      clientY: event.clientY,
+      ...position,
+    };
+    setDetailPanelPosition(position);
+    event.currentTarget.setPointerCapture(event.pointerId);
+    event.preventDefault();
+  };
+
+  const movePanelDrag = (event: React.PointerEvent<HTMLButtonElement>) => {
+    const drag = panelDragRef.current;
+    if (!drag || drag.pointerId !== event.pointerId) return;
+    setDetailPanelPosition(clampDetailPanelPosition(
+      drag.left + event.clientX - drag.clientX,
+      drag.top + event.clientY - drag.clientY,
+    ));
+  };
+
+  const finishPanelDrag = (event: React.PointerEvent<HTMLButtonElement>) => {
+    if (panelDragRef.current?.pointerId !== event.pointerId) return;
+    panelDragRef.current = null;
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+  };
+
+  const movePanelWithKeyboard = (event: React.KeyboardEvent<HTMLButtonElement>) => {
+    const movements: Record<string, [number, number]> = {
+      ArrowUp: [0, -16],
+      ArrowDown: [0, 16],
+      ArrowLeft: [-16, 0],
+      ArrowRight: [16, 0],
+    };
+    const movement = movements[event.key];
+    if (!movement) return;
+    const panel = detailPanelRef.current;
+    const viewport = containerRef.current;
+    if (!panel || !viewport) return;
+
+    event.preventDefault();
+    const panelRect = panel.getBoundingClientRect();
+    const viewportRect = viewport.getBoundingClientRect();
+    const position = detailPanelPosition ?? {
+      left: panelRect.left - viewportRect.left,
+      top: panelRect.top - viewportRect.top,
+    };
+    setDetailPanelPosition(clampDetailPanelPosition(
+      position.left + movement[0],
+      position.top + movement[1],
+    ));
+  };
+
+  useEffect(() => {
+    if (!detailPanelPosition) return;
+    const clampPanel = () => {
+      setDetailPanelPosition((position) => (
+        position ? clampDetailPanelPosition(position.left, position.top) : null
+      ));
+    };
+    window.addEventListener('resize', clampPanel);
+    return () => window.removeEventListener('resize', clampPanel);
+  }, [detailPanelPosition, clampDetailPanelPosition]);
+
   return (
     <section
-      className={`relative flex h-full min-h-0 w-full flex-col overflow-hidden bg-[#080f20] text-zinc-100 ${className}`}
+      className={`relative flex h-full min-h-0 w-full flex-col overflow-hidden ${
+        isDark ? 'bg-[#080f20] text-zinc-100' : 'bg-slate-100 text-slate-900'
+      } ${className}`}
       aria-label="Interactive sky map"
     >
       <div className="relative min-h-0 flex-1 bg-black">
@@ -306,7 +563,9 @@ export const AladinSkyViewer: React.FC<AladinSkyViewerProps> = ({ className = ''
 
         <div
           aria-label="Tracklet legend"
-          className="absolute bottom-3 left-3 z-10 flex items-center gap-3 border border-white/15 bg-black/75 px-3 py-2 text-[10px] text-zinc-200"
+          className={`absolute bottom-3 left-3 z-10 flex items-center gap-3 border px-3 py-2 text-[10px] ${
+            isDark ? 'border-white/15 bg-black/75 text-zinc-200' : 'border-slate-300 bg-white/90 text-slate-700'
+          }`}
         >
           <span className="flex items-center gap-2">
             <span className="h-2 w-2 rotate-45 bg-[#f2b84b]" aria-hidden="true" />
@@ -316,6 +575,28 @@ export const AladinSkyViewer: React.FC<AladinSkyViewerProps> = ({ className = ''
             <span className="h-2 w-2 rounded-full bg-[#f06b6b]" aria-hidden="true" />
             Candidate
           </span>
+        </div>
+
+        <div className="absolute left-3 top-16 z-10">
+          <label htmlFor={`${containerId}-tracklet`} className="sr-only">Select a tracklet</label>
+          <select
+            id={`${containerId}-tracklet`}
+            value={selectedTrackletId ?? ''}
+            onChange={(event) => setSelectedTrackletId(event.target.value || null)}
+            disabled={tracklets.length === 0}
+            className={`max-w-[min(18rem,calc(100vw-2rem))] border px-3 py-2 text-xs shadow-lg disabled:opacity-70 ${
+              isDark
+                ? 'border-white/20 bg-black/80 text-zinc-100'
+                : 'border-slate-300 bg-white/95 text-slate-800'
+            }`}
+          >
+            <option value="">Select a tracklet ({tracklets.length})</option>
+            {tracklets.map((tracklet) => (
+              <option key={tracklet.id} value={tracklet.id}>
+                Tracklet {tracklet.id}{tracklet.knownName ? ` - ${tracklet.knownName}` : ` - ${tracklet.knownStatus}`}
+              </option>
+            ))}
+          </select>
         </div>
 
         <div className="absolute right-3 top-3 z-10 flex items-center gap-2">
@@ -329,7 +610,11 @@ export const AladinSkyViewer: React.FC<AladinSkyViewerProps> = ({ className = ''
           <button
             type="button"
             onClick={resetView}
-            className="inline-flex h-9 w-9 items-center justify-center border border-white/15 bg-black/70 text-zinc-200 transition-colors hover:border-[#A30000] hover:text-white"
+            className={`inline-flex h-9 w-9 items-center justify-center border transition-colors hover:border-[#A30000] ${
+              isDark
+                ? 'border-white/15 bg-black/70 text-zinc-200 hover:text-white'
+                : 'border-slate-300 bg-white/90 text-slate-700 hover:text-slate-950'
+            }`}
             aria-label="Reset view to the analyzed field"
             title="Reset view"
           >
@@ -343,7 +628,7 @@ export const AladinSkyViewer: React.FC<AladinSkyViewerProps> = ({ className = ''
               <AlertTriangle className="h-4 w-4 shrink-0 text-amber-400" aria-hidden="true" />
               {surveyErrorMsg}
             </span>
-            <button type="button" onClick={() => loadSurveyLayer(survey === 'spherex' ? SPHEREX_HIPS_URL : DSS2_HIPS_URL)} className="shrink-0 underline hover:text-white">
+            <button type="button" onClick={() => loadSurveyLayer(survey)} className="shrink-0 underline hover:text-white">
               Retry
             </button>
           </div>
@@ -383,32 +668,159 @@ export const AladinSkyViewer: React.FC<AladinSkyViewerProps> = ({ className = ''
           </div>
         )}
 
-        {selectedAnalysisSource && (
+        {selectedTracklet && (
           <section
+            ref={detailPanelRef}
             aria-label="Selected tracklet details"
-            className="absolute right-3 top-16 z-10 max-h-[55%] w-[min(19rem,calc(100%-1.5rem))] overflow-y-auto border border-sky-200/20 bg-[#0a1422]/95 p-3 text-white shadow-2xl backdrop-blur-md"
+            style={detailPanelPosition ? { left: detailPanelPosition.left, top: detailPanelPosition.top } : undefined}
+            className={`absolute z-10 max-h-[70%] w-[min(22rem,calc(100%-1.5rem))] overflow-y-auto border p-3 shadow-2xl backdrop-blur-md ${
+              detailPanelPosition ? '' : 'right-3 top-16'
+            } ${
+              isDark
+                ? 'border-sky-200/20 bg-[#0a1422]/95 text-white'
+                : 'border-slate-300 bg-white/95 text-slate-900'
+            }`}
           >
-            <div className="mb-2 flex items-center justify-between gap-2 border-b border-white/10 pb-2">
-              <h2 className="text-[10px] font-bold uppercase tracking-wider text-sky-100">
-                Tracklet {selectedAnalysisSource.Tracklet}
-              </h2>
+            <div className={`mb-2 flex items-center justify-between gap-2 border-b pb-2 ${
+              isDark ? 'border-white/10' : 'border-slate-200'
+            }`}>
+              <div className="flex min-w-0 items-center gap-2">
+                <button
+                  type="button"
+                  aria-label="Move details panel; drag or use arrow keys"
+                  title="Drag to move; arrow keys also move the panel"
+                  onPointerDown={startPanelDrag}
+                  onPointerMove={movePanelDrag}
+                  onPointerUp={finishPanelDrag}
+                  onPointerCancel={finishPanelDrag}
+                  onKeyDown={movePanelWithKeyboard}
+                  className={`touch-none cursor-move rounded p-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#A30000] ${
+                    isDark ? 'text-zinc-400 hover:bg-white/10 hover:text-white' : 'text-slate-500 hover:bg-slate-100 hover:text-slate-900'
+                  }`}
+                >
+                  <Move className="h-3.5 w-3.5" aria-hidden="true" />
+                </button>
+                <h2 className={`truncate text-[10px] font-bold uppercase tracking-wider ${
+                  isDark ? 'text-sky-100' : 'text-slate-800'
+                }`}>
+                  Tracklet {selectedTracklet.id}
+                </h2>
+              </div>
               <button
                 type="button"
-                onClick={() => setSelectedAnalysisSource(null)}
+                onClick={() => setSelectedTrackletId(null)}
                 aria-label="Close tracklet details"
-                className="inline-flex h-7 w-7 items-center justify-center text-zinc-400 hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#A30000]"
+                className={`inline-flex h-7 w-7 shrink-0 items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#A30000] ${
+                  isDark ? 'text-zinc-400 hover:bg-white/10 hover:text-white' : 'text-slate-500 hover:bg-slate-100 hover:text-slate-900'
+                }`}
               >
                 <X className="h-3.5 w-3.5" aria-hidden="true" />
               </button>
             </div>
             <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1.5 text-[9px]">
-              {Object.entries(selectedAnalysisSource).map(([label, value]) => (
+              {Object.entries(selectedTracklet.details).map(([label, value]) => (
                 <React.Fragment key={label}>
-                  <dt className="text-zinc-500">{label}</dt>
-                  <dd className="min-w-0 break-words font-mono text-zinc-200">{value === null || value === '' ? '—' : String(value)}</dd>
+                  <dt className={isDark ? 'text-zinc-500' : 'text-slate-500'}>{label}</dt>
+                  <dd className={`min-w-0 break-words font-mono ${isDark ? 'text-zinc-200' : 'text-slate-700'}`}>
+                    {value === null || value === '' ? '—' : String(value)}
+                  </dd>
                 </React.Fragment>
               ))}
             </dl>
+            {selectedTracklet.plotPath && (
+              <div className={`mt-3 border-t pt-3 ${isDark ? 'border-white/10' : 'border-slate-200'}`}>
+                <h3 className={`mb-2 text-[10px] font-semibold uppercase tracking-wide ${
+                  isDark ? 'text-sky-100' : 'text-slate-700'
+                }`}>Diagnostic plot</h3>
+                <img
+                  src={selectedTracklet.plotPath}
+                  alt={`Diagnostic plot for tracklet ${selectedTracklet.id}`}
+                  loading="lazy"
+                  className="block h-auto w-full"
+                />
+                <p className={`mt-1 text-[9px] ${isDark ? 'text-zinc-400' : 'text-slate-500'}`}>
+                  This supplied plot is not a SPHEREx infrared image.
+                </p>
+              </div>
+            )}
+            <div className={`mt-3 border-t pt-3 ${isDark ? 'border-white/10' : 'border-slate-200'}`}>
+              <h3 className={`text-[10px] font-semibold uppercase tracking-wide ${
+                isDark ? 'text-sky-100' : 'text-slate-700'
+              }`}>Community suggestions</h3>
+              <p className={`mt-1 text-[9px] leading-relaxed ${
+                isDark ? 'text-zinc-400' : 'text-slate-500'
+              }`}>
+                No AI prediction is available for this object. Share a provisional interpretation; it will not change the unclassified status.
+              </p>
+              {suggestionLoading ? (
+                <p className={`mt-2 text-[9px] ${isDark ? 'text-zinc-400' : 'text-slate-500'}`} role="status">
+                  Loading public suggestions…
+                </p>
+              ) : suggestions.length > 0 ? (
+                <ul className="mt-2 space-y-1 text-[9px]" aria-label="Community classification suggestions">
+                  {suggestions.map((suggestion) => (
+                    <li key={suggestion.classification} className="flex items-center justify-between gap-2">
+                      <span className="min-w-0 break-words">{suggestion.classification}</span>
+                      <span className={`shrink-0 ${isDark ? 'text-zinc-400' : 'text-slate-500'}`}>
+                        {suggestion.count} {suggestion.count === 1 ? 'suggestion' : 'suggestions'}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              ) : !suggestionLoading && !suggestionError ? (
+                <p className={`mt-2 text-[9px] ${isDark ? 'text-zinc-400' : 'text-slate-500'}`}>
+                  No suggestions yet.
+                </p>
+              ) : null}
+              <form className="mt-3 space-y-2" onSubmit={submitClassificationSuggestion}>
+                <label className="sr-only" htmlFor={`${containerId}-classification`}>Your suggested object type</label>
+                <input
+                  id={`${containerId}-classification`}
+                  value={classificationInput}
+                  onChange={(event) => setClassificationInput(event.target.value)}
+                  minLength={2}
+                  maxLength={80}
+                  required
+                  placeholder="Your suggested type (e.g. asteroid)"
+                  className={`w-full border px-2 py-1.5 text-[10px] ${
+                    isDark
+                      ? 'border-white/15 bg-black/30 text-zinc-100 placeholder:text-zinc-500'
+                      : 'border-slate-300 bg-white text-slate-800 placeholder:text-slate-400'
+                  }`}
+                />
+                <label className="sr-only" htmlFor={`${containerId}-rationale`}>Reasoning for your suggestion</label>
+                <textarea
+                  id={`${containerId}-rationale`}
+                  value={rationaleInput}
+                  onChange={(event) => setRationaleInput(event.target.value)}
+                  maxLength={500}
+                  rows={2}
+                  placeholder="Optional reasoning based on the plot (do not include personal information)"
+                  className={`w-full resize-y border px-2 py-1.5 text-[10px] ${
+                    isDark
+                      ? 'border-white/15 bg-black/30 text-zinc-100 placeholder:text-zinc-500'
+                      : 'border-slate-300 bg-white text-slate-800 placeholder:text-slate-400'
+                  }`}
+                />
+                <button
+                  type="submit"
+                  disabled={suggestionSaving}
+                  className="bg-[#A30000] px-3 py-1.5 text-[10px] font-semibold text-white transition-colors hover:bg-[#8B0000] disabled:cursor-wait disabled:opacity-60"
+                >
+                  {suggestionSaving ? 'Saving…' : 'Submit suggestion'}
+                </button>
+                {suggestionMessage && (
+                  <p role="status" className={`text-[9px] ${isDark ? 'text-emerald-300' : 'text-emerald-700'}`}>
+                    {suggestionMessage}
+                  </p>
+                )}
+                {suggestionError && (
+                  <p role="alert" className={`text-[9px] ${isDark ? 'text-amber-300' : 'text-amber-700'}`}>
+                    {suggestionError}
+                  </p>
+                )}
+              </form>
+            </div>
           </section>
         )}
       </div>
