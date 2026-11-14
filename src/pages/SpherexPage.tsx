@@ -1,5 +1,4 @@
 import React, { useRef, useState } from 'react';
-import spherexObservatoryImage from '../assets/images/spherex_observatory_orbit_1794254683688.jpg';
 import { motion } from 'motion/react';
 import { PageId, SpectralBand } from '../types';
 import { SPHEREX_BANDS } from '../data/mockData';
@@ -491,17 +490,20 @@ export const SpherexPage: React.FC<SpherexPageProps> = ({ onNavigate, onLaunchSf
 
           <div className="relative border-2 border-zinc-200 dark:border-slate-800 overflow-hidden shadow-2xl bg-black">
             <img
-              src={spherexObservatoryImage}
-              alt="NASA SPHEREx Observatory Conical Passive Shields"
+              src="https://assets.science.nasa.gov/content/dam/science/psd/photojournal/pia/pia26/pia26531/PIA26531.jpg"
+              alt="Artist’s concept of the SPHEREx spacecraft in low Earth orbit, showing its distinctive conical photon shields."
               className="w-full h-full object-cover"
               referrerPolicy="no-referrer"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent flex items-end p-6">
               <div className="text-xs font-merriweather text-zinc-300 border-l-2 border-[#A30000] pl-3">
-                Conical nested V-groove thermal shields radiating satellite heat directly into 3K deep space.
+                Artist’s concept of SPHEREx in orbit. Its conical photon shields protect the telescope from infrared light and heat from the Sun and Earth.
               </div>
             </div>
           </div>
+          <p className="mt-3 text-right text-[10px] leading-relaxed text-slate-500 dark:text-zinc-500">
+            Image: <a href="https://images.nasa.gov/details/PIA26531" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 hover:text-[#A30000]">SPHEREx in Orbit (Artist’s Concept), PIA26531</a> · NASA/JPL-Caltech
+          </p>
 
         </div>
       </section>
