@@ -1,6 +1,21 @@
 import React, { useCallback, useEffect, useId, useRef, useState } from 'react';
 import A, { type AladinCatalog, type AladinGraphicOverlay, type AladinInstance } from 'aladin-lite';
-import { AlertTriangle, ChevronDown, ChevronUp, Image as ImageIcon, MessageSquarePlus, Move, RefreshCw, RotateCcw, X } from 'lucide-react';
+import {
+  AlertTriangle,
+  ChevronDown,
+  ChevronUp,
+  Image as ImageIcon,
+  Maximize2,
+  MessageSquarePlus,
+  Minimize2,
+  Moon,
+  Move,
+  MousePointer2,
+  RefreshCw,
+  RotateCcw,
+  Sun,
+  X,
+} from 'lucide-react';
 import { loadAnalysisDataset } from '../data/analysisDatasets';
 
 const SPHEREX_HIPS = 'CDS/P/SPHEREx/QR2/D3';
@@ -55,11 +70,20 @@ function createReferenceHiPS(onError?: (error: unknown) => void) {
 interface AladinSkyViewerProps {
   className?: string;
   isDark: boolean;
+  isFullscreen: boolean;
+  onToggleFullscreen: () => void;
+  onToggleTheme: () => void;
 }
 
 type ViewerStatus = 'loading' | 'ready' | 'init-error';
 
-export const AladinSkyViewer: React.FC<AladinSkyViewerProps> = ({ className = '', isDark }) => {
+export const AladinSkyViewer: React.FC<AladinSkyViewerProps> = ({
+  className = '',
+  isDark,
+  isFullscreen,
+  onToggleFullscreen,
+  onToggleTheme,
+}) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const detailPanelRef = useRef<HTMLElement>(null);
   const toolPanelRef = useRef<HTMLElement>(null);
@@ -105,10 +129,21 @@ export const AladinSkyViewer: React.FC<AladinSkyViewerProps> = ({ className = ''
   const [classificationInput, setClassificationInput] = useState('');
   const [rationaleInput, setRationaleInput] = useState('');
   const [survey, setSurvey] = useState<'spherex' | 'reference'>('spherex');
+  const [isSimbadPointerActive, setIsSimbadPointerActive] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
   const surveyRef = useRef(survey);
   surveyRef.current = survey;
   const selectedTracklet = tracklets.find((tracklet) => tracklet.id === selectedTrackletId) ?? null;
+
+  useEffect(() => {
+    const aladinContainer = containerRef.current;
+    if (!aladinContainer) return;
+    const theme = isDark ? 'dark' : 'light';
+    aladinContainer.setAttribute('data-theme', theme);
+    aladinContainer.querySelectorAll('[data-theme]').forEach((element) => {
+      element.setAttribute('data-theme', theme);
+    });
+  }, [isDark, status]);
 
   useEffect(() => {
     setSuggestions([]);
@@ -200,13 +235,15 @@ export const AladinSkyViewer: React.FC<AladinSkyViewerProps> = ({ className = ''
       containerRef.current.id = containerId;
       const aladin = A.aladin(`#${containerId}`, {
         survey: DSS2_HIPS,
+        mode: isDark ? 'dark' : 'light',
         target: `${INITIAL_RA} ${INITIAL_DEC}`,
         fov: INITIAL_FOV,
         projection: 'AIT',
         cooFrame: 'ICRS',
         showCooGrid: true,
         showCooGridControl: false,
-        showSimbadPointerControl: true,
+        showZoomControl: true,
+        showSimbadPointerControl: false,
         showReticle: true,
         showLayersControl: false,
         showFullscreenControl: false,
@@ -218,6 +255,7 @@ export const AladinSkyViewer: React.FC<AladinSkyViewerProps> = ({ className = ''
       aladin.setDefaultColor('#A30000');
       aladin.setCooGrid({ enabled: true, color: '#A30000', opacity: 0.42, labelSize: 10 });
       aladinRef.current = aladin;
+      setIsSimbadPointerActive(false);
       setStatus('ready');
       loadSurveyLayer(surveyRef.current);
     } catch (error) {
@@ -488,6 +526,14 @@ export const AladinSkyViewer: React.FC<AladinSkyViewerProps> = ({ className = ''
     aladinRef.current.setProjection('AIT');
   };
 
+  const toggleSimbadPointer = () => {
+    const aladin = aladinRef.current;
+    if (!aladin) return;
+    const nextIsActive = !isSimbadPointerActive;
+    aladin.fire(nextIsActive ? 'simbad' : 'default');
+    setIsSimbadPointerActive(nextIsActive);
+  };
+
   const clampDetailPanelPosition = useCallback((left: number, top: number) => {
     const viewport = containerRef.current;
     const panel = detailPanelRef.current;
@@ -662,6 +708,16 @@ export const AladinSkyViewer: React.FC<AladinSkyViewerProps> = ({ className = ''
     return () => window.removeEventListener('resize', clampPanel);
   }, [toolPanelPosition, clampToolPanelPosition]);
 
+  const sidebarSurfaceClass = isDark
+    ? 'border-white/10 bg-[#07111f]/95 text-zinc-100 shadow-black/40'
+    : 'border-slate-200 bg-white/95 text-slate-800 shadow-slate-900/10';
+  const sidebarButtonClass = isDark
+    ? 'border-white/10 bg-white/[0.04] text-zinc-200 hover:border-white/20 hover:bg-white/[0.09]'
+    : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50';
+  const sidebarSelectClass = isDark
+    ? 'border-white/10 bg-slate-900 text-zinc-100 focus:border-sky-400'
+    : 'border-slate-200 bg-white text-slate-800 focus:border-sky-600';
+
   return (
     <section
       className={`relative flex h-full min-h-0 w-full flex-col overflow-hidden ${
@@ -674,81 +730,162 @@ export const AladinSkyViewer: React.FC<AladinSkyViewerProps> = ({ className = ''
           id={containerId}
           ref={containerRef}
           className="aladin-viewport-container absolute inset-0 h-full w-full"
+          data-theme={isDark ? 'dark' : 'light'}
           style={{ width: '100%', height: '100%' }}
         />
 
-        <div
-          aria-label="Tracklet legend"
-          className={`absolute bottom-3 left-3 z-10 flex items-center gap-3 border px-3 py-2 text-[10px] ${
-            isDark ? 'border-white/15 bg-black/75 text-zinc-200' : 'border-slate-300 bg-white/90 text-slate-700'
-          }`}
+        <aside
+          aria-label="Atlas controls"
+          className={`absolute bottom-3 left-3 top-3 z-10 flex w-[min(14rem,calc(100%-5rem))] flex-col overflow-y-auto rounded-xl border p-3 shadow-xl backdrop-blur-xl ${sidebarSurfaceClass}`}
         >
-          <span className="flex items-center gap-2">
-            <span className="h-2 w-2 rotate-45 bg-[#f2b84b]" aria-hidden="true" />
-            Known match
-          </span>
-          <span className="flex items-center gap-2">
-            <span className="h-2 w-2 rounded-full bg-[#f06b6b]" aria-hidden="true" />
-            Candidate
-          </span>
-        </div>
+          <header className={`mb-4 flex items-center justify-between border-b pb-3 ${
+            isDark ? 'border-white/10' : 'border-slate-200'
+          }`}>
+            <div className="min-w-0">
+              <h2 className="text-sm font-bold tracking-wide">Atlas</h2>
+              <p className={`mt-0.5 truncate text-[10px] ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                SPHEREx sky explorer
+              </p>
+            </div>
+            <span
+              className={`ml-2 h-2.5 w-2.5 shrink-0 rounded-full ${
+                status === 'ready' ? 'bg-emerald-400' : status === 'init-error' ? 'bg-red-400' : 'animate-pulse bg-amber-400'
+              }`}
+              role="status"
+              aria-label={status === 'ready' ? 'Map ready' : status === 'init-error' ? 'Map failed to initialize' : 'Map loading'}
+              title={status === 'ready' ? 'Map ready' : status === 'init-error' ? 'Map failed to initialize' : 'Map loading'}
+            />
+          </header>
 
-        <div className="absolute left-3 top-16 z-10">
-          <label htmlFor={`${containerId}-tracklet`} className="sr-only">Select a tracklet</label>
-          <select
-            id={`${containerId}-tracklet`}
-            value={selectedTrackletId ?? ''}
-            onChange={(event) => setSelectedTrackletId(event.target.value || null)}
-            disabled={tracklets.length === 0}
-            className={`max-w-[min(18rem,calc(100vw-2rem))] border px-3 py-2 text-xs shadow-lg disabled:opacity-70 ${
-              isDark
-                ? 'border-white/20 bg-black/80 text-zinc-100'
-                : 'border-slate-300 bg-white/95 text-slate-800'
-            }`}
-          >
-            <option value="">Select a tracklet ({tracklets.length})</option>
-            {tracklets.map((tracklet) => (
-              <option key={tracklet.id} value={tracklet.id}>
-                Tracklet {tracklet.id}{tracklet.knownName ? ` - ${tracklet.knownName}` : ` - ${tracklet.knownStatus}`}
-              </option>
-            ))}
-          </select>
-        </div>
+          <div className="space-y-4">
+            <div>
+              <label htmlFor={`${containerId}-survey`} className={`mb-1.5 block text-[10px] font-semibold uppercase tracking-wider ${
+                isDark ? 'text-slate-400' : 'text-slate-500'
+              }`}>Survey</label>
+              <select
+                id={`${containerId}-survey`}
+                value={survey}
+                onChange={(event) => loadSurveyLayer(event.currentTarget.value === 'reference' ? 'reference' : 'spherex')}
+                className={`w-full rounded-lg border px-2.5 py-2 text-xs outline-none transition-colors focus:ring-2 focus:ring-sky-500/30 ${sidebarSelectClass}`}
+              >
+                <option value="spherex">SPHEREx infrared</option>
+                <option value="reference">DSS2 optical reference</option>
+              </select>
+            </div>
 
-        <div className="absolute right-3 top-3 z-10 flex items-center gap-2">
-          <span
-            className={`h-2 w-2 rounded-full ${
-              status === 'ready' ? 'bg-emerald-400' : status === 'init-error' ? 'bg-red-400' : 'animate-pulse bg-amber-400'
-            }`}
-            role="status"
-            aria-label={status === 'ready' ? 'Map ready' : status === 'init-error' ? 'Map failed to initialize' : 'Map loading'}
-          />
-          <button
-            type="button"
-            onClick={resetView}
-            className={`inline-flex h-9 w-9 items-center justify-center border transition-colors hover:border-[#A30000] ${
-              isDark
-                ? 'border-white/15 bg-black/70 text-zinc-200 hover:text-white'
-                : 'border-slate-300 bg-white/90 text-slate-700 hover:text-slate-950'
-            }`}
-            aria-label="Reset view to the analyzed field"
-            title="Reset view"
-          >
-            <RotateCcw className="h-4 w-4" aria-hidden="true" />
-          </button>
-        </div>
+            <div>
+              <label htmlFor={`${containerId}-tracklet`} className={`mb-1.5 block text-[10px] font-semibold uppercase tracking-wider ${
+                isDark ? 'text-slate-400' : 'text-slate-500'
+              }`}>Tracklet</label>
+              <select
+                id={`${containerId}-tracklet`}
+                value={selectedTrackletId ?? ''}
+                onChange={(event) => setSelectedTrackletId(event.target.value || null)}
+                disabled={tracklets.length === 0}
+                className={`w-full rounded-lg border px-2.5 py-2 text-xs outline-none transition-colors focus:ring-2 focus:ring-sky-500/30 disabled:opacity-60 ${sidebarSelectClass}`}
+              >
+                <option value="">Select from {tracklets.length} objects</option>
+                {tracklets.map((tracklet) => (
+                  <option key={tracklet.id} value={tracklet.id}>
+                    Tracklet {tracklet.id}{tracklet.knownName ? ` · ${tracklet.knownName}` : ` · ${tracklet.knownStatus}`}
+                  </option>
+                ))}
+              </select>
+            </div>
 
-        {surveyErrorMsg && status === 'ready' && (
-          <div role="status" className="absolute left-3 right-14 top-3 z-10 flex items-center justify-between gap-3 border border-amber-900/60 bg-amber-950/85 px-3 py-2 text-xs text-amber-100">
-            <span className="flex items-center gap-2">
-              <AlertTriangle className="h-4 w-4 shrink-0 text-amber-400" aria-hidden="true" />
-              {surveyErrorMsg}
-            </span>
-            <button type="button" onClick={() => loadSurveyLayer(survey)} className="shrink-0 underline hover:text-white">
-              Retry
-            </button>
+            <div className="space-y-2">
+              <button
+                type="button"
+                onClick={resetView}
+                className={`flex w-full items-center gap-2 rounded-lg border px-3 py-2 text-left text-xs font-medium transition-colors ${sidebarButtonClass}`}
+              >
+                <RotateCcw className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                Reset map view
+              </button>
+              <button
+                type="button"
+                onClick={toggleSimbadPointer}
+                aria-pressed={isSimbadPointerActive}
+                className={`flex w-full items-center gap-2 rounded-lg border px-3 py-2 text-left text-xs font-medium transition-colors ${
+                  isSimbadPointerActive
+                    ? 'border-sky-400/50 bg-sky-500/15 text-sky-700 dark:text-sky-200'
+                    : sidebarButtonClass
+                }`}
+                title="Enable SIMBAD lookup by clicking an object on the map"
+              >
+                <MousePointer2 className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                {isSimbadPointerActive ? 'Exit SIMBAD lookup' : 'SIMBAD lookup'}
+              </button>
+              <button
+                type="button"
+                onClick={onToggleTheme}
+                className={`flex w-full items-center gap-2 rounded-lg border px-3 py-2 text-left text-xs font-medium transition-colors ${sidebarButtonClass}`}
+                aria-label={`Switch to ${isDark ? 'light' : 'dark'} theme`}
+              >
+                {isDark
+                  ? <Sun className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                  : <Moon className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />}
+                {isDark ? 'Light theme' : 'Dark theme'}
+              </button>
+              <button
+                type="button"
+                onClick={onToggleFullscreen}
+                className={`flex w-full items-center gap-2 rounded-lg border px-3 py-2 text-left text-xs font-medium transition-colors ${sidebarButtonClass}`}
+                aria-label={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
+              >
+                {isFullscreen
+                  ? <Minimize2 className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                  : <Maximize2 className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />}
+                {isFullscreen ? 'Exit fullscreen' : 'Fullscreen'}
+              </button>
+            </div>
+
+            <div className={`border-t pt-3 ${isDark ? 'border-white/10' : 'border-slate-200'}`}>
+              <h3 className={`mb-2 text-[10px] font-semibold uppercase tracking-wider ${
+                isDark ? 'text-slate-400' : 'text-slate-500'
+              }`}>Tracklet key</h3>
+              <div className="space-y-2 text-[10px]">
+                <span className="flex items-center gap-2">
+                  <span className="h-2 w-2 rotate-45 bg-[#f2b84b]" aria-hidden="true" />
+                  Known match
+                </span>
+                <span className="flex items-center gap-2">
+                  <span className="h-2 w-2 rounded-full bg-[#f06b6b]" aria-hidden="true" />
+                  Candidate
+                </span>
+              </div>
+            </div>
           </div>
-        )}
+
+          {(surveyErrorMsg || analysisError) && (
+            <div className="mt-4 space-y-2">
+              {surveyErrorMsg && (
+                <div role="status" className={`rounded-lg border p-2 text-[10px] ${
+                  isDark ? 'border-amber-400/20 bg-amber-400/10 text-amber-100' : 'border-amber-300 bg-amber-50 text-amber-900'
+                }`}>
+                  <div className="flex items-start gap-1.5">
+                    <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                    <span>{surveyErrorMsg}</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => loadSurveyLayer(survey)}
+                    className="mt-2 font-semibold underline underline-offset-2"
+                  >
+                    Retry survey
+                  </button>
+                </div>
+              )}
+              {analysisError && (
+                <div role="alert" className={`rounded-lg border p-2 text-[10px] ${
+                  isDark ? 'border-red-400/20 bg-red-400/10 text-red-100' : 'border-red-300 bg-red-50 text-red-900'
+                }`}>
+                  Could not load the tracklet overlay: {analysisError}
+                </div>
+              )}
+            </div>
+          )}
+        </aside>
 
         {status === 'loading' && (
           <div className="absolute inset-0 z-20 flex items-center justify-center bg-[#050507]/90 text-zinc-300 backdrop-blur-sm">
@@ -775,12 +912,6 @@ export const AladinSkyViewer: React.FC<AladinSkyViewerProps> = ({ className = ''
                 </button>
               </div>
             </div>
-          </div>
-        )}
-
-        {analysisError && (
-          <div role="alert" className="absolute bottom-3 left-3 z-10 max-w-lg border border-red-900/60 bg-red-950/85 px-3 py-2 text-xs text-red-100">
-            Could not load the tracklet overlay: {analysisError}
           </div>
         )}
 
