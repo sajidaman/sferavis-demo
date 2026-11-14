@@ -32,11 +32,23 @@ button:focus-visible,input:focus-visible,#sky:focus-visible{outline:2px solid va
 .ib:hover{background:#1f1f2e;border-color:var(--ln)}
 .ib[aria-expanded=true],.ib[aria-pressed=true]{background:#220e12;border-color:var(--band);color:var(--c,var(--band))}
 
-/* left rail like Stellarium */
-#rail{position:absolute;left:0;top:12px;z-index:6;display:flex;flex-direction:column;gap:2px;padding:6px;border-left:0;border-radius:0 14px 14px 0;max-height:calc(100% - 24px);overflow:auto}
+/* unified Atlas control sidebar */
+#rail{position:absolute;left:12px;top:12px;bottom:12px;z-index:6;width:260px;display:flex;flex-direction:column;align-items:stretch;gap:8px;padding:12px;border-radius:16px;overflow:auto}
+#rail>[data-r]{width:38px;height:38px}
+#tool{position:static;z-index:auto;width:100%;max-width:none;margin-top:6px;padding:12px 0 0;border:0;border-top:1px solid var(--ln);border-radius:0;background:transparent;box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none}
+#stat{font-size:11px;line-height:1.45;white-space:normal;margin:0 2px 10px}
+#tool .grp{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;overflow:visible}
+#tool .grp .ib{width:100%;height:38px;display:flex;align-items:center;justify-content:flex-start;gap:8px;padding:0 9px;border:1px solid var(--ln);border-radius:9px;background:rgba(255,255,255,.035)}
+#tool .grp .ib:hover{background:#1f1f2e;border-color:rgba(163,0,0,.65)}
+#tool .grp .ib[aria-pressed=true]{background:rgba(163,0,0,.18);border-color:rgba(163,0,0,.7)}
+#tool .grp .ib svg{width:19px;height:19px;flex:none}
+#tool .grp .sep{display:none}
+#tool .grp .lamb{grid-column:span 2;width:100%;justify-content:flex-start}
+#zoom-controls{position:absolute;right:16px;top:50%;transform:translateY(-50%);z-index:6;display:flex;flex-direction:column;gap:4px;padding:5px;border-radius:13px}
+#zoom-controls .ib{width:42px;height:42px;border-radius:9px}
 
 /* flyout panels */
-.fly{position:absolute;left:66px;top:12px;z-index:5;width:310px;max-height:calc(100% - 12px - 96px);overflow:auto;border-radius:14px;padding:14px 16px}
+.fly{position:absolute;left:284px;top:12px;z-index:5;width:310px;max-height:calc(100% - 24px);overflow:auto;border-radius:14px;padding:14px 16px}
 .fly[hidden]{display:none}
 #r-insp{width:330px}
 .fly>header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
@@ -85,17 +97,25 @@ body.hu #su{display:block}
 body.hu #rail,body.hu #tool,body.hu #wave,body.hu #time,body.hu .fly,body.hu #brand,body.hu #tr{display:none!important}
 
 @media(max-width:1180px){
- #wave,#time{bottom:calc(98px + env(safe-area-inset-bottom,0px))}
+ #wave,#time{bottom:calc(12px + env(safe-area-inset-bottom,0px))}
 }
 @media(max-width:860px){
+ #rail{left:8px;top:8px;bottom:8px;width:220px;padding:9px}
  .badge{display:none}
- .fly{left:62px;right:8px;width:auto}#r-insp{width:auto}
- #wave,#time{right:8px;width:calc(100% - 70px);max-width:340px}#tool{left:62px;right:8px;max-width:none}
+ .fly{left:236px;right:8px;top:8px;width:auto;max-height:calc(100% - 16px)}#r-insp{width:auto}
+ #wave,#time{right:8px;width:calc(100% - 244px);max-width:340px}
+ #zoom-controls{right:8px}
+}
+@media(max-width:560px){
+ #rail{width:190px}
+ .fly{left:206px}
+ #wave,#time{width:calc(100% - 214px)}
+ #zoom-controls .ib{width:36px;height:36px}
 }
 @media(prefers-reduced-motion:reduce){*{transition:none!important}}
 </style></head><body>
 
-<div id="brand"><b>Sfera<span style="color:#A30000">vis</span></b><span class="badge">SPHEREx 102-Band Sky Atlas</span></div>
+<div id="brand"><b>Sfera<span style="color:#A30000">vis</span></b><span class="badge">ATLAS</span></div>
 <div id="tr" class="glass"><button class="ib sm" id="exit-btn" aria-label="Exit back to website" title="Exit to SFERAvis" style="width:auto;padding:0 12px;font-family:var(--sf);font-weight:700;font-size:11px;letter-spacing:0.06em;color:#ff6b6b;background:rgba(220,38,38,0.18);border-color:rgba(163,0,0,0.6)">EXIT ✕</button><button class="ib sm" id="fs" data-ic="fs" aria-label="Toggle full screen" title="Full screen (F)"></button><button class="ib sm" id="hu" data-ic="hide" aria-label="Hide interface" title="Hide interface (H)"></button></div>
 <button id="su" aria-label="Show interface">Show UI</button>
 
@@ -109,6 +129,29 @@ body.hu #rail,body.hu #tool,body.hu #wave,body.hu #time,body.hu .fly,body.hu #br
  <button class="ib" data-r="set" data-ic="set" aria-expanded="false" aria-label="Settings" title="Settings"></button>
  <button class="ib" data-r="help" data-ic="help" aria-expanded="false" aria-label="Help" title="Help and shortcuts"></button>
 </nav>
+<div id="tool" class="glass"><div id="stat"></div>
+<div class="grp" role="toolbar" aria-label="Sky toggles">
+ <button class="ib sm" data-g="eqg" data-ic="eqg" aria-pressed="false" aria-label="Equatorial grid" title="Equatorial grid"></button>
+ <button class="ib sm" data-g="gg" data-ic="ggrid" aria-pressed="false" aria-label="Galactic grid" title="Galactic grid"></button>
+ <button class="ib sm" data-g="eq" data-ic="eq" aria-pressed="true" aria-label="Celestial equator" title="Celestial equator"></button>
+ <button class="ib sm" data-g="ecl" data-ic="ecl" aria-pressed="true" aria-label="Ecliptic" title="Ecliptic"></button>
+ <button class="ib sm" data-g="gp" data-ic="gp" aria-pressed="true" aria-label="Galactic plane" title="Galactic plane"></button>
+ <span class="sep"></span>
+ <button class="ib sm" data-l="stars" data-ic="stars" style="--c:#fff" aria-pressed="true" aria-label="Stars and Milky Way" title="Stars and Milky Way"></button>
+ <button class="ib sm" data-l="gal" data-ic="gal" style="--c:#8fe3ff" aria-pressed="true" aria-label="Galaxies" title="Galaxies"></button>
+ <button class="ib sm" data-l="ice" data-ic="ice" style="--c:#ffffff" aria-pressed="true" aria-label="Ice clouds" title="Ice clouds"></button>
+ <button class="ib sm" data-l="str" data-ic="str" style="--c:#ffe066" aria-pressed="true" aria-label="Stellar anomalies" title="Stellar anomalies"></button>
+ <span class="sep"></span>
+ <button class="ib sm" data-pr="dome" data-ic="dome" aria-pressed="true" aria-label="Dome view" title="Dome view"></button>
+ <button class="ib sm" data-pr="globe" data-ic="globe" aria-pressed="false" aria-label="Globe view" title="Globe view"></button>
+ <button class="ib sm" data-pr="allsky" data-ic="allsky" aria-pressed="false" aria-label="All-sky map" title="All-sky map"></button>
+ <span class="sep"></span>
+ <button class="ib sm" id="hm" data-ic="home" aria-label="Reset view" title="Reset view"></button>
+ <span class="sep"></span>
+ <button class="ib sm lamb" id="lamchip" aria-expanded="false" aria-label="Wavelength" title="Wavelength"><span data-ic="wave"></span><span id="lamt"></span></button>
+ <button class="ib sm lamb" id="timechip" aria-expanded="false" aria-label="Survey time" title="Survey time"><span data-ic="time"></span><span id="timet"></span></button>
+</div></div>
+<div id="zoom-controls" class="glass" role="group" aria-label="Zoom controls"><button class="ib" id="zi" data-ic="zin" aria-label="Zoom in" title="Zoom in"></button><button class="ib" id="zo" data-ic="zout" aria-label="Zoom out" title="Zoom out"></button></div>
 
 <div id="stage">
 <canvas id="sky" tabindex="0" aria-label="Interactive sky dome. Drag to pan, scroll to zoom."></canvas>
@@ -173,30 +216,7 @@ body.hu #rail,body.hu #tool,body.hu #wave,body.hu #time,body.hu .fly,body.hu #br
 <div class="chips"><button data-month="3">Pass 1</button><button data-month="9">Pass 2</button><button data-month="15">Pass 3</button><button data-month="21">Pass 4</button></div>
 <label class="row" style="margin-top:10px"><input type="checkbox" id="varonly">Only show sources that change over time</label></section>
 
-<div id="tool" class="glass"><div id="stat"></div>
-<div class="grp" role="toolbar" aria-label="Sky toggles">
- <button class="ib sm" data-g="eqg" data-ic="eqg" aria-pressed="false" aria-label="Equatorial grid" title="Equatorial grid"></button>
- <button class="ib sm" data-g="gg" data-ic="ggrid" aria-pressed="false" aria-label="Galactic grid" title="Galactic grid"></button>
- <button class="ib sm" data-g="eq" data-ic="eq" aria-pressed="true" aria-label="Celestial equator" title="Celestial equator"></button>
- <button class="ib sm" data-g="ecl" data-ic="ecl" aria-pressed="true" aria-label="Ecliptic" title="Ecliptic"></button>
- <button class="ib sm" data-g="gp" data-ic="gp" aria-pressed="true" aria-label="Galactic plane" title="Galactic plane"></button>
- <span class="sep"></span>
- <button class="ib sm" data-l="stars" data-ic="stars" style="--c:#fff" aria-pressed="true" aria-label="Stars and Milky Way" title="Stars and Milky Way"></button>
- <button class="ib sm" data-l="gal" data-ic="gal" style="--c:#8fe3ff" aria-pressed="true" aria-label="Galaxies" title="Galaxies"></button>
- <button class="ib sm" data-l="ice" data-ic="ice" style="--c:#ffffff" aria-pressed="true" aria-label="Ice clouds" title="Ice clouds"></button>
- <button class="ib sm" data-l="str" data-ic="str" style="--c:#ffe066" aria-pressed="true" aria-label="Stellar anomalies" title="Stellar anomalies"></button>
- <span class="sep"></span>
- <button class="ib sm" data-pr="dome" data-ic="dome" aria-pressed="true" aria-label="Dome view" title="Dome view"></button>
- <button class="ib sm" data-pr="globe" data-ic="globe" aria-pressed="false" aria-label="Globe view" title="Globe view"></button>
- <button class="ib sm" data-pr="allsky" data-ic="allsky" aria-pressed="false" aria-label="All-sky map" title="All-sky map"></button>
- <span class="sep"></span>
- <button class="ib sm" id="zo" data-ic="zout" aria-label="Zoom out" title="Zoom out"></button>
- <button class="ib sm" id="zi" data-ic="zin" aria-label="Zoom in" title="Zoom in"></button>
- <button class="ib sm" id="hm" data-ic="home" aria-label="Reset view" title="Reset view"></button>
- <span class="sep"></span>
- <button class="ib sm lamb" id="lamchip" aria-expanded="false" aria-label="Wavelength" title="Wavelength"><span data-ic="wave"></span><span id="lamt"></span></button>
- <button class="ib sm lamb" id="timechip" aria-expanded="false" aria-label="Survey time" title="Survey time"><span data-ic="time"></span><span id="timet"></span></button>
-</div></div>
+
 
 <script>
 const R=Math.PI/180,$=s=>document.querySelector(s),$$=s=>document.querySelectorAll(s);
