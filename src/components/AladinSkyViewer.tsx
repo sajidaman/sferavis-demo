@@ -25,6 +25,17 @@ const INITIAL_RA = 180;
 const INITIAL_DEC = 0;
 const INITIAL_FOV = 0.25;
 const TRACKLET_FOV = 0.12;
+const SPHEREX_SIMULATOR_SAMPLES = {
+  'simulator-high-latitude': {
+    name: 'SPHEREx simulator — high latitude',
+    path: 'data/spherex-simulator/high-latitude-cutout.fits',
+  },
+  'simulator-galactic-plane': {
+    name: 'SPHEREx simulator — galactic plane',
+    path: 'data/spherex-simulator/galactic-plane-cutout.fits',
+  },
+} as const;
+type AtlasSurvey = 'spherex' | 'reference' | keyof typeof SPHEREX_SIMULATOR_SAMPLES;
 const PROJECTIONS = [
   { value: 'AIT', label: 'All-sky (Aitoff)' },
   { value: 'TAN', label: 'Tangent plane' },
@@ -138,7 +149,7 @@ export const AladinSkyViewer: React.FC<AladinSkyViewerProps> = ({
   const [suggestionError, setSuggestionError] = useState<string | null>(null);
   const [classificationInput, setClassificationInput] = useState('');
   const [rationaleInput, setRationaleInput] = useState('');
-  const [survey, setSurvey] = useState<'spherex' | 'reference'>('spherex');
+  const [survey, setSurvey] = useState<AtlasSurvey>('simulator-high-latitude');
   const [projection, setProjection] = useState<(typeof PROJECTIONS)[number]['value']>('AIT');
   const [isGridVisible, setIsGridVisible] = useState(true);
   const [isReticleVisible, setIsReticleVisible] = useState(true);
@@ -175,12 +186,35 @@ export const AladinSkyViewer: React.FC<AladinSkyViewerProps> = ({
     setOpenTrackletTool(null);
   }, [selectedTrackletId]);
 
-  const loadSurveyLayer = useCallback((nextSurvey: 'spherex' | 'reference') => {
+  const loadSurveyLayer = useCallback((nextSurvey: AtlasSurvey) => {
     const aladin = aladinRef.current;
     if (!aladin) return;
 
     setSurvey(nextSurvey);
     setSurveyErrorMsg(null);
+    if (nextSurvey in SPHEREX_SIMULATOR_SAMPLES) {
+      const sample = SPHEREX_SIMULATOR_SAMPLES[nextSurvey as keyof typeof SPHEREX_SIMULATOR_SAMPLES];
+      try {
+        const image = aladin.createImageFITS(
+          `${import.meta.env.BASE_URL}${sample.path}`,
+          { name: sample.name, colormap: 'magma', stretch: 'asinh' },
+          (ra, dec, fov) => {
+            aladin.gotoRaDec(ra, dec);
+            aladin.setFoV(fov);
+          },
+          (error) => {
+            const detail = error instanceof Error ? error.message : String(error);
+            setSurveyErrorMsg(`${sample.name} could not be loaded. Details: ${detail}`);
+          },
+        );
+        aladin.setBaseImageLayer(image);
+      } catch (error) {
+        const detail = error instanceof Error ? error.message : String(error);
+        setSurveyErrorMsg(`${sample.name} could not be loaded. Details: ${detail}`);
+      }
+      return;
+    }
+
     if (nextSurvey === 'reference') {
       try {
         aladin.setBaseImageLayer(createReferenceHiPS((error) => {
@@ -838,8 +872,32 @@ export const AladinSkyViewer: React.FC<AladinSkyViewerProps> = ({
                 className={`w-full rounded-lg border px-2.5 py-2 text-xs outline-none transition-colors focus:ring-2 focus:ring-sky-500/30 disabled:cursor-not-allowed disabled:opacity-60 ${sidebarSelectClass}`}
               >
                 <option value="spherex">SPHEREx infrared</option>
+                <option value="simulator-high-latitude">Simulator sample — high latitude</option>
+                <option value="simulator-galactic-plane">Simulator sample — galactic plane</option>
                 <option value="reference">DSS2 optical reference</option>
               </select>
+              {survey in SPHEREX_SIMULATOR_SAMPLES && (
+                <p className={`mt-2 text-[10px] leading-relaxed ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                  256×256-pixel Level-2 simulator cutout, not an all-sky map. See the{' '}
+                  <a
+                    className="underline underline-offset-2"
+                    href="https://doi.org/10.3847/1538-4365/ae04cc"
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    Crill et al. (2025) paper
+                  </a>
+                  {' '}and{' '}
+                  <a
+                    className="underline underline-offset-2"
+                    href="https://irsa.ipac.caltech.edu/"
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    IRSA
+                  </a>.
+                </p>
+              )}
             </div>
 
             <div>
