@@ -168,6 +168,14 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate, onLaunchSferavis }) 
               </li>
               <li>
                 <button
+                  onClick={() => onNavigate('archive')}
+                  className="hover:text-zinc-950 dark:hover:text-white transition-colors cursor-pointer text-left"
+                >
+                  Infraredium Archive
+                </button>
+              </li>
+              <li>
+                <button
                   onClick={() => onNavigate('contact')}
                   className="hover:text-zinc-950 dark:hover:text-white transition-colors cursor-pointer text-left"
                 >
