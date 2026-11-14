@@ -258,12 +258,14 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate, onLaunchSferavis }) 
             </a>
             <span aria-hidden="true">·</span>
             <a
-              href="https://github.com/sajidaman/sferavis-demo/blob/main/THIRD_PARTY_NOTICES.md"
-              target="_blank"
-              rel="noopener noreferrer"
+              href="#licensing"
+              onClick={(event) => {
+                event.preventDefault();
+                onNavigate('licensing');
+              }}
               className="hover:text-zinc-950 dark:hover:text-white transition-colors"
             >
-              Open Source & Licenses
+              Open Source &amp; Licences
             </a>
           </div>
         </div>
