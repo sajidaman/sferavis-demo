@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useId, useRef, useState } from 'react';
 import A, { type AladinCatalog, type AladinGraphicOverlay, type AladinInstance } from 'aladin-lite';
-import { AlertTriangle, Move, RefreshCw, RotateCcw, X } from 'lucide-react';
+import { AlertTriangle, ChevronDown, ChevronUp, Image as ImageIcon, MessageSquarePlus, Move, RefreshCw, RotateCcw, X } from 'lucide-react';
 import { loadAnalysisDataset } from '../data/analysisDatasets';
 
 const SPHEREX_HIPS = 'CDS/P/SPHEREx/QR2/D3';
@@ -84,6 +84,8 @@ export const AladinSkyViewer: React.FC<AladinSkyViewerProps> = ({ className = ''
   const [tracklets, setTracklets] = useState<Tracklet[]>([]);
   const [selectedTrackletId, setSelectedTrackletId] = useState<string | null>(null);
   const [detailPanelPosition, setDetailPanelPosition] = useState<{ left: number; top: number } | null>(null);
+  const [isDetailsExpanded, setIsDetailsExpanded] = useState(true);
+  const [openTrackletTool, setOpenTrackletTool] = useState<'plots' | 'suggestions' | null>(null);
   const [suggestions, setSuggestions] = useState<ClassificationSuggestion[]>([]);
   const [suggestionsVersion, setSuggestionsVersion] = useState(0);
   const [suggestionLoading, setSuggestionLoading] = useState(false);
@@ -104,6 +106,8 @@ export const AladinSkyViewer: React.FC<AladinSkyViewerProps> = ({ className = ''
     setSuggestionError(null);
     setClassificationInput('');
     setRationaleInput('');
+    setIsDetailsExpanded(true);
+    setOpenTrackletTool(null);
   }, [selectedTrackletId]);
 
   const loadSurveyLayer = useCallback((nextSurvey: 'spherex' | 'reference') => {
@@ -404,6 +408,15 @@ export const AladinSkyViewer: React.FC<AladinSkyViewerProps> = ({ className = ''
     return () => controller.abort();
   }, [selectedTrackletId, suggestionsVersion]);
 
+  useEffect(() => {
+    if (!openTrackletTool) return;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setOpenTrackletTool(null);
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [openTrackletTool]);
+
   const submitClassificationSuggestion = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!selectedTracklet || suggestionSaving) return;
@@ -673,7 +686,7 @@ export const AladinSkyViewer: React.FC<AladinSkyViewerProps> = ({ className = ''
             ref={detailPanelRef}
             aria-label="Selected tracklet details"
             style={detailPanelPosition ? { left: detailPanelPosition.left, top: detailPanelPosition.top } : undefined}
-            className={`absolute z-10 max-h-[70%] w-[min(22rem,calc(100%-1.5rem))] overflow-y-auto border p-3 shadow-2xl backdrop-blur-md ${
+            className={`absolute z-10 w-[min(22rem,calc(100%-1.5rem))] border p-3 shadow-2xl backdrop-blur-md ${
               detailPanelPosition ? '' : 'right-3 top-16'
             } ${
               isDark
@@ -681,8 +694,8 @@ export const AladinSkyViewer: React.FC<AladinSkyViewerProps> = ({ className = ''
                 : 'border-slate-300 bg-white/95 text-slate-900'
             }`}
           >
-            <div className={`mb-2 flex items-center justify-between gap-2 border-b pb-2 ${
-              isDark ? 'border-white/10' : 'border-slate-200'
+            <div className={`flex items-center justify-between gap-2 ${
+              isDetailsExpanded ? `mb-2 border-b pb-2 ${isDark ? 'border-white/10' : 'border-slate-200'}` : ''
             }`}>
               <div className="flex min-w-0 items-center gap-2">
                 <button
@@ -706,122 +719,227 @@ export const AladinSkyViewer: React.FC<AladinSkyViewerProps> = ({ className = ''
                   Tracklet {selectedTracklet.id}
                 </h2>
               </div>
-              <button
-                type="button"
-                onClick={() => setSelectedTrackletId(null)}
-                aria-label="Close tracklet details"
-                className={`inline-flex h-7 w-7 shrink-0 items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#A30000] ${
-                  isDark ? 'text-zinc-400 hover:bg-white/10 hover:text-white' : 'text-slate-500 hover:bg-slate-100 hover:text-slate-900'
-                }`}
-              >
-                <X className="h-3.5 w-3.5" aria-hidden="true" />
-              </button>
+              <div className="flex shrink-0 items-center">
+                <button
+                  type="button"
+                  onClick={() => setIsDetailsExpanded((expanded) => !expanded)}
+                  aria-label={isDetailsExpanded ? 'Collapse tracklet details' : 'Expand tracklet details'}
+                  aria-expanded={isDetailsExpanded}
+                  aria-controls={`${containerId}-tracklet-details`}
+                  title={isDetailsExpanded ? 'Collapse details' : 'Expand details'}
+                  className={`inline-flex h-7 w-7 items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#A30000] ${
+                    isDark ? 'text-zinc-400 hover:bg-white/10 hover:text-white' : 'text-slate-500 hover:bg-slate-100 hover:text-slate-900'
+                  }`}
+                >
+                  {isDetailsExpanded
+                    ? <ChevronUp className="h-4 w-4" aria-hidden="true" />
+                    : <ChevronDown className="h-4 w-4" aria-hidden="true" />}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSelectedTrackletId(null)}
+                  aria-label="Close tracklet details"
+                  className={`inline-flex h-7 w-7 items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#A30000] ${
+                    isDark ? 'text-zinc-400 hover:bg-white/10 hover:text-white' : 'text-slate-500 hover:bg-slate-100 hover:text-slate-900'
+                  }`}
+                >
+                  <X className="h-3.5 w-3.5" aria-hidden="true" />
+                </button>
+              </div>
             </div>
-            <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1.5 text-[9px]">
-              {Object.entries(selectedTracklet.details).map(([label, value]) => (
-                <React.Fragment key={label}>
-                  <dt className={isDark ? 'text-zinc-500' : 'text-slate-500'}>{label}</dt>
-                  <dd className={`min-w-0 break-words font-mono ${isDark ? 'text-zinc-200' : 'text-slate-700'}`}>
-                    {value === null || value === '' ? '—' : String(value)}
-                  </dd>
-                </React.Fragment>
-              ))}
-            </dl>
-            {selectedTracklet.plotPath && (
-              <div className={`mt-3 border-t pt-3 ${isDark ? 'border-white/10' : 'border-slate-200'}`}>
-                <h3 className={`mb-2 text-[10px] font-semibold uppercase tracking-wide ${
-                  isDark ? 'text-sky-100' : 'text-slate-700'
-                }`}>Diagnostic plot</h3>
+            <div
+              id={`${containerId}-tracklet-details`}
+              hidden={!isDetailsExpanded}
+              className="max-h-[55vh] overflow-y-auto"
+            >
+                <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1.5 text-[9px]">
+                  {Object.entries(selectedTracklet.details).map(([label, value]) => (
+                    <React.Fragment key={label}>
+                      <dt className={isDark ? 'text-zinc-500' : 'text-slate-500'}>{label}</dt>
+                      <dd className={`min-w-0 break-words font-mono ${isDark ? 'text-zinc-200' : 'text-slate-700'}`}>
+                        {value === null || value === '' ? '—' : String(value)}
+                      </dd>
+                    </React.Fragment>
+                  ))}
+                </dl>
+                <div className={`mt-3 grid grid-cols-2 gap-2 border-t pt-3 ${
+                  isDark ? 'border-white/10' : 'border-slate-200'
+                }`}>
+                  <button
+                    type="button"
+                    disabled={!selectedTracklet.plotPath}
+                    onClick={() => setOpenTrackletTool('plots')}
+                    className="inline-flex items-center justify-center gap-1.5 bg-[#A30000] px-2 py-2 text-[10px] font-semibold text-white transition-colors hover:bg-[#8B0000] disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <ImageIcon className="h-3.5 w-3.5" aria-hidden="true" />
+                    View plots
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setOpenTrackletTool('suggestions')}
+                    className={`inline-flex items-center justify-center gap-1.5 border px-2 py-2 text-[10px] font-semibold transition-colors ${
+                      isDark
+                        ? 'border-white/20 text-zinc-100 hover:bg-white/10'
+                        : 'border-slate-300 text-slate-800 hover:bg-slate-100'
+                    }`}
+                  >
+                    <MessageSquarePlus className="h-3.5 w-3.5" aria-hidden="true" />
+                    Community input
+                  </button>
+                </div>
+            </div>
+          </section>
+        )}
+
+        {selectedTracklet && openTrackletTool === 'plots' && selectedTracklet.plotPath && (
+          <>
+            <div aria-hidden="true" className="absolute inset-0 z-20 bg-black/40" />
+            <section
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby={`${containerId}-plots-title`}
+              className={`absolute left-1/2 top-1/2 z-30 flex max-h-[calc(100%-2rem)] w-[min(60rem,calc(100%-2rem))] -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden border shadow-2xl ${
+              isDark ? 'border-slate-600 bg-[#0a1422] text-white' : 'border-slate-300 bg-white text-slate-900'
+              }`}
+            >
+              <header className={`flex shrink-0 items-center justify-between border-b px-4 py-3 ${
+              isDark ? 'border-white/10' : 'border-slate-200'
+              }`}>
+                <h2 id={`${containerId}-plots-title`} className="text-sm font-semibold">
+                  Diagnostic plot — Tracklet {selectedTracklet.id}
+                </h2>
+                <button
+                  type="button"
+                  onClick={() => setOpenTrackletTool(null)}
+                  aria-label="Close diagnostic plot"
+                  className={`inline-flex h-8 w-8 items-center justify-center ${
+                  isDark ? 'text-zinc-400 hover:bg-white/10 hover:text-white' : 'text-slate-500 hover:bg-slate-100 hover:text-slate-900'
+                  }`}
+                >
+                  <X className="h-4 w-4" aria-hidden="true" />
+                </button>
+              </header>
+              <div className="overflow-auto p-4">
                 <img
                   src={selectedTracklet.plotPath}
                   alt={`Diagnostic plot for tracklet ${selectedTracklet.id}`}
-                  loading="lazy"
-                  className="block h-auto w-full"
+                  className="mx-auto block h-auto max-h-[72vh] w-full object-contain"
                 />
-                <p className={`mt-1 text-[9px] ${isDark ? 'text-zinc-400' : 'text-slate-500'}`}>
-                  This supplied plot is not a SPHEREx infrared image.
+                <p className={`mt-3 text-xs ${isDark ? 'text-zinc-400' : 'text-slate-500'}`}>
+                  This supplied diagnostic plot is not a SPHEREx infrared image.
                 </p>
               </div>
-            )}
-            <div className={`mt-3 border-t pt-3 ${isDark ? 'border-white/10' : 'border-slate-200'}`}>
-              <h3 className={`text-[10px] font-semibold uppercase tracking-wide ${
-                isDark ? 'text-sky-100' : 'text-slate-700'
-              }`}>Community suggestions</h3>
-              <p className={`mt-1 text-[9px] leading-relaxed ${
-                isDark ? 'text-zinc-400' : 'text-slate-500'
+            </section>
+          </>
+        )}
+
+        {selectedTracklet && openTrackletTool === 'suggestions' && (
+          <>
+            <div aria-hidden="true" className="absolute inset-0 z-20 bg-black/40" />
+            <section
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby={`${containerId}-suggestions-title`}
+              className={`absolute left-1/2 top-1/2 z-30 flex max-h-[calc(100%-2rem)] w-[min(26rem,calc(100%-2rem))] -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden border shadow-2xl ${
+              isDark ? 'border-slate-600 bg-[#0a1422] text-white' : 'border-slate-300 bg-white text-slate-900'
+              }`}
+            >
+              <header className={`flex shrink-0 items-center justify-between border-b px-4 py-3 ${
+              isDark ? 'border-white/10' : 'border-slate-200'
               }`}>
-                No AI prediction is available for this object. Share a provisional interpretation; it will not change the unclassified status.
-              </p>
-              {suggestionLoading ? (
-                <p className={`mt-2 text-[9px] ${isDark ? 'text-zinc-400' : 'text-slate-500'}`} role="status">
-                  Loading public suggestions…
-                </p>
-              ) : suggestions.length > 0 ? (
-                <ul className="mt-2 space-y-1 text-[9px]" aria-label="Community classification suggestions">
-                  {suggestions.map((suggestion) => (
-                    <li key={suggestion.classification} className="flex items-center justify-between gap-2">
-                      <span className="min-w-0 break-words">{suggestion.classification}</span>
-                      <span className={`shrink-0 ${isDark ? 'text-zinc-400' : 'text-slate-500'}`}>
-                        {suggestion.count} {suggestion.count === 1 ? 'suggestion' : 'suggestions'}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              ) : !suggestionLoading && !suggestionError ? (
-                <p className={`mt-2 text-[9px] ${isDark ? 'text-zinc-400' : 'text-slate-500'}`}>
-                  No suggestions yet.
-                </p>
-              ) : null}
-              <form className="mt-3 space-y-2" onSubmit={submitClassificationSuggestion}>
-                <label className="sr-only" htmlFor={`${containerId}-classification`}>Your suggested object type</label>
-                <input
-                  id={`${containerId}-classification`}
-                  value={classificationInput}
-                  onChange={(event) => setClassificationInput(event.target.value)}
-                  minLength={2}
-                  maxLength={80}
-                  required
-                  placeholder="Your suggested type (e.g. asteroid)"
-                  className={`w-full border px-2 py-1.5 text-[10px] ${
-                    isDark
-                      ? 'border-white/15 bg-black/30 text-zinc-100 placeholder:text-zinc-500'
-                      : 'border-slate-300 bg-white text-slate-800 placeholder:text-slate-400'
-                  }`}
-                />
-                <label className="sr-only" htmlFor={`${containerId}-rationale`}>Reasoning for your suggestion</label>
-                <textarea
-                  id={`${containerId}-rationale`}
-                  value={rationaleInput}
-                  onChange={(event) => setRationaleInput(event.target.value)}
-                  maxLength={500}
-                  rows={2}
-                  placeholder="Optional reasoning based on the plot (do not include personal information)"
-                  className={`w-full resize-y border px-2 py-1.5 text-[10px] ${
-                    isDark
-                      ? 'border-white/15 bg-black/30 text-zinc-100 placeholder:text-zinc-500'
-                      : 'border-slate-300 bg-white text-slate-800 placeholder:text-slate-400'
-                  }`}
-                />
+                <h2 id={`${containerId}-suggestions-title`} className="text-sm font-semibold">
+                  Community input — Tracklet {selectedTracklet.id}
+                </h2>
                 <button
-                  type="submit"
-                  disabled={suggestionSaving}
-                  className="bg-[#A30000] px-3 py-1.5 text-[10px] font-semibold text-white transition-colors hover:bg-[#8B0000] disabled:cursor-wait disabled:opacity-60"
+                  type="button"
+                  onClick={() => setOpenTrackletTool(null)}
+                  aria-label="Close community input"
+                  className={`inline-flex h-8 w-8 items-center justify-center ${
+                  isDark ? 'text-zinc-400 hover:bg-white/10 hover:text-white' : 'text-slate-500 hover:bg-slate-100 hover:text-slate-900'
+                  }`}
                 >
-                  {suggestionSaving ? 'Saving…' : 'Submit suggestion'}
+                  <X className="h-4 w-4" aria-hidden="true" />
                 </button>
-                {suggestionMessage && (
-                  <p role="status" className={`text-[9px] ${isDark ? 'text-emerald-300' : 'text-emerald-700'}`}>
-                    {suggestionMessage}
+              </header>
+              <div className="overflow-y-auto p-4">
+                <p className={`text-xs leading-relaxed ${
+                isDark ? 'text-zinc-400' : 'text-slate-600'
+                }`}>
+                  No AI prediction is available for this object. Share a provisional interpretation; it will not change the unclassified status.
+                </p>
+                {suggestionLoading ? (
+                  <p className={`mt-3 text-xs ${isDark ? 'text-zinc-400' : 'text-slate-500'}`} role="status">
+                    Loading public suggestions…
                   </p>
-                )}
-                {suggestionError && (
-                  <p role="alert" className={`text-[9px] ${isDark ? 'text-amber-300' : 'text-amber-700'}`}>
-                    {suggestionError}
+                ) : suggestions.length > 0 ? (
+                  <ul className={`mt-3 space-y-2 border-y py-3 text-xs ${
+                  isDark ? 'border-white/10' : 'border-slate-200'
+                  }`} aria-label="Community classification suggestions">
+                    {suggestions.map((suggestion) => (
+                      <li key={suggestion.classification} className="flex items-center justify-between gap-2">
+                        <span className="min-w-0 break-words">{suggestion.classification}</span>
+                        <span className={`shrink-0 ${isDark ? 'text-zinc-400' : 'text-slate-500'}`}>
+                          {suggestion.count} {suggestion.count === 1 ? 'suggestion' : 'suggestions'}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                ) : !suggestionLoading && !suggestionError ? (
+                  <p className={`mt-3 border-y py-3 text-xs ${isDark ? 'border-white/10 text-zinc-400' : 'border-slate-200 text-slate-500'}`}>
+                    No suggestions yet.
                   </p>
-                )}
-              </form>
-            </div>
-          </section>
+                ) : null}
+                <form className="mt-4 space-y-3" onSubmit={submitClassificationSuggestion}>
+                  <label className="sr-only" htmlFor={`${containerId}-classification`}>Your suggested object type</label>
+                  <input
+                    id={`${containerId}-classification`}
+                    value={classificationInput}
+                    onChange={(event) => setClassificationInput(event.target.value)}
+                    minLength={2}
+                    maxLength={80}
+                    required
+                    placeholder="Your suggested type (e.g. asteroid)"
+                    className={`w-full border px-3 py-2 text-sm ${
+                    isDark
+                      ? 'border-white/15 bg-black/30 text-zinc-100 placeholder:text-zinc-500'
+                      : 'border-slate-300 bg-white text-slate-800 placeholder:text-slate-400'
+                    }`}
+                  />
+                  <label className="sr-only" htmlFor={`${containerId}-rationale`}>Reasoning for your suggestion</label>
+                  <textarea
+                    id={`${containerId}-rationale`}
+                    value={rationaleInput}
+                    onChange={(event) => setRationaleInput(event.target.value)}
+                    maxLength={500}
+                    rows={4}
+                    placeholder="Optional reasoning based on the plot (do not include personal information)"
+                    className={`w-full resize-y border px-3 py-2 text-sm ${
+                    isDark
+                      ? 'border-white/15 bg-black/30 text-zinc-100 placeholder:text-zinc-500'
+                      : 'border-slate-300 bg-white text-slate-800 placeholder:text-slate-400'
+                    }`}
+                  />
+                  <button
+                    type="submit"
+                    disabled={suggestionSaving}
+                    className="bg-[#A30000] px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-[#8B0000] disabled:cursor-wait disabled:opacity-60"
+                  >
+                    {suggestionSaving ? 'Saving…' : 'Submit suggestion'}
+                  </button>
+                  {suggestionMessage && (
+                    <p role="status" className={`text-xs ${isDark ? 'text-emerald-300' : 'text-emerald-700'}`}>
+                      {suggestionMessage}
+                    </p>
+                  )}
+                  {suggestionError && (
+                    <p role="alert" className={`text-xs ${isDark ? 'text-amber-300' : 'text-amber-700'}`}>
+                      {suggestionError}
+                    </p>
+                  )}
+                </form>
+              </div>
+            </section>
+          </>
         )}
       </div>
     </section>
