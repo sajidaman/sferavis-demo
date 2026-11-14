@@ -26,7 +26,7 @@ const TWOMASS_HIPS = 'CDS/P/2MASS/color';
 const SPHEREX_CUBE_HIPS = 'https://irsa.ipac.caltech.edu/data/hips/SPHEREx/spherex_allsky_cube';
 const INITIAL_RA = 180;
 const INITIAL_DEC = 0;
-const INITIAL_FOV = 360;
+const INITIAL_FOV = 30;
 const TRACKLET_FOV = 0.12;
 const SPHEREX_SIMULATOR_SAMPLES = {
   'simulator-high-latitude': {
@@ -92,6 +92,8 @@ function createSpherexHiPS(
   onError?: (error: unknown) => void
 ) {
   return A.HiPS(SPHEREX_CUBE_HIPS, {
+    maxOrder: 12,
+    tileSize: 512,
     name: `NASA SPHEREx DR1 ${channel.band} ch ${channel.channel} · ${channel.wavelength.toFixed(3)} μm${channel.isBlank ? ' (dichroic blank)' : ''}`,
     cooFrame: 'equatorial',
     requestMode: 'cors',
