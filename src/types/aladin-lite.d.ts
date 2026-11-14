@@ -51,9 +51,17 @@ declare module 'aladin-lite' {
     showFullscreenControl?: boolean;
     showGotoControl?: boolean;
     showZoomControl?: boolean;
+    showFov?: boolean;
+    showCooLocation?: boolean;
     mode?: 'dark' | 'light';
     showFrame?: boolean;
+    showStatusBar?: boolean;
     showProjectionControl?: boolean;
+    showSettingsControl?: boolean;
+    showSelectionModeControl?: boolean;
+    showColorPickerControl?: boolean;
+    showShareControl?: boolean;
+    showContextMenu?: boolean;
     [key: string]: unknown;
   }
 
