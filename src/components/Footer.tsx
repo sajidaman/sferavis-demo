@@ -246,7 +246,16 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate, onLaunchSferavis }) 
               Privacy Policy
             </a>
             <span aria-hidden="true">·</span>
-            <span className="hover:text-zinc-950 dark:hover:text-white cursor-pointer transition-colors">Terms of Use</span>
+            <a
+              href="#terms"
+              onClick={(event) => {
+                event.preventDefault();
+                onNavigate('terms');
+              }}
+              className="hover:text-zinc-950 dark:hover:text-white transition-colors"
+            >
+              Terms of Use
+            </a>
             <span aria-hidden="true">·</span>
             <a
               href="https://github.com/sajidaman/sferavis-demo/blob/main/THIRD_PARTY_NOTICES.md"
