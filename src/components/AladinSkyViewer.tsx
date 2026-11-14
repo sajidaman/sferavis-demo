@@ -11,7 +11,6 @@ import {
   Moon,
   Move,
   MousePointer2,
-  RefreshCw,
   RotateCcw,
   Sun,
   X,
@@ -24,6 +23,15 @@ const INITIAL_RA = 180;
 const INITIAL_DEC = 0;
 const INITIAL_FOV = 0.25;
 const TRACKLET_FOV = 0.12;
+const PROJECTIONS = [
+  { value: 'AIT', label: 'All-sky (Aitoff)' },
+  { value: 'TAN', label: 'Tangent plane' },
+  { value: 'SIN', label: 'Orthographic' },
+  { value: 'STG', label: 'Stereographic' },
+  { value: 'ZEA', label: 'Zenithal equal-area' },
+  { value: 'MOL', label: 'Mollweide' },
+  { value: 'MER', label: 'Mercator' },
+] as const;
 
 interface Tracklet {
   id: string;
@@ -129,10 +137,19 @@ export const AladinSkyViewer: React.FC<AladinSkyViewerProps> = ({
   const [classificationInput, setClassificationInput] = useState('');
   const [rationaleInput, setRationaleInput] = useState('');
   const [survey, setSurvey] = useState<'spherex' | 'reference'>('spherex');
+  const [projection, setProjection] = useState<(typeof PROJECTIONS)[number]['value']>('AIT');
+  const [isGridVisible, setIsGridVisible] = useState(true);
+  const [isReticleVisible, setIsReticleVisible] = useState(true);
   const [isSimbadPointerActive, setIsSimbadPointerActive] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
   const surveyRef = useRef(survey);
   surveyRef.current = survey;
+  const projectionRef = useRef(projection);
+  projectionRef.current = projection;
+  const gridVisibleRef = useRef(isGridVisible);
+  gridVisibleRef.current = isGridVisible;
+  const reticleVisibleRef = useRef(isReticleVisible);
+  reticleVisibleRef.current = isReticleVisible;
   const selectedTracklet = tracklets.find((tracklet) => tracklet.id === selectedTrackletId) ?? null;
 
   useEffect(() => {
@@ -238,13 +255,13 @@ export const AladinSkyViewer: React.FC<AladinSkyViewerProps> = ({
         mode: isDark ? 'dark' : 'light',
         target: `${INITIAL_RA} ${INITIAL_DEC}`,
         fov: INITIAL_FOV,
-        projection: 'AIT',
+        projection: projectionRef.current,
         cooFrame: 'ICRS',
-        showCooGrid: true,
+        showCooGrid: gridVisibleRef.current,
         showCooGridControl: false,
         showZoomControl: true,
         showSimbadPointerControl: false,
-        showReticle: true,
+        showReticle: reticleVisibleRef.current,
         showLayersControl: false,
         showFullscreenControl: false,
         showGotoControl: false,
@@ -524,6 +541,24 @@ export const AladinSkyViewer: React.FC<AladinSkyViewerProps> = ({
     aladinRef.current.gotoRaDec(INITIAL_RA, INITIAL_DEC);
     aladinRef.current.setFoV(INITIAL_FOV);
     aladinRef.current.setProjection('AIT');
+    setProjection('AIT');
+  };
+
+  const changeProjection = (nextProjection: (typeof PROJECTIONS)[number]['value']) => {
+    setProjection(nextProjection);
+    aladinRef.current?.setProjection(nextProjection);
+  };
+
+  const toggleCoordinateGrid = () => {
+    const visible = !isGridVisible;
+    setIsGridVisible(visible);
+    aladinRef.current?.setCooGrid({ enabled: visible });
+  };
+
+  const toggleReticle = () => {
+    const visible = !isReticleVisible;
+    setIsReticleVisible(visible);
+    aladinRef.current?.showReticle(visible);
   };
 
   const toggleSimbadPointer = () => {
@@ -712,8 +747,8 @@ export const AladinSkyViewer: React.FC<AladinSkyViewerProps> = ({
     ? 'border-white/10 bg-[#07111f]/95 text-zinc-100 shadow-black/40'
     : 'border-slate-200 bg-white/95 text-slate-800 shadow-slate-900/10';
   const sidebarButtonClass = isDark
-    ? 'border-white/10 bg-white/[0.04] text-zinc-200 hover:border-white/20 hover:bg-white/[0.09]'
-    : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50';
+    ? 'border-white/10 bg-white/[0.04] text-zinc-200 hover:border-white/20 hover:bg-white/[0.09] disabled:cursor-not-allowed disabled:opacity-50'
+    : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50';
   const sidebarSelectClass = isDark
     ? 'border-white/10 bg-slate-900 text-zinc-100 focus:border-sky-400'
     : 'border-slate-200 bg-white text-slate-800 focus:border-sky-600';
@@ -758,6 +793,9 @@ export const AladinSkyViewer: React.FC<AladinSkyViewerProps> = ({
           </header>
 
           <div className="space-y-4">
+            <h3 className={`-mb-2 text-[10px] font-semibold uppercase tracking-wider ${
+              isDark ? 'text-slate-400' : 'text-slate-500'
+            }`}>Map view</h3>
             <div>
               <label htmlFor={`${containerId}-survey`} className={`mb-1.5 block text-[10px] font-semibold uppercase tracking-wider ${
                 isDark ? 'text-slate-400' : 'text-slate-500'
@@ -765,11 +803,32 @@ export const AladinSkyViewer: React.FC<AladinSkyViewerProps> = ({
               <select
                 id={`${containerId}-survey`}
                 value={survey}
+                disabled={status !== 'ready'}
                 onChange={(event) => loadSurveyLayer(event.currentTarget.value === 'reference' ? 'reference' : 'spherex')}
-                className={`w-full rounded-lg border px-2.5 py-2 text-xs outline-none transition-colors focus:ring-2 focus:ring-sky-500/30 ${sidebarSelectClass}`}
+                className={`w-full rounded-lg border px-2.5 py-2 text-xs outline-none transition-colors focus:ring-2 focus:ring-sky-500/30 disabled:cursor-not-allowed disabled:opacity-60 ${sidebarSelectClass}`}
               >
                 <option value="spherex">SPHEREx infrared</option>
                 <option value="reference">DSS2 optical reference</option>
+              </select>
+            </div>
+
+            <div>
+              <label htmlFor={`${containerId}-projection`} className={`mb-1.5 block text-[10px] font-semibold uppercase tracking-wider ${
+                isDark ? 'text-slate-400' : 'text-slate-500'
+              }`}>Map projection</label>
+              <select
+                id={`${containerId}-projection`}
+                value={projection}
+                disabled={status !== 'ready'}
+                onChange={(event) => {
+                  const nextProjection = PROJECTIONS.find((item) => item.value === event.currentTarget.value)?.value;
+                  if (nextProjection) changeProjection(nextProjection);
+                }}
+                className={`w-full rounded-lg border px-2.5 py-2 text-xs outline-none transition-colors focus:ring-2 focus:ring-sky-500/30 disabled:cursor-not-allowed disabled:opacity-60 ${sidebarSelectClass}`}
+              >
+                {PROJECTIONS.map((item) => (
+                  <option key={item.value} value={item.value}>{item.label}</option>
+                ))}
               </select>
             </div>
 
@@ -794,9 +853,13 @@ export const AladinSkyViewer: React.FC<AladinSkyViewerProps> = ({
             </div>
 
             <div className="space-y-2">
+              <h3 className={`pb-0.5 text-[10px] font-semibold uppercase tracking-wider ${
+                isDark ? 'text-slate-400' : 'text-slate-500'
+              }`}>Map options</h3>
               <button
                 type="button"
                 onClick={resetView}
+                disabled={status !== 'ready'}
                 className={`flex w-full items-center gap-2 rounded-lg border px-3 py-2 text-left text-xs font-medium transition-colors ${sidebarButtonClass}`}
               >
                 <RotateCcw className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
@@ -805,6 +868,7 @@ export const AladinSkyViewer: React.FC<AladinSkyViewerProps> = ({
               <button
                 type="button"
                 onClick={toggleSimbadPointer}
+                disabled={status !== 'ready'}
                 aria-pressed={isSimbadPointerActive}
                 className={`flex w-full items-center gap-2 rounded-lg border px-3 py-2 text-left text-xs font-medium transition-colors ${
                   isSimbadPointerActive
@@ -815,6 +879,34 @@ export const AladinSkyViewer: React.FC<AladinSkyViewerProps> = ({
               >
                 <MousePointer2 className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
                 {isSimbadPointerActive ? 'Exit SIMBAD lookup' : 'SIMBAD lookup'}
+              </button>
+              <button
+                type="button"
+                onClick={toggleCoordinateGrid}
+                disabled={status !== 'ready'}
+                aria-pressed={isGridVisible}
+                className={`flex w-full items-center justify-between gap-2 rounded-lg border px-3 py-2 text-left text-xs font-medium transition-colors ${sidebarButtonClass}`}
+              >
+                <span>Coordinate grid</span>
+                <span className={`rounded-full px-1.5 py-0.5 text-[9px] ${
+                  isGridVisible
+                    ? isDark ? 'bg-sky-400/15 text-sky-200' : 'bg-sky-100 text-sky-800'
+                    : isDark ? 'bg-white/10 text-zinc-400' : 'bg-slate-100 text-slate-500'
+                }`}>{isGridVisible ? 'On' : 'Off'}</span>
+              </button>
+              <button
+                type="button"
+                onClick={toggleReticle}
+                disabled={status !== 'ready'}
+                aria-pressed={isReticleVisible}
+                className={`flex w-full items-center justify-between gap-2 rounded-lg border px-3 py-2 text-left text-xs font-medium transition-colors ${sidebarButtonClass}`}
+              >
+                <span>Center reticle</span>
+                <span className={`rounded-full px-1.5 py-0.5 text-[9px] ${
+                  isReticleVisible
+                    ? isDark ? 'bg-sky-400/15 text-sky-200' : 'bg-sky-100 text-sky-800'
+                    : isDark ? 'bg-white/10 text-zinc-400' : 'bg-slate-100 text-slate-500'
+                }`}>{isReticleVisible ? 'On' : 'Off'}</span>
               </button>
               <button
                 type="button"
@@ -857,7 +949,7 @@ export const AladinSkyViewer: React.FC<AladinSkyViewerProps> = ({
             </div>
           </div>
 
-          {(surveyErrorMsg || analysisError) && (
+          {(surveyErrorMsg || analysisError || status === 'init-error') && (
             <div className="mt-4 space-y-2">
               {surveyErrorMsg && (
                 <div role="status" className={`rounded-lg border p-2 text-[10px] ${
@@ -883,6 +975,24 @@ export const AladinSkyViewer: React.FC<AladinSkyViewerProps> = ({
                   Could not load the tracklet overlay: {analysisError}
                 </div>
               )}
+              {status === 'init-error' && (
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={handleRetry}
+                    className="rounded-lg bg-[#A30000] px-2 py-2 text-[10px] font-semibold text-white transition-colors hover:bg-[#8B0000]"
+                  >
+                    Retry map
+                  </button>
+                  <button
+                    type="button"
+                    onClick={showReferenceSurvey}
+                    className={`rounded-lg border px-2 py-2 text-[10px] font-semibold transition-colors ${sidebarButtonClass}`}
+                  >
+                    Try DSS2
+                  </button>
+                </div>
+              )}
             </div>
           )}
         </aside>
@@ -897,20 +1007,13 @@ export const AladinSkyViewer: React.FC<AladinSkyViewerProps> = ({
         )}
 
         {status === 'init-error' && (
-          <div className="absolute inset-0 z-30 flex items-center justify-center bg-[#050507] px-6 text-center">
+          <div className="pointer-events-none absolute inset-0 z-[5] flex items-center justify-center bg-[#050507]/85 px-6 text-center">
             <div className="max-w-lg border border-red-900/60 bg-red-950/20 p-6">
               <AlertTriangle className="mx-auto mb-3 h-6 w-6 text-red-400" aria-hidden="true" />
               <h2 className="text-base font-bold text-red-300">Map failed to load</h2>
               <p className="mt-3 text-xs leading-relaxed text-zinc-300">{initErrorMsg}</p>
               {initDiagnostic && <p className="mt-3 text-left text-xs text-zinc-400">{initDiagnostic}</p>}
-              <div className="mt-5 flex flex-wrap items-center justify-center gap-3">
-                <button type="button" onClick={handleRetry} className="flex items-center gap-2 bg-[#A30000] px-4 py-2 text-xs font-bold text-white hover:bg-[#8B0000]">
-                  <RefreshCw className="h-3.5 w-3.5" aria-hidden="true" /> Retry
-                </button>
-                <button type="button" onClick={showReferenceSurvey} className="border border-zinc-700 bg-zinc-900 px-4 py-2 text-xs text-zinc-300 hover:text-white">
-                  Try DSS2
-                </button>
-              </div>
+              <p className="mt-4 text-xs text-zinc-400">Use Retry map or Try DSS2 in the Atlas sidebar.</p>
             </div>
           </div>
         )}

@@ -25,6 +25,7 @@ declare module 'aladin-lite' {
     setFoV: (fov: number) => void;
     setProjection: (projection: string) => void;
     fire: (event: string) => void;
+    showReticle: (show: boolean) => void;
     setCooGrid: (options: { enabled?: boolean; color?: string; opacity?: number; labelSize?: number }) => void;
     setDefaultColor: (color: string) => void;
     addCatalog: (catalog: AladinCatalog) => void;
