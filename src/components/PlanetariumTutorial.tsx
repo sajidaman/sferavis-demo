@@ -25,9 +25,9 @@ const steps = [
   {
     title: 'Compare the image surveys',
     description:
-      'Choose a SPHEREx DR1 band to view one spectral channel, or switch to DSS2 Reference for an optical view of the same region.',
+      'Browse through all 102 verified SPHEREx DR1 spectral channels, or switch to 2MASS or DSS2 Reference for multi-wavelength comparison.',
     detail:
-      'SPHEREx DR1 is an observed 102-channel all-sky cube. The band choices show representative channels from that cube.',
+      'SPHEREx DR1 is an observed 102-channel all-sky cube (0.753 to 4.988 μm). The channel browser allows inspecting every channel across bands D1–D6, noting blank dichroic channels.',
   },
   {
     title: 'Adjust your view',

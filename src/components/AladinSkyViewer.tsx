@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useId, useRef, useState } from 'react';
-import A, { type AladinCatalog, type AladinGraphicOverlay, type AladinInstance } from 'aladin-lite';
+import A, { type AladinCatalog, type AladinGraphicOverlay, type AladinHiPSLayer, type AladinInstance } from 'aladin-lite';
 import {
   AlertTriangle,
   ChevronDown,
@@ -13,11 +13,13 @@ import {
   MousePointer2,
   PanelLeftClose,
   PanelLeftOpen,
+  Palette,
   RotateCcw,
   Sun,
   X,
 } from 'lucide-react';
 import { loadAnalysisDataset } from '../data/analysisDatasets';
+import { SPHEREX_CHANNELS, SPHEREX_BANDS, SPHEREX_BAND_DESCRIPTIONS, type SpherexBand, type SpherexChannel } from '../data/spherexChannels';
 
 const DSS2_HIPS = 'P/DSS2/color';
 const TWOMASS_HIPS = 'CDS/P/2MASS/color';
@@ -26,14 +28,6 @@ const INITIAL_RA = 180;
 const INITIAL_DEC = 0;
 const INITIAL_FOV = 360;
 const TRACKLET_FOV = 0.12;
-const SPHEREX_ARRAYS = [
-  { value: 'spherex-d1', band: 'D1', wavelength: 0.910 },
-  { value: 'spherex-d2', band: 'D2', wavelength: 1.346 },
-  { value: 'spherex-d3', band: 'D3', wavelength: 1.995 },
-  { value: 'spherex-d4', band: 'D4', wavelength: 3.033 },
-  { value: 'spherex-d5', band: 'D5', wavelength: 3.833 },
-  { value: 'spherex-d6', band: 'D6', wavelength: 4.435 },
-] as const;
 const SPHEREX_SIMULATOR_SAMPLES = {
   'simulator-high-latitude': {
     name: 'SPHEREx simulator — high latitude',
@@ -44,8 +38,8 @@ const SPHEREX_SIMULATOR_SAMPLES = {
     path: 'data/spherex-simulator/galactic-plane-cutout.fits',
   },
 } as const;
-type SpherexSurvey = (typeof SPHEREX_ARRAYS)[number]['value'];
-type AtlasSurvey = SpherexSurvey | 'two-mass' | 'reference' | keyof typeof SPHEREX_SIMULATOR_SAMPLES;
+type AtlasSurvey = 'spherex' | 'two-mass' | 'reference' | keyof typeof SPHEREX_SIMULATOR_SAMPLES;
+type SpherexColormap = 'grayscale' | 'magma';
 const PROJECTIONS = [
   { value: 'AIT', label: 'All-sky (Aitoff)' },
   { value: 'TAN', label: 'Tangent plane' },
@@ -78,15 +72,23 @@ function numberOrNull(value: string | undefined): number | null {
 }
 
 function createSpherexHiPS(
-  array: (typeof SPHEREX_ARRAYS)[number],
+  channel: SpherexChannel,
+  colormap: SpherexColormap = 'grayscale',
+  onCreated?: (layer: AladinHiPSLayer) => void,
   onError?: (error: unknown) => void
 ) {
   return A.HiPS(SPHEREX_CUBE_HIPS, {
-    name: `NASA SPHEREx DR1 ${array.band} · ${array.wavelength.toFixed(3)} μm`,
+    name: `NASA SPHEREx DR1 ${channel.band} ch ${channel.channel} · ${channel.wavelength.toFixed(3)} μm${channel.isBlank ? ' (dichroic blank)' : ''}`,
     cooFrame: 'equatorial',
     requestMode: 'cors',
     requestCredentials: 'omit',
-    successCallback: (layer) => layer.setFrequency({ value: array.wavelength * 1e-6, unit: 'm' }),
+    successCallback: (layer) => {
+      layer.setFrequency({ value: channel.wavelength * 1e-6, unit: 'm' });
+      if (layer.setColormap) {
+        layer.setColormap(colormap);
+      }
+      onCreated?.(layer);
+    },
     errorCallback: (error: unknown) => onError?.(error),
   });
 }
@@ -113,7 +115,7 @@ function createReferenceHiPS(onError?: (error: unknown) => void) {
 function isAtlasSurvey(value: string): value is AtlasSurvey {
   return value === 'reference'
     || value === 'two-mass'
-    || SPHEREX_ARRAYS.some((array) => array.value === value)
+    || value === 'spherex'
     || value in SPHEREX_SIMULATOR_SAMPLES;
 }
 
@@ -179,7 +181,9 @@ export const AladinSkyViewer: React.FC<AladinSkyViewerProps> = ({
   const [suggestionError, setSuggestionError] = useState<string | null>(null);
   const [classificationInput, setClassificationInput] = useState('');
   const [rationaleInput, setRationaleInput] = useState('');
-  const [survey, setSurvey] = useState<AtlasSurvey>('spherex-d3');
+  const [survey, setSurvey] = useState<AtlasSurvey>('spherex');
+  const [selectedChannelFrame, setSelectedChannelFrame] = useState<number>(43); // Frame 43: D3 ch 9 (1.995 um)
+  const [spherexColormap, setSpherexColormap] = useState<SpherexColormap>('grayscale');
   const [projection, setProjection] = useState<(typeof PROJECTIONS)[number]['value']>('AIT');
   const [isGridVisible, setIsGridVisible] = useState(true);
   const [isReticleVisible, setIsReticleVisible] = useState(true);
@@ -188,6 +192,11 @@ export const AladinSkyViewer: React.FC<AladinSkyViewerProps> = ({
   const [retryCount, setRetryCount] = useState(0);
   const surveyRef = useRef(survey);
   surveyRef.current = survey;
+  const channelFrameRef = useRef(selectedChannelFrame);
+  channelFrameRef.current = selectedChannelFrame;
+  const colormapRef = useRef(spherexColormap);
+  colormapRef.current = spherexColormap;
+  const spherexLayerRef = useRef<AladinHiPSLayer | null>(null);
   const projectionRef = useRef(projection);
   projectionRef.current = projection;
   const gridVisibleRef = useRef(isGridVisible);
@@ -195,7 +204,7 @@ export const AladinSkyViewer: React.FC<AladinSkyViewerProps> = ({
   const reticleVisibleRef = useRef(isReticleVisible);
   reticleVisibleRef.current = isReticleVisible;
   const selectedTracklet = tracklets.find((tracklet) => tracklet.id === selectedTrackletId) ?? null;
-  const selectedSpherexArray = SPHEREX_ARRAYS.find((array) => array.value === survey) ?? null;
+  const currentSpherexChannel = SPHEREX_CHANNELS.find((ch) => ch.frame === selectedChannelFrame) ?? SPHEREX_CHANNELS[42];
 
   useEffect(() => {
     const aladinContainer = containerRef.current;
@@ -227,6 +236,7 @@ export const AladinSkyViewer: React.FC<AladinSkyViewerProps> = ({
     setSurvey(nextSurvey);
     setSurveyErrorMsg(null);
     if (nextSurvey in SPHEREX_SIMULATOR_SAMPLES) {
+      spherexLayerRef.current = null;
       const sample = SPHEREX_SIMULATOR_SAMPLES[nextSurvey as keyof typeof SPHEREX_SIMULATOR_SAMPLES];
       try {
         const image = aladin.createImageFITS(
@@ -251,6 +261,7 @@ export const AladinSkyViewer: React.FC<AladinSkyViewerProps> = ({
     }
 
     if (nextSurvey === 'reference') {
+      spherexLayerRef.current = null;
       try {
         aladin.setBaseImageLayer(createReferenceHiPS((error) => {
           if (!isCurrentLoad()) return;
@@ -265,6 +276,7 @@ export const AladinSkyViewer: React.FC<AladinSkyViewerProps> = ({
     }
 
     if (nextSurvey === 'two-mass') {
+      spherexLayerRef.current = null;
       try {
         aladin.setBaseImageLayer(createTwoMassHiPS((error) => {
           if (!isCurrentLoad()) return;
@@ -278,16 +290,23 @@ export const AladinSkyViewer: React.FC<AladinSkyViewerProps> = ({
       return;
     }
 
-    const spherexArray = SPHEREX_ARRAYS.find((array) => array.value === nextSurvey);
-    if (!spherexArray) return;
+    const currentChannel = SPHEREX_CHANNELS.find((c) => c.frame === channelFrameRef.current) ?? SPHEREX_CHANNELS[42];
 
     try {
-      const wasAlreadyShowingSpherex = SPHEREX_ARRAYS.some((array) => array.value === surveyRef.current);
-      aladin.setBaseImageLayer(createSpherexHiPS(spherexArray, (error) => {
-        if (!isCurrentLoad()) return;
-        const detail = error instanceof Error ? error.message : String(error);
-        setSurveyErrorMsg(`SPHEREx DR1 ${spherexArray.band} (${spherexArray.wavelength.toFixed(3)} μm) could not be loaded. Details: ${detail}`);
-      }));
+      const wasAlreadyShowingSpherex = surveyRef.current === 'spherex';
+      const layer = createSpherexHiPS(
+        currentChannel,
+        colormapRef.current,
+        (createdLayer) => {
+          spherexLayerRef.current = createdLayer;
+        },
+        (error) => {
+          if (!isCurrentLoad()) return;
+          const detail = error instanceof Error ? error.message : String(error);
+          setSurveyErrorMsg(`SPHEREx DR1 ${currentChannel.band} (${currentChannel.wavelength.toFixed(3)} μm) could not be loaded. Details: ${detail}`);
+        }
+      );
+      aladin.setBaseImageLayer(layer);
       if (!wasAlreadyShowingSpherex) {
         aladin.setProjection('AIT');
         setProjection('AIT');
@@ -297,7 +316,45 @@ export const AladinSkyViewer: React.FC<AladinSkyViewerProps> = ({
     } catch (error) {
       if (!isCurrentLoad()) return;
       const detail = error instanceof Error ? error.message : String(error);
-      setSurveyErrorMsg(`SPHEREx DR1 ${spherexArray.band} (${spherexArray.wavelength.toFixed(3)} μm) could not be loaded. Details: ${detail}`);
+      setSurveyErrorMsg(`SPHEREx DR1 ${currentChannel.band} (${currentChannel.wavelength.toFixed(3)} μm) could not be loaded. Details: ${detail}`);
+    }
+  }, []);
+
+  const switchSpherexChannel = useCallback((frame: number) => {
+    const ch = SPHEREX_CHANNELS.find((c) => c.frame === frame);
+    if (!ch) return;
+    setSelectedChannelFrame(frame);
+    channelFrameRef.current = frame;
+    setSurveyErrorMsg(null);
+
+    const aladin = aladinRef.current;
+    if (!aladin) return;
+
+    // Fast-path: if the SPHEREx cube layer is already active, set its wavelength directly
+    // This reuses the already-loaded HiPS cube and tile cache without destroying/recreating the WebGL layer!
+    if (surveyRef.current === 'spherex' && spherexLayerRef.current) {
+      try {
+        spherexLayerRef.current.setFrequency({ value: ch.wavelength * 1e-6, unit: 'm' });
+        return;
+      } catch (err) {
+        console.warn('Direct setFrequency failed, reloading layer:', err);
+      }
+    }
+
+    // Otherwise, ensure survey is spherex and load the layer
+    loadSurveyLayer('spherex');
+  }, [loadSurveyLayer]);
+
+  const switchSpherexColormap = useCallback((nextColormap: SpherexColormap) => {
+    setSpherexColormap(nextColormap);
+    colormapRef.current = nextColormap;
+    const currentLayer = spherexLayerRef.current;
+    if (currentLayer && currentLayer.setColormap) {
+      try {
+        currentLayer.setColormap(nextColormap);
+      } catch (err) {
+        console.warn('Failed to switch colormap dynamically on layer:', err);
+      }
     }
   }, []);
 
@@ -926,30 +983,87 @@ export const AladinSkyViewer: React.FC<AladinSkyViewerProps> = ({
                 }}
                 className={`w-full rounded-lg border px-2.5 py-2 text-xs outline-none transition-colors focus:ring-2 focus:ring-sky-500/30 disabled:cursor-not-allowed disabled:opacity-60 ${sidebarSelectClass}`}
               >
-                <optgroup label="SPHEREx DR1 all-sky · low resolution">
-                  {SPHEREX_ARRAYS.map((array) => (
-                    <option key={array.value} value={array.value}>{array.band} · {array.wavelength.toFixed(3)} μm</option>
-                  ))}
-                </optgroup>
+                <option value="spherex">SPHEREx DR1 all-sky cube (102 channels)</option>
                 <optgroup label="SPHEREx simulator samples">
-                  <option value="simulator-high-latitude">High latitude field</option>
-                  <option value="simulator-galactic-plane">Galactic plane field</option>
+                  <option value="simulator-high-latitude">High latitude field cutout</option>
+                  <option value="simulator-galactic-plane">Galactic plane field cutout</option>
                 </optgroup>
                 <option value="two-mass">2MASS infrared reference</option>
                 <option value="reference">DSS2 optical reference</option>
               </select>
-              {selectedSpherexArray && (
-                <p className={`mt-2 text-[10px] leading-relaxed ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
-                  SPHEREx DR1 observed all-sky cube at {selectedSpherexArray.wavelength.toFixed(3)} μm. This HiPS product has a maximum order of 5 and full-sky coverage; the view shows one of its 102 channels.{' '}
-                  <a
-                    className="underline underline-offset-2"
-                    href="https://doi.org/10.26131/IRSA679"
-                    target="_blank"
-                    rel="noreferrer"
+              {survey === 'spherex' && (
+                <div className="mt-2.5 space-y-2 border-t pt-2 border-white/10">
+                  <div className="flex items-center justify-between">
+                    <label htmlFor={`${containerId}-channel`} className={`text-[10px] font-semibold uppercase tracking-wider ${
+                      isDark ? 'text-slate-400' : 'text-slate-500'
+                    }`}>
+                      Wavelength Channel
+                    </label>
+                    <span className="text-[10px] text-sky-400 font-mono">
+                      {currentSpherexChannel.wavelength.toFixed(3)} μm
+                    </span>
+                  </div>
+                  <select
+                    id={`${containerId}-channel`}
+                    value={selectedChannelFrame}
+                    disabled={status !== 'ready'}
+                    onChange={(e) => switchSpherexChannel(Number(e.currentTarget.value))}
+                    className={`w-full rounded-lg border px-2 py-1.5 text-xs outline-none transition-colors focus:ring-2 focus:ring-sky-500/30 ${sidebarSelectClass}`}
                   >
-                    SPHEREx DR1 source
-                  </a>
-                </p>
+                    {SPHEREX_BANDS.map((band) => (
+                      <optgroup
+                        key={band}
+                        label={`Band ${band} (${SPHEREX_BAND_DESCRIPTIONS[band].range})`}
+                      >
+                        {SPHEREX_CHANNELS.filter((ch) => ch.band === band).map((ch) => (
+                          <option key={ch.frame} value={ch.frame}>
+                            {ch.band} ch {ch.channel}: {ch.wavelength.toFixed(3)} μm {ch.isBlank ? '⚠️ [BLANK DICHROIC]' : ''}
+                          </option>
+                        ))}
+                      </optgroup>
+                    ))}
+                  </select>
+
+                  {/* Colormap control */}
+                  <div className="pt-1">
+                    <label htmlFor={`${containerId}-colormap`} className={`mb-1 flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider ${
+                      isDark ? 'text-slate-400' : 'text-slate-500'
+                    }`}>
+                      <Palette className="h-3 w-3" />
+                      Display Color Map
+                    </label>
+                    <select
+                      id={`${containerId}-colormap`}
+                      value={spherexColormap}
+                      onChange={(e) => switchSpherexColormap(e.currentTarget.value as SpherexColormap)}
+                      className={`w-full rounded-lg border px-2 py-1.5 text-xs outline-none transition-colors focus:ring-2 focus:ring-sky-500/30 ${sidebarSelectClass}`}
+                    >
+                      <option value="grayscale">Grayscale (native pixel intensity)</option>
+                      <option value="magma">Magma / Purple-gold (display mapping)</option>
+                    </select>
+                    <p className={`mt-1 text-[9px] leading-tight ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+                      Display color mapping only; underlying pixel values remain unaltered.
+                    </p>
+                  </div>
+
+                  {currentSpherexChannel.isBlank && (
+                    <div className="rounded-md border border-amber-500/30 bg-amber-500/10 p-2 text-[10px] text-amber-300">
+                      <strong>Dichroic Channel (Blank):</strong> Frame {currentSpherexChannel.frame} ({currentSpherexChannel.band} ch {currentSpherexChannel.channel}) is documented as a blank dichroic transition channel in IRSA DR1 cube metadata.
+                    </div>
+                  )}
+
+                  <p className={`text-[10px] leading-relaxed ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                    SPHEREx DR1 observed all-sky cube (order 5, pixel scale ~12.9&quot;/pix). Official release contains 102 channels across 6 detector bands (0.753–4.988 μm).{' '}
+                    <a
+                      className="underline underline-offset-2"
+                      href="https://doi.org/10.26131/IRSA679"
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      IRSA DR1 source
+                    </a>
+                  </p>
+                </div>
               )}
               {survey in SPHEREX_SIMULATOR_SAMPLES && (
                 <p className={`mt-2 text-[10px] leading-relaxed ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>

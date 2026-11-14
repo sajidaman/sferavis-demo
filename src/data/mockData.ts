@@ -240,9 +240,9 @@ export const TUTORIALS: Tutorial[] = [
         stepNumber: 3,
         title: 'Navigate the planetarium',
         explanation:
-          'Open Launch Sferavis from the header or Home page. In the atlas, enter RA 266.414089 and Dec -29.006111 in decimal degrees and submit. Switch between a SPHEREx DR1 band and DSS2 Reference, adjust the field of view, try another projection, toggle the coordinate grid, then use Reset View.',
+          'Open Launch Sferavis from the header or Home page. In the atlas, enter RA 266.414089 and Dec -29.006111 in decimal degrees and submit. Browse between SPHEREx DR1 spectral channels, switch between grayscale and magma colormaps, or compare against DSS2 Reference and 2MASS. Adjust the field of view, try another projection, toggle the coordinate grid, then use Reset View.',
         expectedOutput:
-          'Record the coordinates you tried and two controls you used. The SPHEREx DR1 D3 view is one representative channel from the full 102-channel all-sky cube.',
+          'Record the coordinates you tried and two controls you used. The SPHEREx DR1 all-sky cube provides 102 observed spectral channels from 0.753 to 4.988 μm.',
       },
       {
         stepNumber: 4,
