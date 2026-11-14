@@ -13,189 +13,65 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate, onLaunchSferavis }) 
     <footer className="sferavis-site sferavis-footer relative z-10 w-full bg-white dark:bg-[#070b14] border-t border-zinc-200 dark:border-slate-800 text-zinc-600 dark:text-zinc-400 text-xs transition-colors duration-200 font-lexend selection:bg-[#A30000] selection:text-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
         
-        {/* 4-Column Directory Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
-          
+        {/* Main Footer Navigation */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-x-8 gap-y-10 mb-10">
           <div>
             <h4 className="text-xs font-oswald uppercase font-bold text-zinc-950 dark:text-white tracking-wider mb-4 transition-colors">
-              Explore Sferavis
+              Organization
             </h4>
             <ul className="space-y-2.5">
-              <li>
-                <button
-                  onClick={() => onNavigate('home')}
-                  className="hover:text-zinc-950 dark:hover:text-white transition-colors cursor-pointer text-left"
-                >
-                  Overview & Vision
-                </button>
-              </li>
-              <li>
-                <button
-                  onClick={() => onNavigate('spherex')}
-                  className="hover:text-zinc-950 dark:hover:text-white transition-colors cursor-pointer text-left"
-                >
-                  The SPHEREx Mission
-                </button>
-              </li>
-              <li>
-                <button
-                  onClick={onLaunchSferavis}
-                  className="text-[#A30000] hover:text-[#8B0000] dark:hover:text-white font-bold uppercase tracking-wider inline-flex items-center gap-1 cursor-pointer transition-colors"
-                >
-                  <span>Launch Sferavis</span>
-                  <ArrowUpRight className="w-3 h-3" />
-                </button>
-              </li>
-              <li>
-                <button
-                  onClick={() => onNavigate('tutorials')}
-                  className="hover:text-zinc-950 dark:hover:text-white transition-colors cursor-pointer text-left"
-                >
-                  102-Band SED Analysis
-                </button>
-              </li>
+              <li><button onClick={() => onNavigate('home')} className="hover:text-zinc-950 dark:hover:text-white transition-colors cursor-pointer text-left">About Sferavis</button></li>
+              <li><button onClick={() => onNavigate('team')} className="hover:text-zinc-950 dark:hover:text-white transition-colors cursor-pointer text-left">Team &amp; Leadership</button></li>
+              <li><button onClick={() => onNavigate('contact')} className="hover:text-zinc-950 dark:hover:text-white transition-colors cursor-pointer text-left">Join Sferavis</button></li>
             </ul>
           </div>
 
           <div>
             <h4 className="text-xs font-oswald uppercase font-bold text-zinc-950 dark:text-white tracking-wider mb-4 transition-colors">
-              Science & Learning
+              Explore
             </h4>
             <ul className="space-y-2.5">
               <li>
-                <button
-                  onClick={() => onNavigate('tutorials')}
-                  className="hover:text-zinc-950 dark:hover:text-white transition-colors cursor-pointer text-left"
-                >
-                  Quickstart: FITS Ingestion
+                <button onClick={onLaunchSferavis} className="text-[#A30000] hover:text-[#8B0000] dark:hover:text-white font-bold uppercase tracking-wider inline-flex items-center gap-1 cursor-pointer transition-colors">
+                  <span>Launch Sferavis</span><ArrowUpRight className="w-3 h-3" />
                 </button>
               </li>
-              <li>
-                <button
-                  onClick={() => onNavigate('tutorials')}
-                  className="hover:text-zinc-950 dark:hover:text-white transition-colors cursor-pointer text-left"
-                >
-                  Water & CO₂ Ice Detection
-                </button>
-              </li>
-              <li>
-                <button
-                  onClick={() => onNavigate('tutorials')}
-                  className="hover:text-zinc-950 dark:hover:text-white transition-colors cursor-pointer text-left"
-                >
-                  Billion-Galaxy Redshift Sieve
-                </button>
-              </li>
-              <li>
-                <button
-                  onClick={() => onNavigate('documentations')}
-                  className="hover:text-zinc-950 dark:hover:text-white transition-colors cursor-pointer text-left"
-                >
-                  Laboratory Ice Standards
-                </button>
-              </li>
+              <li><button onClick={() => onNavigate('spherex')} className="hover:text-zinc-950 dark:hover:text-white transition-colors cursor-pointer text-left">The SPHEREx Mission</button></li>
+              <li><button onClick={() => onNavigate('archive')} className="hover:text-zinc-950 dark:hover:text-white transition-colors cursor-pointer text-left">Infraredium Archive</button></li>
+              <li><button onClick={() => onNavigate('publications')} className="hover:text-zinc-950 dark:hover:text-white transition-colors cursor-pointer text-left">Publications</button></li>
             </ul>
           </div>
 
           <div>
             <h4 className="text-xs font-oswald uppercase font-bold text-zinc-950 dark:text-white tracking-wider mb-4 transition-colors">
-              Developer & API
+              Science &amp; Research
             </h4>
             <ul className="space-y-2.5">
-              <li>
-                <button
-                  onClick={() => onNavigate('documentations')}
-                  className="hover:text-zinc-950 dark:hover:text-white transition-colors cursor-pointer text-left"
-                >
-                  sferavis Python SDK
-                </button>
-              </li>
-              <li>
-                <button
-                  onClick={() => onNavigate('documentations')}
-                  className="hover:text-zinc-950 dark:hover:text-white transition-colors cursor-pointer text-left"
-                >
-                  REST Spectral Endpoints
-                </button>
-              </li>
-              <li>
-                <button
-                  onClick={() => onNavigate('documentations')}
-                  className="hover:text-zinc-950 dark:hover:text-white transition-colors cursor-pointer text-left"
-                >
-                  FITS Cube HDU Standards
-                </button>
-              </li>
-              <li>
-                <button
-                  onClick={() => onNavigate('documentations')}
-                  className="hover:text-zinc-950 dark:hover:text-white transition-colors cursor-pointer text-left"
-                >
-                  Interactive Query Console
-                </button>
-              </li>
+              <li><button onClick={() => onNavigate('documentations')} className="hover:text-zinc-950 dark:hover:text-white transition-colors cursor-pointer text-left">Scientific Documentation</button></li>
+              <li><button onClick={() => onNavigate('documentations')} className="hover:text-zinc-950 dark:hover:text-white transition-colors cursor-pointer text-left">Research &amp; Methodology</button></li>
+              <li><button onClick={() => onNavigate('tutorials')} className="hover:text-zinc-950 dark:hover:text-white transition-colors cursor-pointer text-left">Learning Resources</button></li>
+              <li><button onClick={() => onNavigate('archive')} className="hover:text-zinc-950 dark:hover:text-white transition-colors cursor-pointer text-left">Data &amp; Tools</button></li>
             </ul>
           </div>
 
           <div>
             <h4 className="text-xs font-oswald uppercase font-bold text-zinc-950 dark:text-white tracking-wider mb-4 transition-colors">
-              Consortium & Partners
+              Connect
             </h4>
             <ul className="space-y-2.5">
-              <li>
-                <button
-                  onClick={() => onNavigate('team')}
-                  className="hover:text-zinc-950 dark:hover:text-white transition-colors cursor-pointer text-left"
-                >
-                  Mission Leadership
-                </button>
-              </li>
-              <li>
-                <button
-                  onClick={() => onNavigate('team')}
-                  className="hover:text-zinc-950 dark:hover:text-white transition-colors cursor-pointer text-left"
-                >
-                  Caltech / JPL / KASI / CfA
-                </button>
-              </li>
-              <li>
-                <button
-                  onClick={() => onNavigate('publications')}
-                  className="hover:text-zinc-950 dark:hover:text-white transition-colors cursor-pointer text-left"
-                >
-                  Publications & Research
-                </button>
-              </li>
-              <li>
-                <button
-                  onClick={() => onNavigate('archive')}
-                  className="hover:text-zinc-950 dark:hover:text-white transition-colors cursor-pointer text-left"
-                >
-                  Infraredium Archive
-                </button>
-              </li>
-              <li>
-                <button
-                  onClick={() => onNavigate('contact')}
-                  className="hover:text-zinc-950 dark:hover:text-white transition-colors cursor-pointer text-left"
-                >
-                  Contact Us
-                </button>
-              </li>
-              <li>
-                <a
-                  href="https://spherex.caltech.edu"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white transition-colors"
-                >
-                  <span>NASA SPHEREx Caltech</span>
-                  <ExternalLink className="w-3 h-3" />
-                </a>
-              </li>
+              <li><button onClick={() => onNavigate('contact')} className="hover:text-zinc-950 dark:hover:text-white transition-colors cursor-pointer text-left">Contact Us</button></li>
+              <li><button onClick={() => onNavigate('contact')} className="hover:text-zinc-950 dark:hover:text-white transition-colors cursor-pointer text-left">Collaborate With Us</button></li>
+              <li><a href="https://www.instagram.com/sferav1s/" target="_blank" rel="noopener noreferrer" className="hover:text-zinc-950 dark:hover:text-white transition-colors">Instagram <ExternalLink className="inline w-3 h-3" /></a></li>
+              <li><a href="https://github.com/sajidaman/sferavis-demo" target="_blank" rel="noopener noreferrer" className="hover:text-zinc-950 dark:hover:text-white transition-colors">GitHub <ExternalLink className="inline w-3 h-3" /></a></li>
             </ul>
           </div>
+        </div>
 
+        {/* External scientific resources */}
+        <div className="flex flex-wrap items-center gap-x-5 gap-y-2 border-t border-zinc-200 dark:border-slate-800 pt-5 mb-10">
+          <span className="text-[10px] font-oswald uppercase font-bold tracking-wider text-zinc-500 dark:text-zinc-400">External Resources</span>
+          <a href="https://spherex.caltech.edu/" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 hover:text-zinc-950 dark:hover:text-white transition-colors">SPHEREx at Caltech <ExternalLink className="w-3 h-3" /></a>
+          <a href="https://irsa.ipac.caltech.edu/Missions/spherex.html" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 hover:text-zinc-950 dark:hover:text-white transition-colors">NASA/IPAC Infrared Science Archive <ExternalLink className="w-3 h-3" /></a>
         </div>
 
         {/* Bottom Wordmark, Social Links & Legal Bar */}
