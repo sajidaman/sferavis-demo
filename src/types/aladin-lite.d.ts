@@ -24,6 +24,7 @@ declare module 'aladin-lite' {
     gotoRaDec: (ra: number, dec: number) => void;
     setFoV: (fov: number) => void;
     setProjection: (projection: string) => void;
+    fire: (event: string) => void;
     setCooGrid: (options: { enabled?: boolean; color?: string; opacity?: number; labelSize?: number }) => void;
     setDefaultColor: (color: string) => void;
     addCatalog: (catalog: AladinCatalog) => void;
@@ -48,6 +49,8 @@ declare module 'aladin-lite' {
     showLayersControl?: boolean;
     showFullscreenControl?: boolean;
     showGotoControl?: boolean;
+    showZoomControl?: boolean;
+    mode?: 'dark' | 'light';
     showFrame?: boolean;
     showProjectionControl?: boolean;
     [key: string]: unknown;

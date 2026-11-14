@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Maximize2, Minimize2, Moon, Sun, X } from 'lucide-react';
+import { X } from 'lucide-react';
 import { Logo } from './Logo';
 import { AladinSkyViewer } from './AladinSkyViewer';
 
@@ -53,7 +53,7 @@ export const LaunchSferavisModal: React.FC<LaunchSferavisModalProps> = ({
         className={`relative flex w-full flex-col overflow-hidden border shadow-2xl ${
           isDark ? 'border-slate-700/80 bg-[#070b14] text-slate-100' : 'border-slate-200 bg-white text-slate-900'
         } ${
-          isFullscreen ? 'h-screen rounded-none border-none' : 'h-[94vh] max-w-7xl rounded-2xl'
+          isFullscreen ? 'h-screen rounded-none border-none' : 'h-[94vh] max-w-6xl rounded-2xl'
         }`}
       >
         <header
@@ -63,33 +63,6 @@ export const LaunchSferavisModal: React.FC<LaunchSferavisModalProps> = ({
         >
           <Logo size="md" />
           <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={onToggleTheme}
-              className={`border p-2 transition-colors ${
-                isDark
-                  ? 'border-transparent text-zinc-400 hover:border-zinc-700 hover:bg-zinc-800 hover:text-white'
-                  : 'border-transparent text-slate-600 hover:border-slate-300 hover:bg-slate-100 hover:text-slate-900'
-              }`}
-              aria-label={`Switch to ${isDark ? 'light' : 'dark'} theme`}
-              aria-pressed={isDark}
-              title={`Switch to ${isDark ? 'light' : 'dark'} theme`}
-            >
-              {isDark ? <Sun className="h-4 w-4" aria-hidden="true" /> : <Moon className="h-4 w-4" aria-hidden="true" />}
-            </button>
-            <button
-              type="button"
-              onClick={() => setIsFullscreen((current) => !current)}
-              className={`border border-transparent p-2 transition-colors ${
-                isDark
-                  ? 'text-zinc-400 hover:border-zinc-700 hover:bg-zinc-800 hover:text-white'
-                  : 'text-slate-600 hover:border-slate-300 hover:bg-slate-100 hover:text-slate-900'
-              }`}
-              aria-label={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
-              title={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
-            >
-              {isFullscreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
-            </button>
             <button
               type="button"
               onClick={onClose}
@@ -102,7 +75,13 @@ export const LaunchSferavisModal: React.FC<LaunchSferavisModalProps> = ({
           </div>
         </header>
         <div className="relative min-h-0 flex-1 overflow-hidden">
-          <AladinSkyViewer className="h-full" isDark={isDark} />
+          <AladinSkyViewer
+            className="h-full"
+            isDark={isDark}
+            isFullscreen={isFullscreen}
+            onToggleFullscreen={() => setIsFullscreen((current) => !current)}
+            onToggleTheme={onToggleTheme}
+          />
         </div>
       </div>
     </div>
