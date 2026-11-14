@@ -18,10 +18,14 @@ import {
   X,
 } from 'lucide-react';
 import { loadAnalysisDataset } from '../data/analysisDatasets';
+import { SPHEREX_CHANNELS } from '../data/spherexChannels';
 
 const DSS2_HIPS = 'P/DSS2/color';
 const TWOMASS_HIPS = 'CDS/P/2MASS/color';
 const SPHEREX_CUBE_HIPS = 'https://irsa.ipac.caltech.edu/data/hips/SPHEREx/spherex_allsky_cube';
+const SPHEREX_DETAIL_LAYER = 'spherex-detail';
+const SPHEREX_DETAIL_MAX_FOV = 0.4;
+const SPHEREX_DETAIL_CACHE_GRID_DEGREES = 0.02;
 const INITIAL_RA = 180;
 const INITIAL_DEC = 0;
 const INITIAL_FOV = 360;
@@ -79,14 +83,15 @@ function numberOrNull(value: string | undefined): number | null {
 
 function createSpherexHiPS(
   array: (typeof SPHEREX_ARRAYS)[number],
+  wavelength: number,
   onError?: (error: unknown) => void
 ) {
   return A.HiPS(SPHEREX_CUBE_HIPS, {
-    name: `NASA SPHEREx DR1 ${array.band} · ${array.wavelength.toFixed(3)} μm`,
+    name: `NASA SPHEREx DR1 ${array.band} · ${wavelength.toFixed(3)} μm`,
     cooFrame: 'equatorial',
     requestMode: 'cors',
     requestCredentials: 'omit',
-    successCallback: (layer) => layer.setFrequency({ value: array.wavelength * 1e-6, unit: 'm' }),
+    successCallback: (layer) => layer.setFrequency({ value: wavelength * 1e-6, unit: 'm' }),
     errorCallback: (error: unknown) => onError?.(error),
   });
 }
@@ -144,6 +149,12 @@ export const AladinSkyViewer: React.FC<AladinSkyViewerProps> = ({
   const surveyLoadIdRef = useRef(0);
   const analysisLayersRef = useRef<Array<AladinCatalog | AladinGraphicOverlay>>([]);
   const analysisRequestIdRef = useRef(0);
+  const selectedChannelIndexRef = useRef(42);
+  const detailRefreshRef = useRef<(() => void) | null>(null);
+  const detailAbortRef = useRef<AbortController | null>(null);
+  const detailTimerRef = useRef<number | null>(null);
+  const detailRequestIdRef = useRef(0);
+  const detailObjectUrlRef = useRef<string | null>(null);
   const panelDragRef = useRef<{
     pointerId: number;
     clientX: number;
@@ -180,6 +191,8 @@ export const AladinSkyViewer: React.FC<AladinSkyViewerProps> = ({
   const [classificationInput, setClassificationInput] = useState('');
   const [rationaleInput, setRationaleInput] = useState('');
   const [survey, setSurvey] = useState<AtlasSurvey>('spherex-d3');
+  const [selectedChannelIndex, setSelectedChannelIndex] = useState(42);
+  const [detailMessage, setDetailMessage] = useState('Zoom in to 0.4° or closer to load observed exposure detail.');
   const [projection, setProjection] = useState<(typeof PROJECTIONS)[number]['value']>('AIT');
   const [isGridVisible, setIsGridVisible] = useState(true);
   const [isReticleVisible, setIsReticleVisible] = useState(true);
@@ -188,6 +201,7 @@ export const AladinSkyViewer: React.FC<AladinSkyViewerProps> = ({
   const [retryCount, setRetryCount] = useState(0);
   const surveyRef = useRef(survey);
   surveyRef.current = survey;
+  selectedChannelIndexRef.current = selectedChannelIndex;
   const projectionRef = useRef(projection);
   projectionRef.current = projection;
   const gridVisibleRef = useRef(isGridVisible);
@@ -196,6 +210,7 @@ export const AladinSkyViewer: React.FC<AladinSkyViewerProps> = ({
   reticleVisibleRef.current = isReticleVisible;
   const selectedTracklet = tracklets.find((tracklet) => tracklet.id === selectedTrackletId) ?? null;
   const selectedSpherexArray = SPHEREX_ARRAYS.find((array) => array.value === survey) ?? null;
+  const selectedChannel = SPHEREX_CHANNELS[selectedChannelIndex] ?? SPHEREX_CHANNELS[0];
 
   useEffect(() => {
     const aladinContainer = containerRef.current;
@@ -280,10 +295,16 @@ export const AladinSkyViewer: React.FC<AladinSkyViewerProps> = ({
 
     const spherexArray = SPHEREX_ARRAYS.find((array) => array.value === nextSurvey);
     if (!spherexArray) return;
+    const channelIndex = SPHEREX_CHANNELS.findIndex((channel) => channel.wavelength === spherexArray.wavelength);
+    if (channelIndex >= 0) {
+      selectedChannelIndexRef.current = channelIndex;
+      setSelectedChannelIndex(channelIndex);
+    }
 
     try {
       const wasAlreadyShowingSpherex = SPHEREX_ARRAYS.some((array) => array.value === surveyRef.current);
-      aladin.setBaseImageLayer(createSpherexHiPS(spherexArray, (error) => {
+      const wavelength = SPHEREX_CHANNELS[channelIndex]?.wavelength ?? spherexArray.wavelength;
+      aladin.setBaseImageLayer(createSpherexHiPS(spherexArray, wavelength, (error) => {
         if (!isCurrentLoad()) return;
         const detail = error instanceof Error ? error.message : String(error);
         setSurveyErrorMsg(`SPHEREx DR1 ${spherexArray.band} (${spherexArray.wavelength.toFixed(3)} μm) could not be loaded. Details: ${detail}`);
@@ -392,6 +413,155 @@ export const AladinSkyViewer: React.FC<AladinSkyViewerProps> = ({
       aladinRef.current = null;
     };
   }, [initializeViewer, retryCount]);
+
+  useEffect(() => {
+    if (status !== 'ready') return;
+    const aladin = aladinRef.current;
+    if (!aladin) return;
+
+    let active = true;
+    const releaseObjectUrl = (url: string) => {
+      URL.revokeObjectURL(url);
+      if (detailObjectUrlRef.current === url) detailObjectUrlRef.current = null;
+    };
+
+    const loadDetail = async (requestId: number) => {
+      if (!active || aladinRef.current !== aladin) return;
+      const channel = SPHEREX_CHANNELS[selectedChannelIndexRef.current];
+      const currentSurvey = surveyRef.current;
+      const raDec = aladin.getRaDec?.();
+      const fov = aladin.getFov?.();
+      if (!channel || !SPHEREX_ARRAYS.some((array) => array.value === currentSurvey)) {
+        aladin.removeImageLayer(SPHEREX_DETAIL_LAYER);
+        setDetailMessage('High-resolution exposure detail is available on SPHEREx views.');
+        return;
+      }
+      if (channel.isBlank) {
+        aladin.removeImageLayer(SPHEREX_DETAIL_LAYER);
+        setDetailMessage(`Cube channel ${channel.frame} is blank in the released DR1 product.`);
+        return;
+      }
+      if (
+        !raDec || !raDec.every(Number.isFinite)
+        || !fov || !fov.every(Number.isFinite)
+        || Math.max(...fov) > SPHEREX_DETAIL_MAX_FOV
+      ) {
+        aladin.removeImageLayer(SPHEREX_DETAIL_LAYER);
+        setDetailMessage('Zoom in to 0.4° or closer to load observed exposure detail.');
+        return;
+      }
+
+      const controller = new AbortController();
+      detailAbortRef.current = controller;
+      aladin.removeImageLayer(SPHEREX_DETAIL_LAYER);
+      setDetailMessage('Loading a real SPHEREx DR1 exposure cutout…');
+      let objectUrl: string | null = null;
+      try {
+        const endpoint = new URL('/api/spherex-detail', window.location.origin);
+        const snappedRa = (Math.round(raDec[0] / SPHEREX_DETAIL_CACHE_GRID_DEGREES) * SPHEREX_DETAIL_CACHE_GRID_DEGREES) % 360;
+        const snappedDec = Math.max(
+          -90,
+          Math.min(90, Math.round(raDec[1] / SPHEREX_DETAIL_CACHE_GRID_DEGREES) * SPHEREX_DETAIL_CACHE_GRID_DEGREES),
+        );
+        endpoint.searchParams.set('ra', snappedRa.toFixed(2));
+        endpoint.searchParams.set('dec', snappedDec.toFixed(2));
+        endpoint.searchParams.set('wavelength', String(channel.wavelength));
+        endpoint.searchParams.set('size', Math.min(0.5, Math.max(0.1, Math.max(...fov) * 1.2 + 0.04)).toFixed(3));
+        const response = await fetch(endpoint, { signal: controller.signal });
+        if (!response.ok) {
+          const result = await response.json() as { error?: string };
+          throw new Error(result.error || 'IRSA did not return a SPHEREx exposure.');
+        }
+        const imageBlob = await response.blob();
+        if (!active || detailRequestIdRef.current !== requestId || aladinRef.current !== aladin) return;
+
+        const imageUrl = URL.createObjectURL(imageBlob);
+        objectUrl = imageUrl;
+        detailObjectUrlRef.current = imageUrl;
+        const band = SPHEREX_ARRAYS[channel.band - 1]?.band ?? `D${channel.band}`;
+        const image = aladin.createImageFITS(
+          imageUrl,
+          {
+            name: `SPHEREx DR1 ${band} exposure detail`,
+            colormap: 'magma',
+            stretch: 'asinh',
+            opacity: 0.92,
+          },
+          () => {
+            if (!active || detailRequestIdRef.current !== requestId || aladinRef.current !== aladin) {
+              releaseObjectUrl(imageUrl);
+              return;
+            }
+            releaseObjectUrl(imageUrl);
+            setDetailMessage(
+              `DR1 ${band} single-exposure detail · 6.15 arcsec/pixel. Wavelength varies across the detector; this is not a coadded mosaic or a single-channel cube slice.`,
+            );
+          },
+          (error) => {
+            releaseObjectUrl(imageUrl);
+            if (!active || detailRequestIdRef.current !== requestId || aladinRef.current !== aladin) return;
+            aladin.removeImageLayer(SPHEREX_DETAIL_LAYER);
+            const detail = error instanceof Error ? error.message : String(error);
+            setDetailMessage(`High-resolution SPHEREx detail could not be displayed: ${detail}`);
+          },
+        );
+        aladin.setOverlayImageLayer(image, SPHEREX_DETAIL_LAYER);
+      } catch (error) {
+        if (objectUrl) releaseObjectUrl(objectUrl);
+        if (!active || controller.signal.aborted || detailRequestIdRef.current !== requestId) return;
+        aladin.removeImageLayer(SPHEREX_DETAIL_LAYER);
+        setDetailMessage(error instanceof Error ? error.message : String(error));
+      }
+    };
+
+    const scheduleDetail = () => {
+      if (!active) return;
+      if (detailTimerRef.current !== null) window.clearTimeout(detailTimerRef.current);
+      detailAbortRef.current?.abort();
+      detailAbortRef.current = null;
+      const requestId = ++detailRequestIdRef.current;
+      detailTimerRef.current = window.setTimeout(() => {
+        detailTimerRef.current = null;
+        void loadDetail(requestId);
+      }, 450);
+    };
+
+    detailRefreshRef.current = scheduleDetail;
+    aladin.on?.('zoomChanged', scheduleDetail);
+    aladin.on?.('positionChanged', scheduleDetail);
+    scheduleDetail();
+
+    return () => {
+      active = false;
+      detailRefreshRef.current = null;
+      if (detailTimerRef.current !== null) window.clearTimeout(detailTimerRef.current);
+      detailTimerRef.current = null;
+      detailAbortRef.current?.abort();
+      detailAbortRef.current = null;
+      detailRequestIdRef.current += 1;
+      if (detailObjectUrlRef.current) {
+        URL.revokeObjectURL(detailObjectUrlRef.current);
+        detailObjectUrlRef.current = null;
+      }
+      if (aladinRef.current === aladin) aladin.removeImageLayer(SPHEREX_DETAIL_LAYER);
+    };
+  }, [status]);
+
+  useEffect(() => {
+    if (status === 'ready') detailRefreshRef.current?.();
+  }, [status, survey, selectedChannelIndex]);
+
+  useEffect(() => {
+    if (status !== 'ready' || !selectedSpherexArray) return;
+    const timer = window.setTimeout(() => {
+      const baseLayer = aladinRef.current?.getBaseImageLayer?.();
+      baseLayer?.setFrequency({
+        value: selectedChannel.wavelength * 1e-6,
+        unit: 'm',
+      });
+    }, 100);
+    return () => window.clearTimeout(timer);
+  }, [selectedChannel.wavelength, selectedSpherexArray, status]);
 
   useEffect(() => {
     const aladin = aladinRef.current;
@@ -939,17 +1109,63 @@ export const AladinSkyViewer: React.FC<AladinSkyViewerProps> = ({
                 <option value="reference">DSS2 optical reference</option>
               </select>
               {selectedSpherexArray && (
-                <p className={`mt-2 text-[10px] leading-relaxed ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
-                  SPHEREx DR1 observed all-sky cube at {selectedSpherexArray.wavelength.toFixed(3)} μm. This HiPS product has a maximum order of 5 and full-sky coverage; the view shows one of its 102 channels.{' '}
-                  <a
-                    className="underline underline-offset-2"
-                    href="https://doi.org/10.26131/IRSA679"
-                    target="_blank"
-                    rel="noreferrer"
+                <>
+                  <p className={`mt-2 text-[10px] leading-relaxed ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                    SPHEREx DR1 observed all-sky cube · 102 frames · HiPS order 5 · full-sky coverage. Choose a D-band preset or browse exact wavelengths with the slider.{' '}
+                    <a
+                      className="underline underline-offset-2"
+                      href="https://doi.org/10.26131/IRSA679"
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      SPHEREx DR1 source
+                    </a>
+                  </p>
+                  <label
+                    htmlFor={`${containerId}-wavelength`}
+                    className={`mb-1.5 mt-3 block text-[10px] font-semibold uppercase tracking-wider ${
+                      isDark ? 'text-slate-400' : 'text-slate-500'
+                    }`}
                   >
-                    SPHEREx DR1 source
-                  </a>
-                </p>
+                    Wavelength channel
+                  </label>
+                  <input
+                    id={`${containerId}-wavelength`}
+                    type="range"
+                    min={0}
+                    max={SPHEREX_CHANNELS.length - 1}
+                    value={selectedChannelIndex}
+                    disabled={status !== 'ready'}
+                    aria-valuetext={`Channel ${selectedChannel.frame} of ${SPHEREX_CHANNELS.length}, ${selectedChannel.wavelength.toFixed(3)} micrometers`}
+                    onChange={(event) => {
+                      const nextIndex = Number(event.currentTarget.value);
+                      const channel = SPHEREX_CHANNELS[nextIndex];
+                      if (!channel) return;
+                      setSelectedChannelIndex(nextIndex);
+                      const array = SPHEREX_ARRAYS[channel.band - 1];
+                      if (array) setSurvey(array.value);
+                    }}
+                    className="w-full accent-[#A30000] disabled:cursor-not-allowed disabled:opacity-60"
+                  />
+                  <div className={`flex justify-between text-[10px] ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                    <span>Channel {selectedChannel.frame}/{SPHEREX_CHANNELS.length} · D{selectedChannel.band}</span>
+                    <span>{selectedChannel.wavelength.toFixed(3)} μm</span>
+                  </div>
+                  {selectedChannel.isBlank && (
+                    <p className="mt-1 text-[10px] text-amber-600 dark:text-amber-400">
+                      This channel is blank in the released DR1 cube.
+                    </p>
+                  )}
+                  <p
+                    className={`mt-2 text-[10px] leading-relaxed ${isDark ? 'text-slate-400' : 'text-slate-500'}`}
+                    aria-live="polite"
+                  >
+                    {detailMessage}
+                  </p>
+                  <p className={`mt-1 text-[10px] leading-relaxed ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+                    Zoomed detail uses a real DR1 exposure at native detector sampling (6.15 arcsec/pixel). It is one exposure, not a coadded mosaic; its wavelength varies across the detector.
+                  </p>
+                </>
               )}
               {survey in SPHEREX_SIMULATOR_SAMPLES && (
                 <p className={`mt-2 text-[10px] leading-relaxed ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>

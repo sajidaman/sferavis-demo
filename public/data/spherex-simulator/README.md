@@ -3,12 +3,16 @@
 ## Low-resolution all-sky view
 
 The Atlas uses the public SPHEREx DR1 all-sky HiPS cube, containing 102
-spectral channels from 0.753 to 4.988 μm with full-sky coverage. The six D1–D6
-choices display a representative channel from each detector band. The HiPS
-product has a maximum order of 5 (512-pixel tiles), providing a low-resolution
-all-sky view. These are actual SPHEREx observations, not data from the
-simulator paper. The 2MASS reference is available separately in the Atlas; it
-is not blended into SPHEREx data.
+spectral channels from 0.753 to 4.988 μm with full-sky coverage. Its channel
+slider exposes every frame; frames 50 and 51 are blank dichroic channels. The
+HiPS product has a maximum order of 5 (512-pixel tiles), providing a
+low-resolution all-sky view. At zooms of 0.4° or smaller, the Atlas can fetch
+a real DR1 spectral exposure cutout at 6.15 arcsec per detector pixel. This is
+one exposure, not a coadded mosaic; its pixels span a range of wavelengths
+across the detector and are not an exact single-channel cube slice. Both
+products are observed SPHEREx data, not data from the simulator paper. The
+2MASS reference is available separately in the Atlas; it is not blended into
+SPHEREx data.
 
 The DR1 all-sky cube is separate from the simulator outputs described in Crill
 et al. (2025). The simulator FITS cutouts below are small single-exposure
@@ -16,8 +20,6 @@ examples, not part of that all-sky cube.
 
 Source: [SPHEREx DR1 all-sky cube](https://doi.org/10.26131/IRSA679), served as
 a [HiPS cube by IRSA](https://irsa.ipac.caltech.edu/data/hips/SPHEREx/spherex_allsky_cube).
-The visualization product has two blank dichroic frames; the representative
-channels selected by the Atlas avoid them.
 Reference: [2MASS at IRSA](https://irsa.ipac.caltech.edu/Missions/2mass.html).
 
 ## Simulator cutouts

@@ -15,6 +15,7 @@ declare module 'aladin-lite' {
     name?: string;
     colormap?: string;
     stretch?: string;
+    opacity?: number;
     minCut?: number;
     maxCut?: number;
   }
@@ -35,8 +36,12 @@ declare module 'aladin-lite' {
       successCallback?: (ra: number, dec: number, fov: number, image: unknown) => void,
       errorCallback?: (error: unknown) => void
     ) => unknown;
+    setOverlayImageLayer: (image: unknown, layer?: string) => unknown;
+    removeImageLayer: (layer: string | unknown) => void;
     gotoRaDec: (ra: number, dec: number) => void;
     setFoV: (fov: number) => void;
+    getRaDec?: () => [number, number];
+    getFov?: () => [number, number];
     setProjection: (projection: string) => void;
     fire: (event: string) => void;
     showReticle: (show: boolean) => void;
@@ -45,7 +50,7 @@ declare module 'aladin-lite' {
     addCatalog: (catalog: AladinCatalog) => void;
     addOverlay: (overlay: AladinGraphicOverlay) => void;
     removeOverlay: (overlay: AladinCatalog | AladinGraphicOverlay) => void;
-    getBaseImageLayer?: () => unknown;
+    getBaseImageLayer?: () => AladinHiPSLayer;
     getView?: () => unknown;
     on?: (event: string, callback: (...args: unknown[]) => void) => void;
     [key: string]: unknown;
