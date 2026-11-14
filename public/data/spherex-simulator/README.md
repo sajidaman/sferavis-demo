@@ -1,5 +1,27 @@
 # SPHEREx simulator samples
 
+## Low-resolution all-sky view
+
+The Atlas uses the public SPHEREx DR1 all-sky HiPS cube, containing 102
+spectral channels from 0.753 to 4.988 μm with full-sky coverage. The six D1–D6
+choices display a representative channel from each detector band. The HiPS
+product has a maximum order of 5 (512-pixel tiles), providing a low-resolution
+all-sky view. These are actual SPHEREx observations, not data from the
+simulator paper. The 2MASS reference is available separately in the Atlas; it
+is not blended into SPHEREx data.
+
+The DR1 all-sky cube is separate from the simulator outputs described in Crill
+et al. (2025). The simulator FITS cutouts below are small single-exposure
+examples, not part of that all-sky cube.
+
+Source: [SPHEREx DR1 all-sky cube](https://doi.org/10.26131/IRSA679), served as
+a [HiPS cube by IRSA](https://irsa.ipac.caltech.edu/data/hips/SPHEREx/spherex_allsky_cube).
+The visualization product has two blank dichroic frames; the representative
+channels selected by the Atlas avoid them.
+Reference: [2MASS at IRSA](https://irsa.ipac.caltech.edu/Missions/2mass.html).
+
+## Simulator cutouts
+
 These two 256 × 256 pixel FITS cutouts are cropped from the public simulated
 Level-2 exposures discussed in Crill et al. (2025). They preserve the spatial
 celestial WCS (including its SIP distortion terms) and the original `MJy / sr`

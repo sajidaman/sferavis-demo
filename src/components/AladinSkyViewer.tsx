@@ -19,12 +19,21 @@ import {
 } from 'lucide-react';
 import { loadAnalysisDataset } from '../data/analysisDatasets';
 
-const SPHEREX_HIPS = 'CDS/P/SPHEREx/QR2/D3';
 const DSS2_HIPS = 'P/DSS2/color';
+const TWOMASS_HIPS = 'CDS/P/2MASS/color';
+const SPHEREX_CUBE_HIPS = 'https://irsa.ipac.caltech.edu/data/hips/SPHEREx/spherex_allsky_cube';
 const INITIAL_RA = 180;
 const INITIAL_DEC = 0;
-const INITIAL_FOV = 0.25;
+const INITIAL_FOV = 360;
 const TRACKLET_FOV = 0.12;
+const SPHEREX_ARRAYS = [
+  { value: 'spherex-d1', band: 'D1', wavelength: 0.910 },
+  { value: 'spherex-d2', band: 'D2', wavelength: 1.346 },
+  { value: 'spherex-d3', band: 'D3', wavelength: 1.995 },
+  { value: 'spherex-d4', band: 'D4', wavelength: 3.033 },
+  { value: 'spherex-d5', band: 'D5', wavelength: 3.833 },
+  { value: 'spherex-d6', band: 'D6', wavelength: 4.435 },
+] as const;
 const SPHEREX_SIMULATOR_SAMPLES = {
   'simulator-high-latitude': {
     name: 'SPHEREx simulator — high latitude',
@@ -35,7 +44,8 @@ const SPHEREX_SIMULATOR_SAMPLES = {
     path: 'data/spherex-simulator/galactic-plane-cutout.fits',
   },
 } as const;
-type AtlasSurvey = 'spherex' | 'reference' | keyof typeof SPHEREX_SIMULATOR_SAMPLES;
+type SpherexSurvey = (typeof SPHEREX_ARRAYS)[number]['value'];
+type AtlasSurvey = SpherexSurvey | 'two-mass' | 'reference' | keyof typeof SPHEREX_SIMULATOR_SAMPLES;
 const PROJECTIONS = [
   { value: 'AIT', label: 'All-sky (Aitoff)' },
   { value: 'TAN', label: 'Tangent plane' },
@@ -67,16 +77,28 @@ function numberOrNull(value: string | undefined): number | null {
   return Number.isFinite(parsed) ? parsed : null;
 }
 
-function createSpherexHiPS(onError?: (error: unknown) => void) {
-  return A.HiPS(SPHEREX_HIPS, {
-    name: 'NASA SPHEREx QR2 D3',
-    maxOrder: 7,
-    minOrder: 0,
-    tileSize: 512,
-    imgFormat: 'png',
+function createSpherexHiPS(
+  array: (typeof SPHEREX_ARRAYS)[number],
+  onError?: (error: unknown) => void
+) {
+  return A.HiPS(SPHEREX_CUBE_HIPS, {
+    name: `NASA SPHEREx DR1 ${array.band} · ${array.wavelength.toFixed(3)} μm`,
     cooFrame: 'equatorial',
     requestMode: 'cors',
     requestCredentials: 'omit',
+    successCallback: (layer) => layer.setFrequency({ value: array.wavelength * 1e-6, unit: 'm' }),
+    errorCallback: (error: unknown) => onError?.(error),
+  });
+}
+
+function createTwoMassHiPS(onError?: (error: unknown) => void) {
+  return A.HiPS(TWOMASS_HIPS, {
+    name: '2MASS infrared reference (J/H/Ks)',
+    url: 'https://irsa.ipac.caltech.edu/data/hips/CDS/2MASS/Color',
+    maxOrder: 4,
+    minOrder: 0,
+    tileSize: 512,
+    cooFrame: 'equatorial',
     errorCallback: (error: unknown) => onError?.(error),
   });
 }
@@ -86,6 +108,13 @@ function createReferenceHiPS(onError?: (error: unknown) => void) {
     name: 'DSS2 color',
     errorCallback: (error: unknown) => onError?.(error),
   });
+}
+
+function isAtlasSurvey(value: string): value is AtlasSurvey {
+  return value === 'reference'
+    || value === 'two-mass'
+    || SPHEREX_ARRAYS.some((array) => array.value === value)
+    || value in SPHEREX_SIMULATOR_SAMPLES;
 }
 
 interface AladinSkyViewerProps {
@@ -112,6 +141,7 @@ export const AladinSkyViewer: React.FC<AladinSkyViewerProps> = ({
   const rawId = useId().replace(/[^a-zA-Z0-9_-]/g, '');
   const containerId = `sferavis-aladin-${rawId}`;
   const initializationIdRef = useRef(0);
+  const surveyLoadIdRef = useRef(0);
   const analysisLayersRef = useRef<Array<AladinCatalog | AladinGraphicOverlay>>([]);
   const analysisRequestIdRef = useRef(0);
   const panelDragRef = useRef<{
@@ -149,7 +179,7 @@ export const AladinSkyViewer: React.FC<AladinSkyViewerProps> = ({
   const [suggestionError, setSuggestionError] = useState<string | null>(null);
   const [classificationInput, setClassificationInput] = useState('');
   const [rationaleInput, setRationaleInput] = useState('');
-  const [survey, setSurvey] = useState<AtlasSurvey>('simulator-high-latitude');
+  const [survey, setSurvey] = useState<AtlasSurvey>('spherex-d3');
   const [projection, setProjection] = useState<(typeof PROJECTIONS)[number]['value']>('AIT');
   const [isGridVisible, setIsGridVisible] = useState(true);
   const [isReticleVisible, setIsReticleVisible] = useState(true);
@@ -165,6 +195,7 @@ export const AladinSkyViewer: React.FC<AladinSkyViewerProps> = ({
   const reticleVisibleRef = useRef(isReticleVisible);
   reticleVisibleRef.current = isReticleVisible;
   const selectedTracklet = tracklets.find((tracklet) => tracklet.id === selectedTrackletId) ?? null;
+  const selectedSpherexArray = SPHEREX_ARRAYS.find((array) => array.value === survey) ?? null;
 
   useEffect(() => {
     const aladinContainer = containerRef.current;
@@ -190,6 +221,9 @@ export const AladinSkyViewer: React.FC<AladinSkyViewerProps> = ({
     const aladin = aladinRef.current;
     if (!aladin) return;
 
+    const surveyLoadId = ++surveyLoadIdRef.current;
+    const isCurrentLoad = () => surveyLoadIdRef.current === surveyLoadId;
+
     setSurvey(nextSurvey);
     setSurveyErrorMsg(null);
     if (nextSurvey in SPHEREX_SIMULATOR_SAMPLES) {
@@ -203,6 +237,7 @@ export const AladinSkyViewer: React.FC<AladinSkyViewerProps> = ({
             aladin.setFoV(fov);
           },
           (error) => {
+            if (!isCurrentLoad()) return;
             const detail = error instanceof Error ? error.message : String(error);
             setSurveyErrorMsg(`${sample.name} could not be loaded. Details: ${detail}`);
           },
@@ -218,6 +253,7 @@ export const AladinSkyViewer: React.FC<AladinSkyViewerProps> = ({
     if (nextSurvey === 'reference') {
       try {
         aladin.setBaseImageLayer(createReferenceHiPS((error) => {
+          if (!isCurrentLoad()) return;
           const detail = error instanceof Error ? error.message : String(error);
           setSurveyErrorMsg(`The DSS2 optical survey could not be loaded. Details: ${detail}`);
         }));
@@ -228,24 +264,40 @@ export const AladinSkyViewer: React.FC<AladinSkyViewerProps> = ({
       return;
     }
 
-    const showReferenceFallback = (cause: unknown) => {
-      const detail = cause instanceof Error ? cause.message : String(cause);
-      setSurveyErrorMsg(`SPHEREx infrared tiles could not be loaded. Showing the DSS2 optical fallback. Details: ${detail}`);
+    if (nextSurvey === 'two-mass') {
       try {
-        aladinRef.current?.setBaseImageLayer(createReferenceHiPS((fallbackError) => {
-          const fallbackDetail = fallbackError instanceof Error ? fallbackError.message : String(fallbackError);
-          setSurveyErrorMsg(`SPHEREx and the DSS2 fallback could not be loaded. Details: ${detail}; ${fallbackDetail}`);
+        aladin.setBaseImageLayer(createTwoMassHiPS((error) => {
+          if (!isCurrentLoad()) return;
+          const detail = error instanceof Error ? error.message : String(error);
+          setSurveyErrorMsg(`The 2MASS infrared survey could not be loaded. Details: ${detail}`);
         }));
-      } catch (fallbackError) {
-        const fallbackDetail = fallbackError instanceof Error ? fallbackError.message : String(fallbackError);
-        setSurveyErrorMsg(`SPHEREx and the DSS2 fallback could not be loaded. Details: ${detail}; ${fallbackDetail}`);
+      } catch (error) {
+        const detail = error instanceof Error ? error.message : String(error);
+        setSurveyErrorMsg(`The 2MASS infrared survey could not be loaded. Details: ${detail}`);
       }
-    };
+      return;
+    }
+
+    const spherexArray = SPHEREX_ARRAYS.find((array) => array.value === nextSurvey);
+    if (!spherexArray) return;
 
     try {
-      aladin.setBaseImageLayer(createSpherexHiPS(showReferenceFallback));
+      const wasAlreadyShowingSpherex = SPHEREX_ARRAYS.some((array) => array.value === surveyRef.current);
+      aladin.setBaseImageLayer(createSpherexHiPS(spherexArray, (error) => {
+        if (!isCurrentLoad()) return;
+        const detail = error instanceof Error ? error.message : String(error);
+        setSurveyErrorMsg(`SPHEREx DR1 ${spherexArray.band} (${spherexArray.wavelength.toFixed(3)} μm) could not be loaded. Details: ${detail}`);
+      }));
+      if (!wasAlreadyShowingSpherex) {
+        aladin.setProjection('AIT');
+        setProjection('AIT');
+        aladin.gotoRaDec(INITIAL_RA, INITIAL_DEC);
+        aladin.setFoV(INITIAL_FOV);
+      }
     } catch (error) {
-      showReferenceFallback(error);
+      if (!isCurrentLoad()) return;
+      const detail = error instanceof Error ? error.message : String(error);
+      setSurveyErrorMsg(`SPHEREx DR1 ${spherexArray.band} (${spherexArray.wavelength.toFixed(3)} μm) could not be loaded. Details: ${detail}`);
     }
   }, []);
 
@@ -868,14 +920,37 @@ export const AladinSkyViewer: React.FC<AladinSkyViewerProps> = ({
                 id={`${containerId}-survey`}
                 value={survey}
                 disabled={status !== 'ready'}
-                onChange={(event) => loadSurveyLayer(event.currentTarget.value === 'reference' ? 'reference' : 'spherex')}
+                onChange={(event) => {
+                  const nextSurvey = event.currentTarget.value;
+                  if (isAtlasSurvey(nextSurvey)) loadSurveyLayer(nextSurvey);
+                }}
                 className={`w-full rounded-lg border px-2.5 py-2 text-xs outline-none transition-colors focus:ring-2 focus:ring-sky-500/30 disabled:cursor-not-allowed disabled:opacity-60 ${sidebarSelectClass}`}
               >
-                <option value="spherex">SPHEREx infrared</option>
-                <option value="simulator-high-latitude">Simulator sample — high latitude</option>
-                <option value="simulator-galactic-plane">Simulator sample — galactic plane</option>
+                <optgroup label="SPHEREx DR1 all-sky · low resolution">
+                  {SPHEREX_ARRAYS.map((array) => (
+                    <option key={array.value} value={array.value}>{array.band} · {array.wavelength.toFixed(3)} μm</option>
+                  ))}
+                </optgroup>
+                <optgroup label="SPHEREx simulator samples">
+                  <option value="simulator-high-latitude">High latitude field</option>
+                  <option value="simulator-galactic-plane">Galactic plane field</option>
+                </optgroup>
+                <option value="two-mass">2MASS infrared reference</option>
                 <option value="reference">DSS2 optical reference</option>
               </select>
+              {selectedSpherexArray && (
+                <p className={`mt-2 text-[10px] leading-relaxed ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                  SPHEREx DR1 observed all-sky cube at {selectedSpherexArray.wavelength.toFixed(3)} μm. This HiPS product has a maximum order of 5 and full-sky coverage; the view shows one of its 102 channels.{' '}
+                  <a
+                    className="underline underline-offset-2"
+                    href="https://doi.org/10.26131/IRSA679"
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    SPHEREx DR1 source
+                  </a>
+                </p>
+              )}
               {survey in SPHEREX_SIMULATOR_SAMPLES && (
                 <p className={`mt-2 text-[10px] leading-relaxed ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
                   256×256-pixel Level-2 simulator cutout, not an all-sky map. See the{' '}
