@@ -39,7 +39,21 @@ const SPHEREX_SIMULATOR_SAMPLES = {
   },
 } as const;
 type AtlasSurvey = 'spherex' | 'two-mass' | 'reference' | keyof typeof SPHEREX_SIMULATOR_SAMPLES;
-type SpherexColormap = 'grayscale' | 'magma';
+type SpherexColormap =
+  | 'grayscale'
+  | 'magma'
+  // built‑in maps
+  | 'rdylbu'
+  | 'redtemperature'
+  | 'rdbu'
+  // custom maps (will be loaded from public/colormaps)
+  | 'inferno'
+  | 'viridis'
+  | 'plasma'
+  | 'cividis'
+  | 'cubehelix'
+  | 'rainbow'
+  | 'heat';
 const PROJECTIONS = [
   { value: 'AIT', label: 'All-sky (Aitoff)' },
   { value: 'TAN', label: 'Tangent plane' },
