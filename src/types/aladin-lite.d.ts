@@ -11,6 +11,14 @@ declare module 'aladin-lite' {
     add: (shape: unknown) => void;
   }
 
+  export interface AladinFITSImageOptions {
+    name?: string;
+    colormap?: string;
+    stretch?: string;
+    minCut?: number;
+    maxCut?: number;
+  }
+
   export interface AladinCatalogOptions {
     name?: string;
     color?: string;
@@ -21,6 +29,12 @@ declare module 'aladin-lite' {
 
   export interface AladinInstance {
     setBaseImageLayer: (survey: string | unknown) => void;
+    createImageFITS: (
+      url: string,
+      options?: AladinFITSImageOptions,
+      successCallback?: (ra: number, dec: number, fov: number, image: unknown) => void,
+      errorCallback?: (error: unknown) => void
+    ) => unknown;
     gotoRaDec: (ra: number, dec: number) => void;
     setFoV: (fov: number) => void;
     setProjection: (projection: string) => void;
