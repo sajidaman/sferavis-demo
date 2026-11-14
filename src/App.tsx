@@ -125,6 +125,8 @@ export default function App() {
       <LaunchSferavisModal
         isOpen={isLaunchModalOpen}
         onClose={() => setIsLaunchModalOpen(false)}
+        isDark={isDark}
+        onToggleTheme={toggleTheme}
       />
 
       <RediumChat />
