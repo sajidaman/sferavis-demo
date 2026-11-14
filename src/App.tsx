@@ -10,6 +10,7 @@ import { DocsPage } from './pages/DocsPage';
 import { TeamPage } from './pages/TeamPage';
 import { ContactPage } from './pages/ContactPage';
 import { PublicationsPage } from './pages/PublicationsPage';
+import { ArchivePage } from './pages/ArchivePage';
 import { PrivacyPage } from './pages/PrivacyPage';
 import { TermsPage } from './pages/TermsPage';
 import { LicensingPage } from './pages/LicensingPage';
@@ -43,7 +44,7 @@ export default function App() {
   useEffect(() => {
     const handleHash = () => {
       const hash = window.location.hash.replace('#', '') as PageId;
-      if (['home', 'spherex', 'tutorials', 'documentations', 'team', 'contact', 'publications', 'privacy', 'terms', 'licensing'].includes(hash)) {
+      if (['home', 'spherex', 'tutorials', 'documentations', 'team', 'contact', 'publications', 'archive', 'privacy', 'terms', 'licensing'].includes(hash)) {
         setCurrentPage(hash);
       }
     };
@@ -112,6 +113,7 @@ export default function App() {
             {currentPage === 'team' && <TeamPage onNavigate={handleNavigate} />}
             {currentPage === 'contact' && <ContactPage />}
             {currentPage === 'publications' && <PublicationsPage onNavigate={handleNavigate} />}
+            {currentPage === 'archive' && <ArchivePage onNavigate={handleNavigate} />}
             {currentPage === 'privacy' && <PrivacyPage />}
             {currentPage === 'terms' && <TermsPage />}
             {currentPage === 'licensing' && <LicensingPage />}
