@@ -11,6 +11,8 @@ import {
   Moon,
   Move,
   MousePointer2,
+  PanelLeftClose,
+  PanelLeftOpen,
   RotateCcw,
   Sun,
   X,
@@ -141,6 +143,7 @@ export const AladinSkyViewer: React.FC<AladinSkyViewerProps> = ({
   const [isGridVisible, setIsGridVisible] = useState(true);
   const [isReticleVisible, setIsReticleVisible] = useState(true);
   const [isSimbadPointerActive, setIsSimbadPointerActive] = useState(false);
+  const [isSidebarVisible, setIsSidebarVisible] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
   const surveyRef = useRef(survey);
   surveyRef.current = survey;
@@ -260,9 +263,19 @@ export const AladinSkyViewer: React.FC<AladinSkyViewerProps> = ({
         showCooGrid: gridVisibleRef.current,
         showCooGridControl: false,
         showZoomControl: true,
+        showFov: false,
+        showCooLocation: false,
+        showProjectionControl: false,
+        showFrame: false,
+        showStatusBar: false,
         showSimbadPointerControl: false,
         showReticle: reticleVisibleRef.current,
         showLayersControl: false,
+        showSettingsControl: false,
+        showSelectionModeControl: false,
+        showColorPickerControl: false,
+        showShareControl: false,
+        showContextMenu: false,
         showFullscreenControl: false,
         showGotoControl: false,
       });
@@ -770,8 +783,10 @@ export const AladinSkyViewer: React.FC<AladinSkyViewerProps> = ({
         />
 
         <aside
+          id={`${containerId}-controls`}
           aria-label="Atlas controls"
-          className={`absolute bottom-3 left-3 top-3 z-10 flex w-[min(14rem,calc(100%-5rem))] flex-col overflow-y-auto rounded-xl border p-3 shadow-xl backdrop-blur-xl ${sidebarSurfaceClass}`}
+          hidden={!isSidebarVisible}
+          className={`absolute bottom-3 left-3 top-3 z-10 ${isSidebarVisible ? 'flex' : 'hidden'} w-[min(14rem,calc(100%-5rem))] flex-col overflow-y-auto rounded-xl border p-3 shadow-xl backdrop-blur-xl ${sidebarSurfaceClass}`}
         >
           <header className={`mb-4 flex items-center justify-between border-b pb-3 ${
             isDark ? 'border-white/10' : 'border-slate-200'
@@ -790,10 +805,25 @@ export const AladinSkyViewer: React.FC<AladinSkyViewerProps> = ({
               aria-label={status === 'ready' ? 'Map ready' : status === 'init-error' ? 'Map failed to initialize' : 'Map loading'}
               title={status === 'ready' ? 'Map ready' : status === 'init-error' ? 'Map failed to initialize' : 'Map loading'}
             />
+            <button
+              type="button"
+              onClick={() => setIsSidebarVisible(false)}
+              className={`ml-1 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 ${
+                isDark
+                  ? 'border-white/10 text-zinc-300 hover:bg-white/10 hover:text-white'
+                  : 'border-slate-200 text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+              }`}
+              aria-label="Hide Atlas controls"
+              aria-controls={`${containerId}-controls`}
+              aria-expanded={isSidebarVisible}
+              title="Hide Atlas controls"
+            >
+              <PanelLeftClose className="h-4 w-4" aria-hidden="true" />
+            </button>
           </header>
 
           <div className="space-y-4">
-            <h3 className={`-mb-2 text-[10px] font-semibold uppercase tracking-wider ${
+            <h3 className={`text-[10px] font-semibold uppercase tracking-wider ${
               isDark ? 'text-slate-400' : 'text-slate-500'
             }`}>Map view</h3>
             <div>
@@ -996,6 +1026,23 @@ export const AladinSkyViewer: React.FC<AladinSkyViewerProps> = ({
             </div>
           )}
         </aside>
+        {!isSidebarVisible && (
+          <button
+            type="button"
+            onClick={() => setIsSidebarVisible(true)}
+            className={`absolute left-3 top-3 z-10 inline-flex h-10 w-10 items-center justify-center rounded-xl border shadow-lg backdrop-blur-xl transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 ${
+              isDark
+                ? 'border-white/10 bg-[#07111f]/95 text-zinc-200 hover:bg-white/10 hover:text-white'
+                : 'border-slate-200 bg-white/95 text-slate-700 hover:bg-slate-50 hover:text-slate-900'
+            }`}
+            aria-label="Show Atlas controls"
+            aria-controls={`${containerId}-controls`}
+            aria-expanded={isSidebarVisible}
+            title="Show Atlas controls"
+          >
+            <PanelLeftOpen className="h-5 w-5" aria-hidden="true" />
+          </button>
+        )}
 
         {status === 'loading' && (
           <div className="absolute inset-0 z-20 flex items-center justify-center bg-[#050507]/90 text-zinc-300 backdrop-blur-sm">
