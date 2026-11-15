@@ -209,7 +209,7 @@ for (const g of Object.keys(state.groups)) {
 }
 $("search").addEventListener("keydown", (e) => { if (e.key === "Enter") searchObject(e.target.value); });
 $("searchBtn").addEventListener("click", () => searchObject($("search").value));
-const panel = $("panel");
+const panel = $("panel"); const desiredSections = ["Infrared Bands","Find an object","View","Background light","Labels","Solar system","Where you stand","When","Looking at"]; for (const heading of desiredSections) { const sec=[...panel.querySelectorAll("section")].find(x=>x.querySelector("h2")?.textContent.trim()===heading); if(sec) panel.appendChild(sec); }
 const panelToggle = $("toggle");
 function setPanelOpen(open) {
   panel.classList.toggle("hidden", !open);
