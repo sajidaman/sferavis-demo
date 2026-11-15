@@ -44,7 +44,10 @@ button, input, select { font: inherit; color: inherit; }
   display: flex; flex-direction: column; gap: 16px; backdrop-filter: blur(6px);
 }
 #panel.hidden, #info.hidden { display: none; }
-#toggle { position: absolute; top: 12px; right: 12px; z-index: 6; }
+#toggle { position: absolute; top: 12px; left: 344px; z-index: 6; width: 32px; height: 36px; padding: 0; display: flex; align-items: center; justify-content: center; font-size: 24px; line-height: 1; border-color: var(--accent); background: var(--panel); }
+body.panel-collapsed #toggle { left: 12px; }
+#zoom-controls { position: absolute; top: 50%; right: 12px; z-index: 6; transform: translateY(-50%); display: flex; flex-direction: column; gap: 6px; }
+#zoom-controls .btn { width: 40px; height: 40px; padding: 0; font-size: 24px; line-height: 1; background: var(--panel); box-shadow: 0 8px 24px -14px rgba(0,0,0,.6); }
 
 h1 { font-size: 20px; margin: 0; font-weight: 600; }
 h2 { font-size: 13px; font-weight: 600; margin: 0 0 8px; color: var(--muted); }
