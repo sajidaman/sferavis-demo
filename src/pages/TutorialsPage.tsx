@@ -16,10 +16,9 @@ import {
 
 interface TutorialsPageProps {
   onNavigate: (page: PageId) => void;
-  onLaunchSferavis: () => void;
 }
 
-export const TutorialsPage: React.FC<TutorialsPageProps> = ({ onNavigate, onLaunchSferavis }) => {
+export const TutorialsPage: React.FC<TutorialsPageProps> = ({ onNavigate }) => {
   const [selectedTutorialId, setSelectedTutorialId] = useState<string>(TUTORIALS[0].id);
   const [activeStepIndex, setActiveStepIndex] = useState<number>(0);
   const [codeContent, setCodeContent] = useState<string>(TUTORIALS[0].interactiveCode);
@@ -291,13 +290,6 @@ Delta-chi2: 142.8 (High confidence z-break match)`);
                 <p className="mt-3 text-sm leading-relaxed text-slate-600 dark:text-zinc-300">
                   {currentTutorial.coursework.deliverable}
                 </p>
-                <button
-                  onClick={onLaunchSferavis}
-                  className="mt-5 inline-flex items-center gap-2 bg-[#A30000] px-4 py-2 text-xs font-lexend font-bold uppercase tracking-wider text-white transition-colors hover:bg-[#8B0000]"
-                >
-                  <Play className="h-3.5 w-3.5 fill-current" aria-hidden="true" />
-                  <span>Open the planetarium</span>
-                </button>
                 <h4 className="mt-6 font-lexend text-[10px] font-bold uppercase tracking-widest text-slate-500 dark:text-zinc-400">
                   Self-assessment rubric
                 </h4>

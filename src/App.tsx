@@ -14,17 +14,14 @@ import { ArchivePage } from './pages/ArchivePage';
 import { PrivacyPage } from './pages/PrivacyPage';
 import { TermsPage } from './pages/TermsPage';
 import { LicensingPage } from './pages/LicensingPage';
-import { LaunchSferavisModal } from './components/LaunchSferavisModal';
 import { AccessibilityControls } from './components/AccessibilityControls';
 import { RediumChat } from './components/RediumChat';
 
 import { AstroBackground } from './components/AstroBackground';
 
 export default function App() {
-  // Page state (Atlas excluded as requested)
   const [currentPage, setCurrentPage] = useState<PageId>('home');
   const [isDark, setIsDark] = useState<boolean>(() => localStorage.getItem('sferavis-theme') === 'dark');
-  const [isLaunchModalOpen, setIsLaunchModalOpen] = useState<boolean>(false);
 
   // Remember each visitor's theme preference on this device/browser.
   useEffect(() => {
@@ -77,7 +74,6 @@ export default function App() {
         onNavigate={handleNavigate}
         isDark={isDark}
         onToggleTheme={toggleTheme}
-        onLaunchSferavis={() => setIsLaunchModalOpen(true)}
       />
 
       {/* Main Page View with Animated Cross-Dissolve Transitions */}
@@ -92,22 +88,13 @@ export default function App() {
             className="w-full"
           >
             {currentPage === 'home' && (
-              <HomePage
-                onNavigate={handleNavigate}
-                onLaunchSferavis={() => setIsLaunchModalOpen(true)}
-              />
+              <HomePage onNavigate={handleNavigate} />
             )}
             {currentPage === 'spherex' && (
-              <SpherexPage
-                onNavigate={handleNavigate}
-                onLaunchSferavis={() => setIsLaunchModalOpen(true)}
-              />
+              <SpherexPage onNavigate={handleNavigate} />
             )}
             {currentPage === 'tutorials' && (
-              <TutorialsPage
-                onNavigate={handleNavigate}
-                onLaunchSferavis={() => setIsLaunchModalOpen(true)}
-              />
+              <TutorialsPage onNavigate={handleNavigate} />
             )}
             {currentPage === 'documentations' && <DocsPage onNavigate={handleNavigate} />}
             {currentPage === 'team' && <TeamPage onNavigate={handleNavigate} />}
@@ -122,18 +109,7 @@ export default function App() {
       </main>
 
       {/* Apple-style Quiet Footer */}
-      <Footer
-        onNavigate={handleNavigate}
-        onLaunchSferavis={() => setIsLaunchModalOpen(true)}
-      />
-
-      {/* Interactive Launch Sferavis Modal */}
-      <LaunchSferavisModal
-        isOpen={isLaunchModalOpen}
-        onClose={() => setIsLaunchModalOpen(false)}
-        isDark={isDark}
-        onToggleTheme={toggleTheme}
-      />
+      <Footer onNavigate={handleNavigate} />
 
       <RediumChat />
       <AccessibilityControls isDark={isDark} onSetDark={setIsDark} />

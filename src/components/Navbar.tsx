@@ -1,14 +1,13 @@
 import React, { useState } from 'react';
 import { PageId } from '../types';
 import { Logo } from './Logo';
-import { Sun, Moon, Menu, X, ArrowUpRight } from 'lucide-react';
+import { Sun, Moon, Menu, X } from 'lucide-react';
 
 interface NavbarProps {
   currentPage: PageId;
   onNavigate: (page: PageId) => void;
   isDark: boolean;
   onToggleTheme: () => void;
-  onLaunchSferavis: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -16,11 +15,9 @@ export const Navbar: React.FC<NavbarProps> = ({
   onNavigate,
   isDark,
   onToggleTheme,
-  onLaunchSferavis,
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  // Exact 5 pages requested (Atlas excluded)
   const navItems: Array<{ id: PageId; label: string }> = [
     { id: 'home', label: 'Home' },
     { id: 'spherex', label: 'SPHEREx' },
@@ -74,7 +71,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           })}
         </nav>
 
-        {/* Zone 3: 1 primary action ('Launch Sferavis') + theme toggle */}
+        {/* Theme toggle and mobile navigation */}
         <div className="flex items-center gap-4 shrink-0">
           <button
             type="button"
@@ -85,14 +82,6 @@ export const Navbar: React.FC<NavbarProps> = ({
             {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
           </button>
 
-          <button
-            type="button"
-            onClick={onLaunchSferavis}
-            className="hidden sm:inline-flex items-center gap-2 px-5 py-2.5 text-xs font-lexend uppercase font-bold tracking-wider text-white bg-[#A30000] hover:bg-[#8B0000] active:bg-[#700000] transition-all duration-200 shadow-md cursor-pointer whitespace-nowrap"
-          >
-            <span>Launch Sferavis</span>
-            <ArrowUpRight className="w-3.5 h-3.5" />
-          </button>
 
           {/* Mobile hamburger button */}
           <button
@@ -132,19 +121,6 @@ export const Navbar: React.FC<NavbarProps> = ({
               </button>
             );
           })}
-          <div className="pt-2">
-            <button
-              type="button"
-              onClick={() => {
-                onLaunchSferavis();
-                setMobileMenuOpen(false);
-              }}
-              className="w-full flex items-center justify-center gap-2 py-3 px-4 text-xs font-lexend uppercase tracking-wider font-bold text-white bg-[#A30000] hover:bg-[#8B0000] cursor-pointer"
-            >
-              <span>Launch Sferavis</span>
-              <ArrowUpRight className="w-3.5 h-3.5" />
-            </button>
-          </div>
         </nav>
       )}
     </header>

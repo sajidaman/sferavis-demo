@@ -72,7 +72,6 @@ export const LicensingPage: React.FC = () => (
         </Section>
 
         <Section number="02" title="Third-party software">
-          <p>The Atlas uses Sferavis's original canvas rendering code to display third-party HiPS imagery. Astronomical data products remain subject to their providers' terms and attribution requirements.</p>
           <p className="mt-4">Third-party packages and assets remain subject to their respective licences. See <a className="font-semibold text-[#A30000] underline underline-offset-4" href="https://github.com/sajidaman/sferavis-demo/blob/main/THIRD_PARTY_NOTICES.md" target="_blank" rel="noopener noreferrer">THIRD_PARTY_NOTICES.md</a> for component-specific notices.</p>
         </Section>
 
