@@ -1,3 +1,8 @@
+export interface TutorialReferencePoint {
+  label: string;
+  value: string;
+}
+
 export type PageId = 'home' | 'spherex' | 'tutorials' | 'documentations' | 'team' | 'contact' | 'publications' | 'archive' | 'privacy' | 'terms' | 'licensing';
 
 export interface CelestialTarget {
@@ -31,7 +36,7 @@ export interface Tutorial {
   title: string;
   level: 'Beginner' | 'Intermediate' | 'Advanced';
   durationMin: number;
-  category: 'Website Navigation' | 'Data Reduction' | 'Spectral Extraction' | 'Galaxy Catalogs' | 'Astropy SDK' | 'Cosmology';
+  category: 'Website Navigation' | 'Data Reduction' | 'Spectral Extraction' | 'Galaxy Catalogs' | 'Astropy SDK' | 'Cosmology' | 'Asteroids' | 'Galaxies' | 'Comets' | 'Supernovas' | 'Brown Dwarfs' | 'Quasars';
   summary: string;
   prerequisites: string[];
   learningObjectives?: string[];
@@ -47,6 +52,8 @@ export interface Tutorial {
     expectedOutput?: string;
   }>;
   interactiveCode: string;
+  videoUrl?: string;
+  referencePoints?: TutorialReferencePoint[];
 }
 
 export interface DocSection {
