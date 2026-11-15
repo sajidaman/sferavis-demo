@@ -3,16 +3,14 @@ import { AlertTriangle, Image as ImageIcon, Maximize2, MessageSquarePlus, Moon, 
 import { loadAnalysisDataset } from '../data/analysisDatasets';
 import { SPHEREX_BANDS, SPHEREX_BAND_DESCRIPTIONS, SPHEREX_CHANNELS } from '../data/spherexChannels';
 import {
-  colorMapLookup,
   decodeFitsImage,
-  fitsPixelAtSky,
   healpixNested,
-  locateNestedTile,
   percentileRange,
   selectHiPSOrder,
   tilePath,
   type FitsImage,
 } from '../lib/hipsSky';
+import { HipsWebGLRenderer, makeWebGLPatch, type WebGLPatch } from '../lib/hipsWebgl';
 
 const SPHEREX_HIPS = 'https://irsa.ipac.caltech.edu/data/hips/SPHEREx/spherex_allsky_cube';
 const TWOMASS_HIPS = 'https://irsa.ipac.caltech.edu/data/hips/CDS/2MASS/Color';
@@ -48,6 +46,12 @@ interface TilePixels {
   height: number;
   pixels: Uint8ClampedArray;
   lastUsed: number;
+}
+
+interface LoadedFits {
+  image: FitsImage;
+  range: [number, number];
+  fieldOfView: number;
 }
 
 interface Tracklet {
@@ -216,12 +220,15 @@ export const NativeSkyViewer: React.FC<NativeSkyViewerProps> = ({
   onToggleTheme,
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const skyCanvasRef = useRef<HTMLCanvasElement>(null);
+  const rendererRef = useRef<HipsWebGLRenderer | null>(null);
   const viewRef = useRef<SkyView>(DEFAULT_VIEW);
   const cacheRef = useRef(new Map<string, TilePixels>());
   const tileAbortRef = useRef<AbortController | null>(null);
   const detailAbortRef = useRef<AbortController | null>(null);
-  const detailRef = useRef<{ image: FitsImage; range: [number, number] } | null>(null);
-  const simulatorImageRef = useRef<{ image: FitsImage; range: [number, number] } | null>(null);
+  const detailRef = useRef<LoadedFits | null>(null);
+  const simulatorImageRef = useRef<LoadedFits | null>(null);
+  const detailPatchRef = useRef<{ loaded: LoadedFits; colormap: ColorMap; patch: WebGLPatch } | null>(null);
   const generationRef = useRef(0);
   const dragRef = useRef<{
     pointerId: number;
@@ -231,8 +238,6 @@ export const NativeSkyViewer: React.FC<NativeSkyViewerProps> = ({
     view: SkyView;
     moved: boolean;
   } | null>(null);
-  const renderGenerationRef = useRef(0);
-  const renderFrameRef = useRef<number | null>(null);
   const isInteractingRef = useRef(false);
   const interactionTimerRef = useRef<number | null>(null);
   const zoomScaleRef = useRef(1);
@@ -246,6 +251,7 @@ export const NativeSkyViewer: React.FC<NativeSkyViewerProps> = ({
   const [sidebarVisible, setSidebarVisible] = useState(true);
   const [loading, setLoading] = useState(true);
   const [tileError, setTileError] = useState<string | null>(null);
+  const [rendererError, setRendererError] = useState<string | null>(null);
   const [retryToken, setRetryToken] = useState(0);
   const [detailMessage, setDetailMessage] = useState('Zoom in to 0.4° or closer to load observed exposure detail.');
   const [tracklets, setTracklets] = useState<Tracklet[]>([]);
@@ -282,15 +288,15 @@ export const NativeSkyViewer: React.FC<NativeSkyViewerProps> = ({
     }
     if (isInteractingRef.current) return;
     isInteractingRef.current = true;
-    renderGenerationRef.current += 1;
-    if (renderFrameRef.current !== null) {
-      window.cancelAnimationFrame(renderFrameRef.current);
-      renderFrameRef.current = null;
-    }
     const canvas = canvasRef.current;
+    const skyCanvas = skyCanvasRef.current;
     if (canvas) {
       canvas.style.willChange = 'transform';
       canvas.style.transformOrigin = 'center';
+    }
+    if (skyCanvas) {
+      skyCanvas.style.willChange = 'transform';
+      skyCanvas.style.transformOrigin = 'center';
     }
   }, []);
 
@@ -305,6 +311,11 @@ export const NativeSkyViewer: React.FC<NativeSkyViewerProps> = ({
     if (canvas) {
       canvas.style.transform = '';
       canvas.style.willChange = '';
+    }
+    const skyCanvas = skyCanvasRef.current;
+    if (skyCanvas) {
+      skyCanvas.style.transform = '';
+      skyCanvas.style.willChange = '';
     }
     requestRender();
   }, [requestRender]);
@@ -484,6 +495,13 @@ export const NativeSkyViewer: React.FC<NativeSkyViewerProps> = ({
     }
     setTileError(null);
     const { keys, frameIndex } = visibleTiles(width, height, currentView, currentSurvey, currentFrame);
+    const visibleAt = Date.now();
+    for (const [order, pixels] of keys) {
+      for (const pixel of pixels) {
+        const cached = cacheRef.current.get(tileKey(currentSurvey, frameIndex, order, pixel));
+        if (cached) cached.lastUsed = visibleAt;
+      }
+    }
     const root = currentSurvey === 'spherex'
       ? SPHEREX_HIPS
       : currentSurvey === 'two-mass' ? TWOMASS_HIPS : DSS2_HIPS;
@@ -562,6 +580,23 @@ export const NativeSkyViewer: React.FC<NativeSkyViewerProps> = ({
   }, [requestRender]);
 
   useEffect(() => {
+    const canvas = skyCanvasRef.current;
+    if (!canvas) return;
+    try {
+      const renderer = new HipsWebGLRenderer(canvas);
+      rendererRef.current = renderer;
+      setRendererError(null);
+      requestRender();
+      return () => {
+        renderer.dispose();
+        if (rendererRef.current === renderer) rendererRef.current = null;
+      };
+    } catch (error) {
+      setRendererError(error instanceof Error ? error.message : String(error));
+    }
+  }, [requestRender]);
+
+  useEffect(() => {
     if (!(survey in SIMULATOR_SAMPLES)) {
       simulatorImageRef.current = null;
       requestRender();
@@ -586,17 +621,18 @@ export const NativeSkyViewer: React.FC<NativeSkyViewerProps> = ({
         const range = percentileRange(image.values);
         if (!range) throw new Error('The simulator cutout contains no usable pixels.');
         if (!active) return;
-        simulatorImageRef.current = { image, range };
         const cd11 = image.header.get('CD1_1') ?? (image.header.get('PC1_1') ?? 1) * (image.header.get('CDELT1') ?? 1);
         const cd12 = image.header.get('CD1_2') ?? (image.header.get('PC1_2') ?? 0) * (image.header.get('CDELT1') ?? 1);
         const cd21 = image.header.get('CD2_1') ?? (image.header.get('PC2_1') ?? 0) * (image.header.get('CDELT2') ?? 1);
         const cd22 = image.header.get('CD2_2') ?? (image.header.get('PC2_2') ?? 1) * (image.header.get('CDELT2') ?? 1);
         const pixelScale = Math.sqrt(Math.abs(cd11 * cd22 - cd12 * cd21));
+        const fieldOfView = pixelScale * image.height;
+        simulatorImageRef.current = { image, range, fieldOfView };
         updateView({
           ...viewRef.current,
           ra: image.header.get('CRVAL1') ?? DEFAULT_VIEW.ra,
           dec: image.header.get('CRVAL2') ?? DEFAULT_VIEW.dec,
-          fov: clamp(pixelScale * image.height * 1.15, 0.02, 170),
+          fov: clamp(fieldOfView * 1.15, 0.02, 170),
           projection: 'TAN',
         });
         setLoading(false);
@@ -619,8 +655,6 @@ export const NativeSkyViewer: React.FC<NativeSkyViewerProps> = ({
     generationRef.current += 1;
     tileAbortRef.current?.abort();
     detailAbortRef.current?.abort();
-    renderGenerationRef.current += 1;
-    if (renderFrameRef.current !== null) window.cancelAnimationFrame(renderFrameRef.current);
     if (interactionTimerRef.current !== null) window.clearTimeout(interactionTimerRef.current);
   }, []);
 
@@ -654,7 +688,8 @@ export const NativeSkyViewer: React.FC<NativeSkyViewerProps> = ({
       endpoint.searchParams.set('ra', snappedRa.toFixed(2));
       endpoint.searchParams.set('dec', snappedDec.toFixed(2));
       endpoint.searchParams.set('wavelength', String(selectedChannel.wavelength));
-      endpoint.searchParams.set('size', Math.min(0.5, Math.max(0.1, view.fov * 1.2 + 0.04)).toFixed(3));
+      const fieldOfView = Math.min(0.5, Math.max(0.1, view.fov * 1.2 + 0.04));
+      endpoint.searchParams.set('size', fieldOfView.toFixed(3));
       void fetch(endpoint, { signal: controller.signal }).then(async (response) => {
         if (!response.ok) {
           const result = await response.json() as { error?: string };
@@ -664,7 +699,7 @@ export const NativeSkyViewer: React.FC<NativeSkyViewerProps> = ({
         const range = percentileRange(image.values);
         if (!range) throw new Error('The exposure cutout contains no usable pixels.');
         if (controller.signal.aborted) return;
-        detailRef.current = { image, range };
+        detailRef.current = { image, range, fieldOfView };
         setDetailMessage(
           `DR1 ${selectedChannel.band} single-exposure detail · 6.15 arcsec/pixel. This is not a coadded mosaic or a single-channel cube slice.`,
         );
@@ -685,112 +720,45 @@ export const NativeSkyViewer: React.FC<NativeSkyViewerProps> = ({
   }, [frame, requestRender, selectedChannel.band, selectedChannel.wavelength, survey, view.dec, view.fov, view.ra]);
 
   useEffect(() => {
-    const renderGeneration = ++renderGenerationRef.current;
-    if (renderFrameRef.current !== null) {
-      window.cancelAnimationFrame(renderFrameRef.current);
-      renderFrameRef.current = null;
-    }
     const canvas = canvasRef.current;
-    const context = canvas?.getContext('2d', { willReadFrequently: true });
-    if (!canvas || !context || isInteractingRef.current) return;
+    const skyCanvas = skyCanvasRef.current;
+    const renderer = rendererRef.current;
+    const context = canvas?.getContext('2d');
+    if (!canvas || !skyCanvas || !renderer || !context || isInteractingRef.current) return;
     const bounds = canvas.getBoundingClientRect();
-    const pixelRatio = Math.min(window.devicePixelRatio || 1, 1.25);
+    const pixelRatio = Math.min(window.devicePixelRatio || 1, 1.25, 1024 / Math.max(1, bounds.width), 768 / Math.max(1, bounds.height));
     const width = Math.max(1, Math.min(1024, Math.round(bounds.width * pixelRatio)));
     const height = Math.max(1, Math.min(768, Math.round(bounds.height * pixelRatio)));
+    renderer.resize(bounds.width, bounds.height, pixelRatio);
     if (canvas.width !== width || canvas.height !== height) {
       canvas.width = width;
       canvas.height = height;
     }
 
-    const image = context.createImageData(width, height);
-    const lookup = colorMapLookup(colormap);
     const maxOrder = selectHiPSOrder(view.fov, height, survey === 'spherex' ? TILE_ORDER : 8);
-    const maxNestedOrder = maxOrder + TILE_BITS;
-    const detail = survey === 'spherex' ? detailRef.current : simulatorImageRef.current;
-    const detailWcs = detail?.image;
-    const detailRange = detail?.range;
-    const pixelToSky = createScreenToSky(view, width, height);
     const frameIndex = survey === 'spherex' ? frame - 1 : 0;
     const tilePrefix = `${survey}:${frameIndex}:`;
-    const tilesByOrder = new Map<number, Map<number, TilePixels>>();
-    for (const [key, tile] of cacheRef.current) {
-      if (!key.startsWith(tilePrefix)) continue;
-      const parts = key.slice(tilePrefix.length).split(':');
-      const order = Number(parts[0]);
-      const pixel = Number(parts[1]);
-      const orderTiles = tilesByOrder.get(order) ?? new Map<number, TilePixels>();
-      orderTiles.set(pixel, tile);
-      tilesByOrder.set(order, orderTiles);
+    renderer.setColorMap(colormap);
+    renderer.syncTiles(cacheRef.current, tilePrefix);
+    const fits = survey === 'spherex' ? detailRef.current : simulatorImageRef.current;
+    if (fits) {
+      let patchCache = detailPatchRef.current;
+      if (!patchCache || patchCache.loaded !== fits || patchCache.colormap !== colormap) {
+        patchCache = {
+          loaded: fits,
+          colormap,
+          patch: makeWebGLPatch(fits.image, fits.range, fits.fieldOfView, colormap),
+        };
+        detailPatchRef.current = patchCache;
+      }
+      renderer.setPatch(patchCache.patch);
+    } else {
+      detailPatchRef.current = null;
+      renderer.setPatch(null);
     }
+    renderer.render(view, maxOrder, survey === 'spherex');
 
-    const usedTiles = new Set<TilePixels>();
-    let row = 0;
-    const renderChunk = () => {
-      if (renderGeneration !== renderGenerationRef.current || isInteractingRef.current) return;
-      const firstRow = row;
-      const endRow = Math.min(height, firstRow + 8);
-      for (let y = firstRow; y < endRow; y += 1) {
-        for (let x = 0; x < width; x += 1) {
-          const destination = (y * width + x) * 4;
-          const sky = pixelToSky(x + 0.5, y + 0.5);
-          if (!sky) {
-            image.data[destination + 3] = 255;
-            continue;
-          }
-
-          const nestedPixel = healpixNested(maxNestedOrder, sky[0], sky[1]);
-          let tile: TilePixels | undefined;
-          let sourceX = 0;
-          let sourceY = 0;
-          const finestLocation = locateNestedTile(nestedPixel);
-          for (let order = maxOrder; order >= 0; order -= 1) {
-            const orderPixel = Math.floor(nestedPixel / 2 ** (2 * (maxOrder - order)));
-            const located = order === maxOrder ? finestLocation : locateNestedTile(orderPixel);
-            const candidate = tilesByOrder.get(order)?.get(located.pixel);
-            if (!candidate) continue;
-            tile = candidate;
-            sourceX = Math.min(candidate.width - 1, Math.floor(located.x * candidate.width / 512));
-            sourceY = Math.min(candidate.height - 1, Math.floor(located.y * candidate.height / 512));
-            usedTiles.add(candidate);
-            break;
-          }
-
-          if (tile) {
-            const source = (sourceY * tile.width + sourceX) * 4;
-            const intensity = Math.round((tile.pixels[source] + tile.pixels[source + 1] + tile.pixels[source + 2]) / 3);
-            image.data[destination] = survey === 'spherex' ? lookup[intensity * 3] : tile.pixels[source];
-            image.data[destination + 1] = survey === 'spherex' ? lookup[intensity * 3 + 1] : tile.pixels[source + 1];
-            image.data[destination + 2] = survey === 'spherex' ? lookup[intensity * 3 + 2] : tile.pixels[source + 2];
-            image.data[destination + 3] = tile.pixels[source + 3];
-          } else {
-            image.data[destination + 3] = 255;
-          }
-
-          if (detailWcs && detailRange) {
-            const pixel = fitsPixelAtSky(detailWcs, sky[0], sky[1]);
-            if (pixel && pixel[0] >= 0 && pixel[1] >= 0 && pixel[0] < detailWcs.width && pixel[1] < detailWcs.height) {
-              const value = detailWcs.values[Math.floor(pixel[1]) * detailWcs.width + Math.floor(pixel[0])];
-              if (Number.isFinite(value)) {
-                const intensity = Math.round(clamp((value - detailRange[0]) / (detailRange[1] - detailRange[0]), 0, 1) * 255);
-                image.data[destination] = lookup[intensity * 3];
-                image.data[destination + 1] = lookup[intensity * 3 + 1];
-                image.data[destination + 2] = lookup[intensity * 3 + 2];
-                image.data[destination + 3] = 235;
-              }
-            }
-          }
-        }
-      }
-
-      context.putImageData(image, 0, 0, 0, firstRow, width, endRow - firstRow);
-      row = endRow;
-      if (row < height) {
-        renderFrameRef.current = window.requestAnimationFrame(renderChunk);
-        return;
-      }
-      const lastUsed = Date.now();
-      for (const tile of usedTiles) tile.lastUsed = lastUsed;
-
+    context.clearRect(0, 0, width, height);
     const mapWidth = width;
     const mapHeight = height;
     context.save();
@@ -872,16 +840,7 @@ export const NativeSkyViewer: React.FC<NativeSkyViewerProps> = ({
       context.stroke();
     }
     context.restore();
-    };
 
-    renderFrameRef.current = window.requestAnimationFrame(renderChunk);
-    return () => {
-      if (renderGenerationRef.current === renderGeneration) renderGenerationRef.current += 1;
-      if (renderFrameRef.current !== null) {
-        window.cancelAnimationFrame(renderFrameRef.current);
-        renderFrameRef.current = null;
-      }
-    };
   }, [colormap, frame, isDark, renderVersion, selectedTrackletId, showGrid, showReticle, survey, tracklets, view]);
 
   const resetView = () => {
@@ -897,8 +856,9 @@ export const NativeSkyViewer: React.FC<NativeSkyViewerProps> = ({
     if (next.fov === current.fov) return;
     beginInteraction();
     zoomScaleRef.current *= current.fov / next.fov;
-    const canvas = canvasRef.current;
-    if (canvas) canvas.style.transform = `scale(${zoomScaleRef.current})`;
+    const transform = `scale(${zoomScaleRef.current})`;
+    if (canvasRef.current) canvasRef.current.style.transform = transform;
+    if (skyCanvasRef.current) skyCanvasRef.current.style.transform = transform;
     updateView(next);
     interactionTimerRef.current = window.setTimeout(finishInteraction, 120);
   };
@@ -930,7 +890,9 @@ export const NativeSkyViewer: React.FC<NativeSkyViewerProps> = ({
         ra: normalizedRa(drag.startView.ra + dx * drag.startView.fov / Math.max(1, bounds.height)),
         dec: clamp(drag.startView.dec + dy * drag.startView.fov / Math.max(1, bounds.height), -89.9, 89.9),
       };
-      event.currentTarget.style.transform = `translate3d(${dx}px, ${dy}px, 0)`;
+      const transform = `translate3d(${dx}px, ${dy}px, 0)`;
+      event.currentTarget.style.transform = transform;
+      if (skyCanvasRef.current) skyCanvasRef.current.style.transform = transform;
     }
   };
 
@@ -988,8 +950,15 @@ export const NativeSkyViewer: React.FC<NativeSkyViewerProps> = ({
     >
       <div className="relative min-h-0 flex-1 overflow-hidden bg-[#03050a]">
         <canvas
+          ref={skyCanvasRef}
+          className="absolute inset-0 h-full w-full"
+          style={{ pointerEvents: 'none' }}
+          aria-hidden="true"
+        />
+        <canvas
           ref={canvasRef}
           className="absolute inset-0 h-full w-full cursor-grab touch-none active:cursor-grabbing"
+          style={{ background: 'transparent' }}
           onPointerDown={handlePointerDown}
           onPointerMove={handleCanvasMove}
           onPointerUp={handlePointerUp}
@@ -1012,8 +981,10 @@ export const NativeSkyViewer: React.FC<NativeSkyViewerProps> = ({
           RA {view.ra.toFixed(3)}° · Dec {view.dec.toFixed(3)}° · FOV {view.fov.toFixed(3)}°
         </div>
         <div className="absolute bottom-3 left-3 z-10 flex items-center gap-2 rounded-md border border-white/10 bg-[#07111f]/80 px-2 py-1 text-[10px] text-slate-200 backdrop-blur" role="status">
-          <span className={`h-2 w-2 rounded-full ${tileError ? 'bg-red-400' : loading ? 'animate-pulse bg-amber-400' : 'bg-emerald-400'}`} />
-          {tileError
+          <span className={`h-2 w-2 rounded-full ${tileError || rendererError ? 'bg-red-400' : loading ? 'animate-pulse bg-amber-400' : 'bg-emerald-400'}`} />
+          {rendererError
+            ? 'WebGL renderer error'
+            : tileError
             ? 'Map error'
             : loading
               ? survey in SIMULATOR_SAMPLES ? 'Loading simulator cutout…' : 'Loading sky tiles…'
@@ -1171,6 +1142,11 @@ export const NativeSkyViewer: React.FC<NativeSkyViewerProps> = ({
                 <p role="alert" className="rounded-md border border-red-400/30 bg-red-400/10 p-2 text-[10px] text-red-200">
                   <AlertTriangle className="mr-1 inline h-3 w-3" />{tileError}
                   <button type="button" onClick={() => setRetryToken((token) => token + 1)} className="mt-2 block font-semibold underline underline-offset-2">Retry loading</button>
+                </p>
+              )}
+              {rendererError && (
+                <p role="alert" className="rounded-md border border-red-400/30 bg-red-400/10 p-2 text-[10px] text-red-200">
+                  <AlertTriangle className="mr-1 inline h-3 w-3" />{rendererError}
                 </p>
               )}
             </div>
