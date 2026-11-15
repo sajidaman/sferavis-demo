@@ -1,14 +1,12 @@
-// InfraSphere: wires the sky renderer, SPHEREx data, SIMBAD labels and the page together.
+// InfraSphere: wires the SPHEREx sky renderer and interactive controls together.
 
 import { CONFIG } from "./config.js";
-import { D2R, R2D, lstRad, eqToAltAzVec, altAzVecToEq, hms, dms, compass } from "./astro.js";
+import { R2D, lstRad, altAzVecToEq, hms, dms, compass } from "./astro.js";
 import { View } from "./view.js";
 import { SkyRenderer } from "./sky-renderer.js";
 import { SkyData } from "./sky-data.js";
-import { LabelLayer, drawDirections, drawReferencePoints } from "./labels.js";
-import { LabelFeed } from "./label-feed.js";
+import { drawDirections, drawReferencePoints } from "./labels.js";
 import { attachControls } from "./controls.js";
-import * as Simbad from "./simbad.js";
 import * as UI from "./ui.js";
 import { TileGrid } from "./tiles.js";
 import { SolarSystem } from "./solar-system.js";
@@ -28,8 +26,6 @@ const state = {
   quality: 2, sharpen: true,
   band: "color",
   chan: 0,                // 0 = the whole band; 1 to 17 = one spectral channel of that band (simulated sky only)
-  groups: { star: true, galaxy: true, cluster: true, nebula: true, other: false },
-  selected: null,         // { ra, dec } of the clicked object
   tile: null              // { order, pix } of the clicked tile
 };
 
@@ -42,9 +38,7 @@ try {
   throw e;
 }
 const labelCtx = $("labels").getContext("2d");
-const layer = new LabelLayer();
 const sky = new SkyData(renderer, UI.ui);
-const feed = new LabelFeed(layer, UI.ui);
 const tiles = new TileGrid();
 const solar = new SolarSystem(UI.ui);
 // Live stars: sharp points, with fainter ones appearing as you zoom in. Simulated sky only; the real SPHEREx maps have
@@ -72,74 +66,15 @@ window.addEventListener("resize", resize);
 const lst = () => lstRad(state.simMs, state.lon);
 const centerEq = () => altAzVecToEq(view.basis().f, state.lat, lst());
 
-// ---------- looking at an object ----------
-async function showDetails(obj, name) {
-  state.selected = { ra: obj.ra, dec: obj.dec };
-  UI.showInfoLoading(name || Simbad.prettyName(obj.main_id));
-  try {
-    const full = obj.oid !== null && obj.oid !== undefined ? await Simbad.fetchDetails(obj.oid) : null;
-    UI.showInfo(full || obj, name || obj.name);
-  } catch (e) {
-    UI.showInfo(obj, name || obj.name);
-    UI.say("Could not fetch full details (" + e.message + ").", 4000);
-  }
-}
-
-async function lookupSpot(px, py) {
-  // Ask SIMBAD for the closest object within about 14 pixels.
-  const d = view.dirFromPixel(px, py);
-  const eq = altAzVecToEq(d, state.lat, lst());
-  const radius = Math.min(Math.max(view.angleBetweenPixels(px, py, px + 14, py) * R2D, 0.003), 3);
-  state.selected = { ra: eq.ra, dec: eq.dec };
-  UI.showInfoLoading("Looking up this spot");
-  try {
-    const obj = await Simbad.fetchNearest({ ra: eq.ra, dec: eq.dec, radius });
-    if (!obj) { UI.showInfoMessage("Nothing here", "SIMBAD lists no object within about 14 pixels of that spot."); return; }
-    layer.add([obj]);
-    state.selected = { ra: obj.ra, dec: obj.dec };
-    UI.showInfo(obj, null);
-  } catch (e) {
-    UI.showInfoMessage("Lookup failed", e.message);
-  }
-}
-
-async function onSkyClick(px, py) {
+// ---------- sky interaction ----------
+function onSkyClick(px, py) {
   const body = solar.pick(px, py, 16);
-  if (body) { state.selected = { ra: body.ra, dec: body.dec }; state.tile = null; UI.showSolarInfo(body); return; }
-  const hit = layer.pick(px, py, 14);
-  if (hit) { state.tile = null; showDetails(hit, hit.name); return; }
+  if (body) { state.tile = null; UI.showSolarInfo(body); return; }
   if (state.tiles) {
     const eq = altAzVecToEq(view.dirFromPixel(px, py), state.lat, lst());
     const t = tiles.tileAt(eq.ra, eq.dec);
-    state.tile = t; state.selected = null;
-    UI.showTileCard(t, {
-      onInspect: () => inspector.open({ ra: t.ra, dec: t.dec, title: "Tile " + t.name }),
-      onLookup: () => { state.tile = null; lookupSpot(px, py); }
-    });
-    return;
-  }
-  state.tile = null;
-  lookupSpot(px, py);
-}
-
-async function searchObject(text) {
-  if (!text.trim()) return;
-  UI.setBusy("search", "Searching SIMBAD for " + text.trim());
-  try {
-    const obj = await Simbad.resolveName(text);
-    if (!obj) { UI.say("SIMBAD does not know \"" + text.trim() + "\". Try another name, like M31 or Sirius.", 4000); return; }
-    const v = eqToAltAzVec(obj.ra, obj.dec, state.lat, lst());
-    view.lookAtVec(v);
-    view.fov = Math.min(view.fov, 25 * D2R);
-    view.clamp();
-    layer.add([obj]);
-    markInteract();
-    if (v[2] < 0) UI.say("That object is below your horizon right now. Switch off Ground or change the time to see it.", 5000);
-    showDetails(obj, null);
-  } catch (e) {
-    UI.say("Search failed (" + e.message + ").", 5000);
-  } finally {
-    UI.setBusy("search", "");
+    state.tile = t;
+    UI.showTileCard(t, { onInspect: () => inspector.open({ ra: t.ra, dec: t.dec, title: "Tile " + t.name }) });
   }
 }
 
@@ -221,9 +156,7 @@ for (const g of Object.keys(state.groups)) {
   $("lbl-" + g).checked = state.groups[g];
   $("lbl-" + g).addEventListener("change", (e) => { state.groups[g] = e.target.checked; });
 }
-$("search").addEventListener("keydown", (e) => { if (e.key === "Enter") searchObject(e.target.value); });
-$("searchBtn").addEventListener("click", () => searchObject($("search").value));
-const panel = $("panel"); const desiredSections = ["Infrared Bands","Find an object","View","Background light","Labels","Solar system","Where you stand","When","Looking at"]; for (const heading of desiredSections) { const sec=[...panel.querySelectorAll("section")].find(x=>x.querySelector("h2")?.textContent.trim()===heading); if(sec) panel.appendChild(sec); }
+const panel = $("panel"); const desiredSections = ["Infrared Bands","View","Background light","Solar system","Where you stand","When","Looking at"]; for (const heading of desiredSections) { const sec=[...panel.querySelectorAll("section")].find(x=>x.querySelector("h2")?.textContent.trim()===heading); if(sec) panel.appendChild(sec); }
 const panelToggle = $("toggle");
 function setPanelOpen(open) {
   panel.classList.toggle("hidden", !open);
@@ -237,7 +170,7 @@ panelToggle.addEventListener("click", () => setPanelOpen(panel.classList.contain
 $("zoom-in").addEventListener("click", () => { view.fov /= 1.25; view.clamp(); markInteract(); });
 $("zoom-out").addEventListener("click", () => { view.fov *= 1.25; view.clamp(); markInteract(); });
 if (CONFIG.simulate) {
-  $("credits").textContent = "SIMULATED sky (magma colour scale, build 2): a procedural model after the SPHEREx Sky Simulator (Crill et al. 2025, ApJS 281, 10), not real survey data. Add ?real=1 to the address for NASA/JPL-Caltech data. Object data: SIMBAD, CDS.";
+  $("credits").textContent = "SIMULATED sky (magma colour scale, build 2): a procedural model after the SPHEREx Sky Simulator (Crill et al. 2025, ApJS 281, 10), not real survey data. Add ?real=1 to the address for NASA/JPL-Caltech data.";
   document.title = "SPHEREx Atlas (simulated sky)";
 }
 
@@ -266,15 +199,10 @@ function tick(now) {
   stars.draw(ctx, view, state.lat, L, { hideBelow: state.ground });
   if (state.tiles) tiles.draw(ctx, view, state.lat, L, { selected: state.tile });
   if (state.directions) drawDirections(ctx, view); drawReferencePoints(ctx, view, state.lat, L, state.referencePoints);
-  layer.draw(ctx, view, state.lat, L, {
-    groups: state.groups, showLabels: true, hideBelow: state.ground,
-    maxDrawn: CONFIG.labels.maxDrawn, selected: state.selected, starDots: stars.enabled
-  });
   solar.update(state.simMs, { asteroids: state.asteroids, neo: state.neo });
   solar.draw(ctx, view, state.lat, L, { asteroids: state.asteroids, neo: state.neo, hideBelow: state.ground });
 
   sky.maybeSharpen({ now, idle: isIdle(now, CONFIG.patch.idleMs), enabled: state.sharpen, flip: state.flip, view, centerEq: eq });
-  feed.maybeUpdate({ now, idle: isIdle(now, CONFIG.labels.idleMs), enabled: true, view, centerEq: eq });
 
   if (frame++ % 8 === 0) {
     const az = ((view.az * R2D) % 360 + 360) % 360;
