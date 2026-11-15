@@ -1,14 +1,13 @@
 import React from 'react';
 import { PageId } from '../types';
 import { Logo } from './Logo';
-import { ExternalLink, ArrowUpRight, Github, Linkedin, Instagram, Facebook, Mail } from 'lucide-react';
+import { ExternalLink, Github, Linkedin, Instagram, Facebook, Mail } from 'lucide-react';
 
 interface FooterProps {
   onNavigate: (page: PageId) => void;
-  onLaunchSferavis?: () => void;
 }
 
-export const Footer: React.FC<FooterProps> = ({ onNavigate, onLaunchSferavis }) => {
+export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
   return (
     <footer className="sferavis-site sferavis-footer relative z-10 w-full bg-white dark:bg-[#070b14] border-t border-zinc-200 dark:border-slate-800 text-zinc-600 dark:text-zinc-400 text-xs transition-colors duration-200 font-lexend selection:bg-[#A30000] selection:text-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
@@ -31,11 +30,6 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate, onLaunchSferavis }) 
               Explore
             </h4>
             <ul className="space-y-2.5">
-              <li>
-                <button onClick={onLaunchSferavis} className="text-[#A30000] hover:text-[#8B0000] dark:hover:text-white font-bold uppercase tracking-wider inline-flex items-center gap-1 cursor-pointer transition-colors">
-                  <span>Launch Sferavis</span><ArrowUpRight className="w-3 h-3" />
-                </button>
-              </li>
               <li><button onClick={() => onNavigate('spherex')} className="hover:text-zinc-950 dark:hover:text-white transition-colors cursor-pointer text-left">The SPHEREx Mission</button></li>
               <li><button onClick={() => onNavigate('archive')} className="hover:text-zinc-950 dark:hover:text-white transition-colors cursor-pointer text-left">Infraredium Archive</button></li>
               <li><button onClick={() => onNavigate('publications')} className="hover:text-zinc-950 dark:hover:text-white transition-colors cursor-pointer text-left">Publications</button></li>

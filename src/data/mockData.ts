@@ -198,24 +198,24 @@ export const TUTORIALS: Tutorial[] = [
     id: 'website-navigation-course',
     title: 'Sferavis Website Navigation: A Guided Field Course',
     level: 'Beginner',
-    durationMin: 30,
+    durationMin: 20,
     category: 'Website Navigation',
     summary:
-      'Learn how to move through Sferavis, choose the right place for mission information or learning resources, and explore the planetarium without confusing its quicklook imagery with calibrated science data.',
+      'Learn how to navigate Sferavis, find reliable SPHEREx mission information, and choose the right learning or research resource for a question.',
     prerequisites: ['A web browser', 'No astronomy or coding experience required'],
     learningObjectives: [
       'Find the main sections from the primary navigation and explain what each is for.',
-      'Use the planetarium’s coordinate, survey, zoom, projection, and grid controls.',
+      'Locate SPHEREx mission information and its official archive resources.',
       'Distinguish learning tutorials, technical documentation, and publication updates.',
       'Record a concise, accurate route through the website for a science question.',
     ],
     coursework: {
       deliverable:
-        'Create a short set of field notes (about 5–8 sentences) describing where you went, which controls or resources you used, and what you learned. You can keep the notes for yourself; no upload is required.',
+        'Create a short set of field notes (about 5–8 sentences) describing which Sferavis sections you visited, which resources you consulted, and what you learned. You can keep the notes for yourself; no upload is required.',
       assessmentCriteria: [
         'Correctly matches at least three website sections to their purpose.',
-        'Records one valid RA/Dec position and describes a survey or view control used.',
-        'Identifies the SPHEREx layer as a quicklook rather than calibrated spectral data.',
+        'Identifies an official SPHEREx mission or archive resource.',
+        'Distinguishes mission information from research publications and tutorials.',
         'Uses a relevant tutorial or documentation page to support the exploration.',
       ],
     },
@@ -224,28 +224,20 @@ export const TUTORIALS: Tutorial[] = [
         stepNumber: 1,
         title: 'Orient yourself on the Home page',
         explanation:
-          'Use the Sferavis logo to return Home. Read the opening overview, then locate the two distinct next steps: Launch Sferavis opens the interactive planetarium, while The SPHEREx Mission takes you to mission information. Use the primary navigation to find the other sections.',
+          'Use the Sferavis logo to return Home. Read the opening overview, then use the primary navigation to locate the SPHEREx, Tutorials, Documentations, Publications, and Team sections.',
         expectedOutput:
-          'In your notes, write one question you would take to the interactive planetarium and one you would take to the SPHEREx mission page.',
+          'Write down one science question you would like to investigate and identify which Sferavis section is the best starting point.',
       },
       {
         stepNumber: 2,
         title: 'Visit the SPHEREx mission page',
         explanation:
-          'Choose SPHEREx in the main menu. Browse the mission overview and the page’s science sections. Use the primary navigation to find Tutorials and see how the site separates mission information from learning resources.',
+          'Choose SPHEREx in the main menu. Browse the mission overview, its science objectives, instrument information, and the official mission and archive links.',
         expectedOutput:
-          'Record one mission or science topic the page explains, and note that mission information is different from querying or analyzing archive data.',
+          'Record one mission objective and one official SPHEREx resource you could consult for further information.',
       },
       {
         stepNumber: 3,
-        title: 'Navigate the planetarium',
-        explanation:
-          'Open Launch Sferavis from the header or Home page. In the atlas, enter RA 266.414089 and Dec -29.006111 in decimal degrees and submit. Browse between SPHEREx DR1 spectral channels, switch between grayscale and magma colormaps, or compare against DSS2 Reference and 2MASS. Adjust the field of view, try another projection, toggle the coordinate grid, then use Reset View.',
-        expectedOutput:
-          'Record the coordinates you tried and two controls you used. The SPHEREx DR1 all-sky cube provides 102 observed spectral channels from 0.753 to 4.988 μm.',
-      },
-      {
-        stepNumber: 4,
         title: 'Choose a learning resource',
         explanation:
           'Open Tutorials from the primary navigation to browse the available step-by-step lessons. Then open Documentations to inspect its technical references. Use the resource whose format best fits your goal: a guided lesson for learning, or documentation for looking up a technical detail.',
@@ -253,20 +245,20 @@ export const TUTORIALS: Tutorial[] = [
           'Write down one tutorial topic and one documentation topic you would consult for a future project.',
       },
       {
-        stepNumber: 5,
+        stepNumber: 4,
         title: 'Explore Publications and The Team',
         explanation:
-          'Visit Publications and The Team from the primary navigation. Check what is available now rather than assuming every section is complete: the publication archive currently says updates are coming soon, while the team page provides member profiles and ways to get in touch.',
+          'Visit Publications and The Team from the primary navigation. Check what is available now, review the research resources, and note how to contact or collaborate with Sferavis.',
         expectedOutput:
-          'Note one thing you can currently find on each page, and one limitation or next step you noticed.',
+          'Note one useful item from each page and one next step you could take.',
       },
       {
-        stepNumber: 6,
+        stepNumber: 5,
         title: 'Complete your navigation field notes',
         explanation:
-          'Use the self-assessment below to review your route. Your notes should connect a question to the right Sferavis page, describe how you explored the atlas, and make clear what the quicklook can and cannot tell you.',
+          'Use the self-assessment below to review your route. Your notes should connect your original question to the appropriate mission, learning, documentation, or research resource.',
         expectedOutput:
-          'You are ready when your notes satisfy the four assessment criteria and you can explain where you would go next for mission information, learning material, or technical details.',
+          'You are ready when your notes satisfy the assessment criteria and you can explain where you would go next for mission information or technical details.',
       },
     ],
     interactiveCode: '',
@@ -462,7 +454,7 @@ export const TEAM_MEMBERS: TeamMember[] = [
     name: 'Marcus Chen',
     role: 'Principal Systems & Visualization Engineer',
     institution: 'NASA Jet Propulsion Laboratory (JPL)',
-    bio: 'Lead software engineer behind SFERAvis web platforms and interactive spectral atlas. Expert in WebGL astronomical shaders, WebAssembly FITS decoders, and distributed pipeline architectures.',
+    bio: 'Lead software engineer behind SFERAvis web platforms and scientific data tools. Expert in WebGL astronomical shaders, WebAssembly FITS decoders, and distributed pipeline architectures.',
     focusArea: 'Interactive Graphics, WebGL & Spacecraft Telemetry',
     publicationsCount: 19
   }

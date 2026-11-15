@@ -2,7 +2,7 @@
   "name": "sferavis",
   "private": true,
   "version": "2.4.0",
-  "description": "Interactive NASA SPHEREx All-Sky Hyperspectral Atlas & Planetarium",
+  "description": "Independent science platform for the NASA SPHEREx mission, astrophysics, and research resources",
   "type": "module",
   "license": "Apache-2.0",
   "repository": {
@@ -17,9 +17,6 @@
     "astronomy",
     "spherex",
     "nasa",
-    "planetarium",
-    "hyperspectral",
-    "fits",
     "astrophysics",
     "react",
     "vite",

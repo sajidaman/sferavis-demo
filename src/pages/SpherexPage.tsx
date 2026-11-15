@@ -6,10 +6,9 @@ import { ArrowRight } from 'lucide-react';
 
 interface SpherexPageProps {
   onNavigate: (page: PageId) => void;
-  onLaunchSferavis?: () => void;
 }
 
-export const SpherexPage: React.FC<SpherexPageProps> = ({ onNavigate, onLaunchSferavis }) => {
+export const SpherexPage: React.FC<SpherexPageProps> = ({ onNavigate }) => {
   const [selectedBandIndex, setSelectedBandIndex] = useState<number>(3); // Default to Band 4 (Water Ice)
 
   const selectedBand = SPHEREX_BANDS[selectedBandIndex];
@@ -33,7 +32,7 @@ export const SpherexPage: React.FC<SpherexPageProps> = ({ onNavigate, onLaunchSf
 </header>
 
           <p className="mt-6 text-sm sm:text-base text-slate-700 dark:text-zinc-300 max-w-3xl mx-auto text-center font-merriweather leading-relaxed text-balance">
-            SPHEREx is surveying the entire celestial sphere every six months across 102 distinct near-infrared bands (0.75 – 5.0 µm), delivering the first all-sky near-infrared hyperspectral atlas to humanity.
+            SPHEREx is surveying the entire celestial sphere every six months across 102 distinct near-infrared bands (0.75 – 5.0 µm), providing a comprehensive near-infrared spectral survey of the entire sky.
           </p>
           <div className="mt-4 text-center">
             <a
