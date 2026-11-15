@@ -86,7 +86,7 @@ export const LaunchSferavisModal: React.FC<LaunchSferavisModalProps> = ({
         </header>
         <div className="relative min-h-0 flex-1 overflow-hidden">
           <iframe
-            src={`${import.meta.env.BASE_URL}atlas/index.html`}
+            src={`${import.meta.env.BASE_URL}atlas/index.html?theme=${isDark ? "dark" : "light"}`}
             title="InfraSphere SPHEREx atlas"
             className="absolute inset-0 h-full w-full border-0"
             allow="fullscreen; geolocation"

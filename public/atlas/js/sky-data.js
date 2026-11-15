@@ -7,6 +7,8 @@ import { CONFIG } from "./config.js";
 import { angSepDeg } from "./astro.js";
 import { renderSimImage, ALL_COMPONENTS, compsToString } from "./sim-sky.js";
 
+const MAX_CACHED_MAPS = 4;
+
 export class SkyData {
   constructor(renderer, ui) {
     this.renderer = renderer;
@@ -60,9 +62,11 @@ export class SkyData {
             hips: CONFIG.hipsRoot + id, width: String(width), height: String(width / 2),
             fov: "360", projection: "CAR", coordsys: "icrs", ra: "0", dec: "0", format: "jpg"
           })), ctl.signal);
-          this.cache.set(key, bmp);
         }
         if (token !== this.token) return;
+        if (this.cache.has(key)) this.cache.delete(key);
+        this.cache.set(key, bmp);
+        while (this.cache.size > MAX_CACHED_MAPS) this.cache.delete(this.cache.keys().next().value);
         this.renderer.setBase(bmp);
       }
       this.ui.setBusy("sky", "");
