@@ -9,6 +9,12 @@ export const CONFIG = {
   hipsRoot: "https://alasky.cds.unistra.fr/SPHEREx/",
   hips2fits: "https://alasky.cds.unistra.fr/hips-image-services/hips2fits",
 
+  // SIMBAD (CDS) table access service, used for every object label.
+  simbadTap: "https://simbad.cds.unistra.fr/simbad/sim-tap/sync",
+  // Tried in order if the address above fails (CfA Harvard hosts a copy of SIMBAD).
+  simbadMirrors: ["https://simbad.cfa.harvard.edu/simbad/sim-tap/sync"],
+  simbadPage: "https://simbad.cds.unistra.fr/simbad/sim-id?Ident=",
+
   // VizieR TAP (CDS): catalogue photometry (2MASS, AllWISE, Gaia) for the epoch inspector's spectrum view.
   vizierTap: "https://tapvizier.cds.unistra.fr/TAPVizieR/tap/sync",
   vizierPage: "https://vizier.cds.unistra.fr/vizier/sed/",
@@ -22,7 +28,7 @@ export const CONFIG = {
   sbdbApi: "https://ssd-api.jpl.nasa.gov/sbdb_query.api",
   // If the browser blocks a direct request (CORS), the app retries through these same-origin paths,
   // which serve.py forwards. Plain "python3 -m http.server" has no such paths.
-  proxy: { irsa: "/proxy/irsa", jpl: "/proxy/jpl", vizier: "/proxy/vizier" },
+  proxy: { irsa: "/proxy/irsa", jpl: "/proxy/jpl", simbad: "/proxy/simbad", vizier: "/proxy/vizier" },
 
   // Where the observer stands at start-up (editable in the page).
   location: { lat: 23.81, lon: 90.41, name: "Dhaka" },
@@ -71,4 +77,7 @@ export const CONFIG = {
       synth_b: 0, synth_b_sub: 0, synth_b_ra: "", synth_b_dec: "", synth_b_w1: "", synth_b_w2: "", synth_b_pmra: 0, synth_b_pmdec: 0, synth_b_mjd: ""
     }
   },
+
+  // SIMBAD label feed.
+  labels: { idleMs: 600, recheckMs: 700, backoffMs: 20000, maxDrawn: 140, topStars: 500, topDeepSky: 150, maxStored: 3000 }
 };
