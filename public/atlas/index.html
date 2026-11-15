@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>SPHEREx Atlas · Sferavis</title>
-<meta name="description" content="An interactive sky atlas using NASA SPHEREx infrared data and SIMBAD object labels.">
+<meta name="description" content="An interactive sky atlas for exploring NASA SPHEREx infrared data.">
 <script>document.documentElement.dataset.theme = new URLSearchParams(location.search).get("theme") === "light" ? "light" : "dark";</script>
 <link rel="stylesheet" href="css/style.css">
 </head>
@@ -21,17 +21,8 @@
 <div id="panel">
   <div>
     <h1>SPHEREx Atlas</h1>
-    <p class="sub">Stand on the ground and look up. The sky is painted with NASA SPHEREx infrared data and every name comes from SIMBAD.</p>
+    <p class="sub">Stand on the ground and look up. Explore the sky through NASA SPHEREx infrared observations.</p>
   </div>
-
-  <section>
-    <h2>Find an object</h2>
-    <div class="row">
-      <input type="text" id="search" placeholder="M31, Sirius, NGC 7000" aria-label="Object name">
-      <button class="btn" id="searchBtn">Go</button>
-    </div>
-    <p class="note" style="margin:6px 0 0">Or tap any spot in the sky to ask SIMBAD what is there.</p>
-  </section>
 
   <section>
     <h2>Infrared Bands</h2>
@@ -63,17 +54,6 @@
       <label class="check"><input type="checkbox" id="bg-stars" checked> Stars and sources</label>
     </div>
     <p class="note" style="margin:6px 0 0">Simulated sky only. Modelled after Crill et al. 2025 (SPHEREx Sky Simulator).</p>
-  </section>
-
-  <section>
-    <h2>Labels</h2>
-    <div class="row">
-      <label class="check"><input type="checkbox" id="lbl-star"> Stars</label>
-      <label class="check"><input type="checkbox" id="lbl-galaxy"> Galaxies</label>
-      <label class="check"><input type="checkbox" id="lbl-cluster"> Clusters</label>
-      <label class="check"><input type="checkbox" id="lbl-nebula"> Nebulae</label>
-      <label class="check"><input type="checkbox" id="lbl-other"> Other</label>
-    </div>
   </section>
 
   <section>
@@ -156,7 +136,7 @@
 </div>
 
 <footer id="credits">
-  SPHEREx data: NASA/JPL-Caltech, via IRSA and CDS. Object data: SIMBAD, CDS, Strasbourg, France.
+  SPHEREx data: NASA/JPL-Caltech, via IRSA and CDS.
 </footer>
 
 <noscript><p style="position:absolute;top:40%;width:100%;text-align:center">SPHEREx Atlas needs JavaScript.</p></noscript>
