@@ -89,7 +89,7 @@ export default defineConfig(() => {
           rewrite: (path) => path.replace(/^\/proxy\/jpl/, ''),
         },
         '/proxy/simbad': {
-          target: 'https://simbad.cds.unistra.fr',
+          target: 'https://simbad.cfa.harvard.edu',
           changeOrigin: true,
           rewrite: (path) => path.replace(/^\/proxy\/simbad/, ''),
         },

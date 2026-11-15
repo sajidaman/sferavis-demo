@@ -15,7 +15,7 @@
     },
     {
       "source": "/proxy/simbad/:path*",
-      "destination": "https://simbad.cds.unistra.fr/:path*"
+      "destination": "https://simbad.cfa.harvard.edu/:path*"
     }
   ]
 }

@@ -106,7 +106,7 @@ export function starsQuery({ ra, dec, radius, magLimit, top }) {
   const mag = whole ? `f.V < ${fix(magLimit, 2)}` : `(f.V IS NULL OR f.V < ${fix(magLimit, 2)})`;
   return `SELECT TOP ${top} b.oid, b.main_id, b.ra, b.dec, b.otype, f.V ` +
     `FROM basic AS b ${whole ? "JOIN" : "LEFT JOIN"} allfluxes AS f ON b.oid = f.oidref ` +
-    `${where(radius, ra, dec, mag)} ORDER BY f.V ASC`;
+    `${where(radius, ra, dec, mag)} ORDER BY V ASC`;
 }
 
 // Over the whole sky, objects are ranked by how often they are cited (nbref), so well-known galaxies and nebulae
@@ -122,7 +122,7 @@ export function deepSkyQuery({ ra, dec, radius, magLimit, top }) {
   return `SELECT TOP ${top} b.oid, b.main_id, b.ra, b.dec, b.otype, f.V ` +
     `FROM basic AS b LEFT JOIN allfluxes AS f ON b.oid = f.oidref ` +
     `${where(radius, ra, dec, `b.otype IN (${types})`, mag)} ` +
-    `ORDER BY ${whole ? "b.nbref DESC" : "f.V ASC"}`;
+    `ORDER BY ${whole ? "nbref DESC" : "V ASC"}`;
 }
 
 /** The single closest object to a point (used when you click empty sky). */
