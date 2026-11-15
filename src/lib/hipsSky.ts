@@ -3,21 +3,31 @@ const RAD_TO_DEG = 180 / Math.PI;
 const TILE_WIDTH = 512;
 const TILE_ORDER_BITS = 9;
 const TILE_PIXEL_COUNT = 1 << (TILE_ORDER_BITS * 2);
+const SPREAD_BYTE = new Uint16Array(256);
+const COMPACT_BYTE = new Uint8Array(256);
+
+for (let value = 0; value < 256; value += 1) {
+  let spread = 0;
+  let compact = 0;
+  for (let bit = 0; bit < 8; bit += 1) {
+    spread |= ((value >>> bit) & 1) << (bit * 2);
+    compact |= ((value >>> (bit * 2)) & 1) << bit;
+  }
+  SPREAD_BYTE[value] = spread;
+  COMPACT_BYTE[value] = compact;
+}
 
 function spreadBits(value: number): number {
-  let result = 0;
-  for (let bit = 0; bit < 16; bit += 1) {
-    result += ((value >> bit) & 1) * 2 ** (bit * 2);
-  }
-  return result;
+  return SPREAD_BYTE[value & 0xff]
+    + SPREAD_BYTE[(value >>> 8) & 0xff] * 0x10000
+    + SPREAD_BYTE[(value >>> 16) & 0xff] * 0x100000000;
 }
 
 function compactBits(value: number): number {
-  let result = 0;
-  for (let bit = 0; bit < 16; bit += 1) {
-    result += (Math.floor(value / 2 ** (bit * 2)) & 1) * 2 ** bit;
-  }
-  return result;
+  return COMPACT_BYTE[value & 0xff]
+    | (COMPACT_BYTE[(value >>> 8) & 0xff] << 4)
+    | (COMPACT_BYTE[(value >>> 16) & 0xff] << 8)
+    | (COMPACT_BYTE[(value >>> 24) & 0xff] << 12);
 }
 
 export function healpixNested(order: number, ra: number, dec: number): number {
@@ -124,6 +134,9 @@ export interface FitsImage {
   header: Map<string, number>;
 }
 
+type FitsProjector = (ra: number, dec: number) => [number, number] | null;
+const fitsProjectors = new WeakMap<FitsImage, FitsProjector>();
+
 function parseHeader(bytes: Uint8Array, offset: number) {
   const header = new Map<string, number>();
   const card = new TextDecoder('ascii');
@@ -186,31 +199,46 @@ export function decodeFitsImage(buffer: ArrayBuffer): FitsImage {
 }
 
 export function fitsPixelAtSky(image: FitsImage, ra: number, dec: number): [number, number] | null {
-  const header = image.header;
-  const ra0 = (header.get('CRVAL1') ?? 0) * DEG_TO_RAD;
-  const dec0 = (header.get('CRVAL2') ?? 0) * DEG_TO_RAD;
-  const targetRa = ra * DEG_TO_RAD;
-  const targetDec = dec * DEG_TO_RAD;
-  const deltaRa = targetRa - ra0;
-  const denominator = Math.sin(dec0) * Math.sin(targetDec)
-    + Math.cos(dec0) * Math.cos(targetDec) * Math.cos(deltaRa);
-  if (denominator <= 0) return null;
+  let project = fitsProjectors.get(image);
+  if (!project) {
+    const header = image.header;
+    const ra0 = (header.get('CRVAL1') ?? 0) * DEG_TO_RAD;
+    const dec0 = (header.get('CRVAL2') ?? 0) * DEG_TO_RAD;
+    const sinDec0 = Math.sin(dec0);
+    const cosDec0 = Math.cos(dec0);
+    const cd11 = header.get('CD1_1') ?? (header.get('PC1_1') ?? 1) * (header.get('CDELT1') ?? 1);
+    const cd12 = header.get('CD1_2') ?? (header.get('PC1_2') ?? 0) * (header.get('CDELT1') ?? 1);
+    const cd21 = header.get('CD2_1') ?? (header.get('PC2_1') ?? 0) * (header.get('CDELT2') ?? 1);
+    const cd22 = header.get('CD2_2') ?? (header.get('PC2_2') ?? 1) * (header.get('CDELT2') ?? 1);
+    const determinant = cd11 * cd22 - cd12 * cd21;
+    if (!Number.isFinite(determinant) || determinant === 0) return null;
+    const inv11 = cd22 / determinant;
+    const inv12 = -cd12 / determinant;
+    const inv21 = -cd21 / determinant;
+    const inv22 = cd11 / determinant;
+    const crpix1 = (header.get('CRPIX1') ?? 1) - 1;
+    const crpix2 = (header.get('CRPIX2') ?? 1) - 1;
 
-  const xi = Math.cos(targetDec) * Math.sin(deltaRa) / denominator * RAD_TO_DEG;
-  const eta = (
-    Math.cos(dec0) * Math.sin(targetDec)
-    - Math.sin(dec0) * Math.cos(targetDec) * Math.cos(deltaRa)
-  ) / denominator * RAD_TO_DEG;
-  const cd11 = header.get('CD1_1') ?? (header.get('PC1_1') ?? 1) * (header.get('CDELT1') ?? 1);
-  const cd12 = header.get('CD1_2') ?? (header.get('PC1_2') ?? 0) * (header.get('CDELT1') ?? 1);
-  const cd21 = header.get('CD2_1') ?? (header.get('PC2_1') ?? 0) * (header.get('CDELT2') ?? 1);
-  const cd22 = header.get('CD2_2') ?? (header.get('PC2_2') ?? 1) * (header.get('CDELT2') ?? 1);
-  const determinant = cd11 * cd22 - cd12 * cd21;
-  if (!Number.isFinite(determinant) || determinant === 0) return null;
+    project = (targetRa, targetDec) => {
+      const dec = targetDec * DEG_TO_RAD;
+      const deltaRa = targetRa * DEG_TO_RAD - ra0;
+      const sinDec = Math.sin(dec);
+      const cosDec = Math.cos(dec);
+      const sinDeltaRa = Math.sin(deltaRa);
+      const cosDeltaRa = Math.cos(deltaRa);
+      const denominator = sinDec0 * sinDec + cosDec0 * cosDec * cosDeltaRa;
+      if (denominator <= 0) return null;
 
-  const dx = (cd22 * xi - cd12 * eta) / determinant;
-  const dy = (-cd21 * xi + cd11 * eta) / determinant;
-  return [(header.get('CRPIX1') ?? 1) - 1 + dx, (header.get('CRPIX2') ?? 1) - 1 + dy];
+      const xi = cosDec * sinDeltaRa / denominator * RAD_TO_DEG;
+      const eta = (cosDec0 * sinDec - sinDec0 * cosDec * cosDeltaRa) / denominator * RAD_TO_DEG;
+      return [
+        crpix1 + inv11 * xi + inv12 * eta,
+        crpix2 + inv21 * xi + inv22 * eta,
+      ];
+    };
+    fitsProjectors.set(image, project);
+  }
+  return project(ra, dec);
 }
 
 export function percentileRange(values: Float32Array): [number, number] | null {
