@@ -1,12 +1,13 @@
 import React from 'react';
 import { PageId } from '../types';
-import { ChevronRight } from 'lucide-react';
+import { ArrowRight, ChevronRight } from 'lucide-react';
 
 interface HomePageProps {
   onNavigate: (page: PageId) => void;
+  onLaunchSferavis: () => void;
 }
 
-export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
+export const HomePage: React.FC<HomePageProps> = ({ onNavigate, onLaunchSferavis }) => {
   return (
     <main className="relative flex min-h-[calc(100vh-5rem)] w-full items-center justify-center overflow-hidden px-4 py-20 text-center text-slate-900 dark:text-white">
       <div
@@ -24,6 +25,13 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
         </p>
 
         <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
+<button
+  type="button"
+  onClick={onLaunchSferavis}
+  className="inline-flex items-center gap-2 bg-[#A30000] px-8 py-4 text-xs font-lexend font-bold uppercase tracking-widest text-white transition-colors hover:bg-[#8B0000] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#A30000] focus-visible:ring-offset-2"
+>
+  Launch Sferavis <ArrowRight className="h-4 w-4" />
+</button>
 <button
             type="button"
             onClick={() => onNavigate('spherex')}
