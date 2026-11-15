@@ -9,9 +9,9 @@ export const CONFIG = {
   hipsRoot: "https://alasky.cds.unistra.fr/SPHEREx/",
   hips2fits: "https://alasky.cds.unistra.fr/hips-image-services/hips2fits",
 
-  // SIMBAD (CDS) table access service, used for every object label.
-  simbadTap: "https://simbad.cds.unistra.fr/simbad/sim-tap/sync",
-  simbadPage: "https://simbad.cds.unistra.fr/simbad/sim-id?Ident=",
+  // SIMBAD's Strasbourg service is currently unavailable. Use the official CfA mirror.
+  simbadTap: "https://simbad.cfa.harvard.edu/simbad/sim-tap/sync",
+  simbadPage: "https://simbad.cfa.harvard.edu/simbad/sim-id?Ident=",
 
   irsaPage: "https://irsa.ipac.caltech.edu/Missions/spherex.html",
 
