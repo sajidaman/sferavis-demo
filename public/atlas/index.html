@@ -36,6 +36,11 @@
     <h2>Infrared band</h2>
     <div class="bands" id="bands"></div>
     <div class="row" style="margin-top:8px">
+      <label for="chan">Channel</label>
+      <select id="chan" aria-describedby="chanNote"><option value="0">Whole band (average)</option></select>
+    </div>
+    <p class="note" id="chanNote" style="margin:4px 0 0"></p>
+    <div class="row" style="margin-top:8px">
       <label for="quality">Map detail</label>
       <select id="quality">
         <option value="1">Fast (1024)</option>
