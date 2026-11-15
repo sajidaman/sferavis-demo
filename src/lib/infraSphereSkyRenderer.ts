@@ -445,8 +445,9 @@ export class InfraSphereSkyRenderer {
     gl.uniform1i(this.uniforms.uSpherex, spherex ? 1 : 0);
     gl.uniform1i(this.uniforms.uHasSky, this.hasSky ? 1 : 0);
     gl.uniform1i(this.uniforms.uHasPatch, this.patch ? 1 : 0);
-    gl.uniform1f(this.uniforms.uExpo, 1.0);
-    gl.uniform1f(this.uniforms.uGam, 1.0);
+    // InfraSphere-inspired stretch: lift faint diffuse structures while retaining the selected channel's data.
+    gl.uniform1f(this.uniforms.uExpo, 1.35);
+    gl.uniform1f(this.uniforms.uGam, 1.45);
     if (this.patch) {
       gl.uniform3f(
         this.uniforms.uPatchInfo,
