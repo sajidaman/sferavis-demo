@@ -268,7 +268,7 @@ const planck = (lam, T) => Math.pow(lam, -3) / (Math.exp(14388 / (lam * T)) - 1)
 const REF = 1.37;
 export const starRatio = (T, lam) => planck(lam, T) / planck(REF, T);
 
-// Real bright stars at their true positions (flux at 1.37 um in Jy, rough), so labels from SIMBAD land on something.
+// Real bright stars at their true positions (flux at 1.37 um in Jy, rough).
 const ANCHORS = [
   [101.287, -16.716, 3700, 9900], [95.988, -52.696, 2100, 7000], [213.915, 19.182, 13500, 4300], [279.235, 38.784, 1000, 9600],
   [79.172, 45.998, 1950, 5000], [78.634, -8.202, 850, 12000], [114.825, 5.225, 1780, 6500], [88.793, 7.407, 40000, 3500],
