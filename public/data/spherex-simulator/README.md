@@ -54,8 +54,8 @@ pixel values:
 - `high-latitude-cutout.fits` — from `level2_2025W17_2A_0089_4D1_simu_HighLat.fits`
 - `galactic-plane-cutout.fits` — from `level2_2025W17_1A_0001_3D1_GalPlane.fits`
 
-These are representative single-exposure image cutouts for testing FITS/WCS
-rendering in Aladin Lite. They are **not** an all-sky map or a complete
+These are representative single-exposure image cutouts for testing the Atlas's
+native FITS/WCS renderer. They are **not** an all-sky map or a complete
 102-channel SPHEREx data cube. The source paper describes the simulator and its
 models; these example products do not reproduce the full simulated survey.
 
