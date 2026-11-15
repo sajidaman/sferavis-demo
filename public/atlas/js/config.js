@@ -9,18 +9,23 @@ export const CONFIG = {
   hipsRoot: "https://alasky.cds.unistra.fr/SPHEREx/",
   hips2fits: "https://alasky.cds.unistra.fr/hips-image-services/hips2fits",
 
+  // VizieR TAP (CDS): catalogue photometry (2MASS, AllWISE, Gaia) for the epoch inspector's spectrum view.
+  vizierTap: "https://tapvizier.cds.unistra.fr/TAPVizieR/tap/sync",
+  vizierPage: "https://vizier.cds.unistra.fr/vizier/sed/",
+  spherexSpectroTool: "https://irsa.ipac.caltech.edu/applications/spherex/tool-spectrophotometry",
+
   irsaPage: "https://irsa.ipac.caltech.edu/Missions/spherex.html",
 
   // IRSA: TAP lists every SPHEREx exposure that covers a position; the cutout service returns a small
   // piece of one exposure. JPL: orbits of asteroids.
   irsaBase: "https://irsa.ipac.caltech.edu",
   sbdbApi: "https://ssd-api.jpl.nasa.gov/sbdb_query.api",
-  // If the browser blocks a direct request (CORS), retry through same-origin paths.
-  // Sferavis forwards these in Vite development and through Vercel rewrites in production.
-  proxy: { irsa: "/proxy/irsa", jpl: "/proxy/jpl" },
+  // If the browser blocks a direct request (CORS), the app retries through these same-origin paths,
+  // which serve.py forwards. Plain "python3 -m http.server" has no such paths.
+  proxy: { irsa: "/proxy/irsa", jpl: "/proxy/jpl", vizier: "/proxy/vizier" },
 
   // Where the observer stands at start-up (editable in the page).
-  location: { lat: 23.81, lon: 90.41 },
+  location: { lat: 23.81, lon: 90.41, name: "Dhaka" },
 
   // D1 to D6 are the six SPHEREx detector maps. Wavelengths are approximate.
   bands: [
@@ -42,4 +47,28 @@ export const CONFIG = {
   // Detailed patch fetched when the view is zoomed in and still.
   patch: { size: 1536, maxFovDeg: 80, idleMs: 450, recheckMs: 600 },
 
+  // WISE time series (WiseView, byw.tools), opened for the spot you click. `params` are the WiseView settings
+  // from the example address (ra, dec and size are filled in per click). Size is the field width in arcseconds.
+  // The page is shown in a frame of `frame` pixels, and only the `crop` rectangle of it is visible: the left
+  // settings sidebar is cut off (it is about 260 px wide) and only the blinking image is left. If the crop is off, open the app with ?wisecrop=x,y,w,h to
+  // try values, or press "Full page" in the window to see where the image sits.
+  wise: {
+    enabled: true,
+    base: "http://byw.tools/wiseview",
+    // Used instead when the app itself is served over https (Vercel, GitHub Pages ...). Set to "" if byw.tools has no https;
+    // the panel then shows a button that opens WiseView in a new tab.
+    secureBase: "",
+    size: 176, deepSkySize: 300,
+    // WiseView zoom for each field size, so the image is about 545 px wide and fills the crop.
+    zoom: { star: 9, deep: 5 },
+    frame: { w: 1400, h: 900 },
+    crop: { x: 285, y: 43, w: 540, h: 540 },
+    params: {
+      band: 2, speed: 500, minbright: "-50.0000", maxbright: "500.0000", window: 0.5, diff_window: 1, linear: 1,
+      color: "", zoom: 9, border: 0, gaia: 0, invert: 1, maxdyr: 0, scandir: 0, neowise: 0, diff: 0, outer_epochs: 0,
+      unique_window: 1, smooth_scan: 0, shift: 0, pmra: 0, pmdec: 0,
+      synth_a: 0, synth_a_sub: 0, synth_a_ra: "", synth_a_dec: "", synth_a_w1: "", synth_a_w2: "", synth_a_pmra: 0, synth_a_pmdec: 0, synth_a_mjd: "",
+      synth_b: 0, synth_b_sub: 0, synth_b_ra: "", synth_b_dec: "", synth_b_w1: "", synth_b_w2: "", synth_b_pmra: 0, synth_b_pmdec: 0, synth_b_mjd: ""
+    }
+  },
 };

@@ -12,6 +12,10 @@
     {
       "source": "/proxy/jpl/:path*",
       "destination": "https://ssd-api.jpl.nasa.gov/:path*"
+    },
+    {
+      "source": "/proxy/vizier/:path*",
+      "destination": "https://tapvizier.cds.unistra.fr/:path*"
     }
   ]
 }

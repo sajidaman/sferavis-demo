@@ -11,7 +11,7 @@
 // js/sky-background.js and follow Section 4 of the paper; this file adds them to the stars and extended sources.
 // No DOM at import time, so it can be tested in Node.
 
-import { zodiacalSurveyMap, dglBandPerFir, dglPerFir, FIR_HIGH_LAT_MJY, eblMean, eblFactor } from "./sky-background.js";
+import { zodiacalSurveyMap, dglBandPerFir, FIR_HIGH_LAT_MJY, eblMean, eblFactor } from "./sky-background.js";
 
 const D2R = Math.PI / 180, R2D = 180 / Math.PI, TWO_PI = 2 * Math.PI;
 
@@ -25,25 +25,6 @@ export const BANDS = [
   { id: "D6", lo: 4.39, hi: 5.02, c: 4.70, fwhm: 5.5, g: 1.68, cds: 11.6, ch: [4.426, 4.459, 4.492, 4.525, 4.558, 4.592, 4.627, 4.661, 4.696, 4.731, 4.766, 4.801, 4.836, 4.871, 4.908, 4.944, 4.981] }
 ];
 export const bandIndex = (id) => BANDS.findIndex((b) => b.id === id);
-
-// One spectral channel of one detector is addressed as "D2.9": detector D2, its 9th channel (1 to 17). Six detectors of 17
-// channels give the 102 channels of the paper. "D2" alone is the whole band; "color" is the six-band composite.
-export const CHANNELS_PER_BAND = 17;
-/** "D2" -> { k: 1, ch: -1 };  "D2.9" -> { k: 1, ch: 8 } (ch counts from 0);  anything else -> { k: -1, ch: -1 }. */
-export function parseBandId(id) {
-  const m = /^(D[1-6])(?:\.(\d+))?$/.exec(String(id));
-  if (!m) return { k: -1, ch: -1 };
-  const k = bandIndex(m[1]), n = m[2] === undefined ? -1 : Number(m[2]) - 1;
-  return { k, ch: n >= 0 && n < BANDS[k].ch.length ? n : -1 };
-}
-/** Id of channel number n (1 to 17) of a detector, e.g. channelId("D2", 9) = "D2.9". */
-export const channelId = (bandId, n) => bandId + "." + n;
-/** The channels of one detector: [{ n: 1..17, number: 1..102 across all detectors, lam (um), id }]. */
-export function channelList(bandId) {
-  const k = bandIndex(bandId);
-  if (k < 0) return [];
-  return BANDS[k].ch.map((lam, i) => ({ n: i + 1, number: k * CHANNELS_PER_BAND + i + 1, lam, id: channelId(bandId, i + 1) }));
-}
 
 // Display: the scale of the paper's Fig. 2 (see PAPER_RANGE and magma below). `soft` (MJy/sr) only picks how far the
 // scale moves down when the zodiacal light is switched off (see stretchSoft); `headroom` (dex) lifts the top of every
@@ -191,32 +172,6 @@ const OBJS = [
     cosCut: Math.cos(Math.min(60, 7 * Math.max(o.sa, o.sb)) * D2R), sa: o.sa * D2R, sb: o.sb * D2R, cp: Math.cos(o.pa * D2R), sp: Math.sin(o.pa * D2R) };
 });
 
-// ---------- spectra: what each component does at one wavelength ----------
-// For a whole band these are the band tables above. For one channel they are evaluated at the channel's wavelength:
-// the DGL conversion, EBL level and dust optical depth are functions of wavelength already; the unresolved starlight and
-// the extended-object amplitudes are given at the six band centres, so they are interpolated linearly in ln(wavelength).
-function atBandCentres(v6, lam) {
-  if (lam <= C[0]) return v6[0];
-  if (lam >= C[5]) return v6[5];
-  let i = 0;
-  while (lam > C[i + 1]) i++;
-  const t = Math.log(lam / C[i]) / Math.log(C[i + 1] / C[i]);
-  return v6[i] + (v6[i + 1] - v6[i]) * t;
-}
-const BAND_SPEC = BANDS.map((b, k) => ({ lam: C[k], dgl: DGL_PER_FIR[k], ebl: EBL_MEAN[k], glow: GLOW[k], tau: TAU[k], amp: OBJS.map((o) => o.amp[k]) }));
-const channelSpecs = new Map();
-/** Spectrum of channel ch (0 to 16, counted inside its band) of band k. Cached. */
-export function channelSpec(k, ch) {
-  const key = k * 100 + ch;
-  let s = channelSpecs.get(key);
-  if (!s) {
-    const lam = BANDS[k].ch[ch];
-    s = { lam, dgl: dglPerFir(lam), ebl: eblMean(lam), glow: atBandCentres(GLOW, lam), tau: 9 * Math.pow(0.55 / lam, 1.7), amp: OBJS.map((o) => atBandCentres(o.amp, lam)) };
-    channelSpecs.set(key, s);
-  }
-  return s;
-}
-
 // ---------- the diffuse field at one direction ----------
 // dust: Galactic dust column (also drives the extinction and the nebula filaments); fir: far-infrared brightness,
 // MJy/sr; ebl: EBL clumpiness multiplier; glow: unresolved starlight; elon / elat: ecliptic coordinates, radians.
@@ -250,14 +205,13 @@ export function fieldAt(x, y, z, oct) {
 /** Everything except the zodiacal light, in MJy/sr, for band index k, from the last fieldAt call:
  *  diffuse Galactic light + extragalactic light + unresolved starlight and extended sources.
  *  comps picks which of them to include (default: all). */
-export function restValue(k, comps = ALL_COMPONENTS, spec = null) {
-  const s = spec || BAND_SPEC[k];            // spec: a channelSpec(); without it the whole band k
+export function restValue(k, comps = ALL_COMPONENTS) {
   let v = 0;
-  if (comps.dgl) v += s.dgl * FIELD.fir;
-  if (comps.ebl) v += s.ebl * FIELD.ebl;
+  if (comps.dgl) v += DGL_PER_FIR[k] * FIELD.fir;
+  if (comps.ebl) v += EBL_MEAN[k] * FIELD.ebl;
   if (comps.stars) {
-    v += s.glow * FIELD.glow * Math.exp(-0.8 * s.tau * FIELD.dust);
-    for (let o = 0; o < OBJS.length; o++) if (EXT[o] > 0) v += s.amp[o] * EXT[o];
+    v += GLOW[k] * FIELD.glow * Math.exp(-0.8 * TAU[k] * FIELD.dust);
+    for (let o = 0; o < OBJS.length; o++) if (EXT[o] > 0) v += OBJS[o].amp[k] * EXT[o];
   }
   return v;
 }
@@ -420,15 +374,11 @@ function upsample(src, sw, sh, dw, dh, wrapX) {
 
 /**
  * Render one geometry into RGBA bytes, in the colours of the paper's Fig. 2: log10(MJy/sr) on the magma colour map, with
- * the range of that band's colour bar. bandId "D2" is one band; "color" averages all six bands, each on its own range;
- * "D2.9" is one spectral channel of D2, drawn on the colour bar of its band so that channels of a band can be compared.
+ * the range of that band's colour bar. bandId "D2" is one band; "color" averages all six bands, each on its own range.
  */
 async function renderGeom(geom, bandId, { signal, mjd, comps = ALL_COMPONENTS, points = true } = {}) {
   const composite = bandId === "color";
-  const parsed = parseBandId(bandId);
-  const ks = composite ? [0, 1, 2, 3, 4, 5] : [Math.max(0, parsed.k)];
-  const ch = composite ? -1 : parsed.ch;                           // channel inside the band, or -1 for the whole band
-  const spec = ch >= 0 ? channelSpec(ks[0], ch) : null;
+  const ks = composite ? [0, 1, 2, 3, 4, 5] : [Math.max(0, bandIndex(bandId))];
   const { W, H } = geom;
   const dw = Math.min(W, geom.wrapX ? 2048 : 384), dh = Math.max(2, Math.min(H, Math.round(H * dw / W)));
   const pixD = geom.pixRad * W / dw;
@@ -436,16 +386,14 @@ async function renderGeom(geom, bandId, { signal, mjd, comps = ALL_COMPONENTS, p
   const dif = ks.map(() => new Float32Array(dw * dh));
   // Zodiacal light: the survey-geometry map from the Kelsall-model integration (built once, then reused).
   // No abort signal is passed: the map is shared by every render, so one render's cancel must not break the others.
-  // A channel needs the zodiacal light at its own wavelength: one map over the 17 channels of its band, built the first
-  // time that band is used and kept (the line-of-sight integration is shared by all 17, so it costs little extra).
-  const zlMap = comps.zl ? await zodiacalSurveyMap(ch >= 0 ? BANDS[ks[0]].ch : BAND_LAMS, { tick }) : null;
+  const zlMap = comps.zl ? await zodiacalSurveyMap(BAND_LAMS, { tick }) : null;
   aborted(signal);
   const v = [0, 0, 0];
   for (let j = 0; j < dh; j++) {
     for (let i = 0; i < dw; i++) {
       geom.dirUV((i + 0.5) / dw, (j + 0.5) / dh, v);
       fieldAt(v[0], v[1], v[2], oct);
-      for (let c = 0; c < ks.length; c++) dif[c][j * dw + i] = (zlMap ? zlMap.at(FIELD.elon, FIELD.elat, ch >= 0 ? ch : ks[c]) : 0) + restValue(ks[c], comps, spec);
+      for (let c = 0; c < ks.length; c++) dif[c][j * dw + i] = (zlMap ? zlMap.at(FIELD.elon, FIELD.elat, ks[c]) : 0) + restValue(ks[c], comps);
     }
     if ((j & 15) === 15) { await tick(); aborted(signal); }
   }
@@ -461,7 +409,7 @@ async function renderGeom(geom, bandId, { signal, mjd, comps = ALL_COMPONENTS, p
   const shift = Math.log10(SIM.soft / stretchSoft(comps));        // 0 whenever the zodiacal light is on
   const acc = new Float32Array(W * H);                            // sum over the bands of the position on each band's colour bar
   for (let c = 0; c < ks.length; c++) {
-    const k = ks[c], lam = spec ? spec.lam : BANDS[k].c, buf = upsample(dif[c], dw, dh, W, H, geom.wrapX);
+    const k = ks[c], lam = BANDS[k].c, buf = upsample(dif[c], dw, dh, W, H, geom.wrapX);
     const psf = (BANDS[k].fwhm / 2.355) / 206265 / geom.pixRad;
     for (let s = 0; s < stars.n; s++) {
       if (!geom.starPos(stars.ra[s], stars.dec[s])) continue;
