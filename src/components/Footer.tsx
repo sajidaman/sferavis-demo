@@ -67,13 +67,6 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate, onLaunchSferavis }) 
           </div>
         </div>
 
-        {/* External scientific resources */}
-        <div className="flex flex-wrap items-center gap-x-5 gap-y-2 border-t border-zinc-200 dark:border-slate-800 pt-5 mb-10">
-          <span className="text-[10px] font-oswald uppercase font-bold tracking-wider text-zinc-500 dark:text-zinc-400">External Resources</span>
-          <a href="https://spherex.caltech.edu/" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 hover:text-zinc-950 dark:hover:text-white transition-colors">SPHEREx at Caltech <ExternalLink className="w-3 h-3" /></a>
-          <a href="https://irsa.ipac.caltech.edu/Missions/spherex.html" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 hover:text-zinc-950 dark:hover:text-white transition-colors">NASA/IPAC Infrared Science Archive <ExternalLink className="w-3 h-3" /></a>
-        </div>
-
         {/* Bottom Wordmark, Social Links & Legal Bar */}
         <div className="pt-8 border-t border-zinc-200 dark:border-slate-800 flex flex-col items-center gap-7">
           <div className="grid w-full grid-cols-4 sm:grid-cols-7 items-start gap-x-2 gap-y-4" aria-label="Sferavis social media">
