@@ -101,8 +101,8 @@ export const LicensingPage: React.FC = () => (
           </LicenceCard>
         </Section>
 
-        <Section number="05" title="Infraredium Machine-Learning Catalogue">
-          <LicenceCard title="Infraredium ML Catalogue" licence="CC BY 4.0" href="https://creativecommons.org/licenses/by/4.0/" scope="Sferavis-created catalogue contributions">
+        <Section number="05" title="Sferavis Machine-Learning Catalogue">
+          <LicenceCard title="Sferavis ML Catalogue" licence="CC BY 4.0" href="https://creativecommons.org/licenses/by/4.0/" scope="Sferavis-created catalogue contributions">
             <p>Sferavis makes the original catalogue material and protectable database contributions it has the right to license available under CC BY 4.0. This may include Sferavis-authored documentation, original selection or arrangement, and rights in the database structure where those rights exist.</p>
             <ul className="list-disc space-y-2 pl-5 marker:text-[#A30000]">
               <li>Redistribution, adaptation, and commercial reuse are permitted under CC BY 4.0, subject to attribution and the other licence terms.</li>
@@ -112,7 +112,7 @@ export const LicensingPage: React.FC = () => (
             </ul>
             <div className="rounded-lg border border-[#A30000]/15 bg-[#A30000]/[0.04] p-4">
               <p className="font-semibold text-[#303944] dark:text-zinc-200">Recommended acknowledgement</p>
-              <p className="mt-2">“This research used the Infraredium Machine-Learning Catalogue, developed by Sferavis, Release [version] ([year]), based on NASA SPHEREx mission data. [DOI or catalogue URL]. Licensed under CC BY 4.0.”</p>
+              <p className="mt-2">“This research used the Sferavis Machine-Learning Catalogue, developed by Sferavis, Release [version] ([year]), based on NASA SPHEREx mission data. [DOI or catalogue URL]. Licensed under CC BY 4.0.”</p>
             </div>
             <p>When a release DOI is available, cite that version-specific DOI. CC BY attribution applies to reuse of licensed catalogue material; it does not create ownership over NASA source data, raw observations, or scientific facts that are not protected by copyright or database rights.</p>
           </LicenceCard>
