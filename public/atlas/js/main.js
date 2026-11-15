@@ -1,12 +1,14 @@
-// InfraSphere: wires the sky renderer, SPHEREx data and the page together.
+// InfraSphere: wires the sky renderer, SPHEREx data, SIMBAD labels and the page together.
 
 import { CONFIG } from "./config.js";
-import { R2D, lstRad, altAzVecToEq, hms, dms, compass } from "./astro.js";
+import { D2R, R2D, lstRad, eqToAltAzVec, altAzVecToEq, hms, dms, compass } from "./astro.js";
 import { View } from "./view.js";
 import { SkyRenderer } from "./sky-renderer.js";
 import { SkyData } from "./sky-data.js";
-import { drawDirections } from "./labels.js";
+import { LabelLayer, drawDirections } from "./labels.js";
+import { LabelFeed } from "./label-feed.js";
 import { attachControls } from "./controls.js";
+import * as Simbad from "./simbad.js";
 import * as UI from "./ui.js";
 import { TileGrid } from "./tiles.js";
 import { SolarSystem } from "./solar-system.js";
@@ -15,6 +17,7 @@ import { StarLayer } from "./star-layer.js";
 import { WisePanel } from "./wise.js";
 import { initDock } from "./dock.js";
 import { horizonSin } from "./landscape.js";
+import { wikiCandidates, candidatesFromIdents, fetchWikiBlurb } from "./wiki.js";
 
 const $ = UI.$;
 
@@ -27,6 +30,8 @@ const state = {
   expo: 1.0, gam: 1.0,
   quality: 2, sharpen: true,
   band: "color",
+  groups: { star: true, galaxy: true, cluster: true, nebula: true, other: false },
+  selected: null,         // { ra, dec } of the clicked object
   tile: null              // { order, pix } of the clicked tile
 };
 
@@ -39,7 +44,9 @@ try {
   throw e;
 }
 const labelCtx = $("labels").getContext("2d");
+const layer = new LabelLayer();
 const sky = new SkyData(renderer, UI.ui);
+const feed = new LabelFeed(layer, UI.ui);
 const tiles = new TileGrid();
 const solar = new SolarSystem(UI.ui);
 // Live stars: sharp points, with fainter ones appearing as you zoom in. Simulated sky only; the real SPHEREx maps have
@@ -48,6 +55,7 @@ const stars = new StarLayer();
 stars.enabled = CONFIG.simulate;
 const inspector = new Inspector(UI.ui);
 const wise = new WisePanel(UI.ui);
+UI.setInspectHandler((ra, dec, title) => inspector.open({ ra, dec, title }));
 
 let lastInteract = 0;
 const markInteract = () => { lastInteract = performance.now(); };
@@ -67,21 +75,125 @@ window.addEventListener("resize", resize);
 const lst = () => lstRad(state.simMs, state.lon);
 const centerEq = () => altAzVecToEq(view.basis().f, state.lat, lst());
 
-function onSkyClick(px, py) {
+// ---------- Wikipedia blurb in the info card ----------
+// Only for objects that can have an article. Gaia, 2MASS and similar catalogue entries never do, so they skip this and the card
+// behaves exactly as before. The lookup starts a moment after the card is shown so it never competes with the SIMBAD answer.
+const wikiCache = new Map();     // oid -> blurb or null
+const CATALOGUE_ONLY = /^(Gaia|2MASS|WISE|AllWISE|TYC|UCAC|PPMXL|SDSS|USNO|GSC|LEDA|PGC|SSTSL|\[)/i;
+async function attachWiki(obj, name) {
+  const key = obj.oid;
+  if (key === null || key === undefined) return;
+  const plain = String(obj.main_id || "").replace(/^(\*\*|\*|V\*|NAME|Cl\*) /, "").trim();
+  if (!name && CATALOGUE_ONLY.test(plain)) return;
+  const cardIsOn = () => $("info").dataset.key === String(key) && !$("info").classList.contains("hidden");
+  if (wikiCache.has(key)) { const b = wikiCache.get(key); UI.setInfoWiki(key, b || { none: true }); return; }
+  await new Promise((r) => setTimeout(r, 400));
+  if (!cardIsOn()) return;
+  UI.setInfoWiki(key, { loading: true });
+  const ctl = new AbortController(), timer = setTimeout(() => ctl.abort(), 12000);
+  try {
+    let blurb = await fetchWikiBlurb(wikiCandidates(obj.main_id, name ? [name] : []), { signal: ctl.signal });
+    if (!blurb && cardIsOn()) {                                   // try all the object's other names (HD, HIP, common names ...)
+      let ids = [];
+      try { ids = await Simbad.fetchIdents(key, { signal: ctl.signal }); } catch (e) { if (e.name === "AbortError") throw e; }
+      blurb = await fetchWikiBlurb(candidatesFromIdents(ids), { signal: ctl.signal });
+    }
+    wikiCache.set(key, blurb);
+    UI.setInfoWiki(key, blurb || { none: true });
+  } catch (e) {
+    console.warn("Wikipedia lookup failed", e);
+    UI.setInfoWiki(key, { none: true });
+  } finally { clearTimeout(timer); }
+}
+
+// ---------- looking at an object ----------
+async function showDetails(obj, name) {
+  state.selected = { ra: obj.ra, dec: obj.dec };
+  wise.open({ ra: obj.ra, dec: obj.dec, name: name || obj.name || Simbad.prettyName(obj.main_id), group: obj.group });
+  UI.showInfoLoading(name || Simbad.prettyName(obj.main_id));
+  try {
+    const full = obj.oid !== null && obj.oid !== undefined ? await Simbad.fetchDetails(obj.oid) : null;
+    UI.showInfo(full || obj, name || obj.name);
+    attachWiki(full || obj, name || obj.name);
+  } catch (e) {
+    UI.showInfo(obj, name || obj.name);
+    UI.say("Could not fetch full details (" + e.message + ").", 4000);
+  }
+}
+
+let lookupSeq = 0;
+async function lookupSpot(px, py) {
+  // Ask SIMBAD for the closest object within about 14 pixels.
+  const d = view.dirFromPixel(px, py);
+  const eq = altAzVecToEq(d, state.lat, lst());
+  const radius = Math.min(Math.max(view.angleBetweenPixels(px, py, px + 14, py) * R2D, 0.003), 3);
+  const seq = ++lookupSeq;                 // a newer click makes an older, slower answer stale
+  state.selected = { ra: eq.ra, dec: eq.dec };
+  UI.showInfoLoading("Looking up this spot");
+  // The WISE window opens at once on the clicked point (it does not need SIMBAD). When SIMBAD answers with an
+  // object more than a few arcseconds away, the window is moved onto that object's own catalogue position.
+  wise.open({ ra: eq.ra, dec: eq.dec, name: "Sky position" });
+  const ctl = new AbortController();
+  const timer = setTimeout(() => ctl.abort(), 15000);
+  try {
+    const obj = await Simbad.fetchNearest({ ra: eq.ra, dec: eq.dec, radius }, { signal: ctl.signal });
+    if (seq !== lookupSeq) return;
+    if (!obj) { UI.showInfoMessage("Nothing here", "SIMBAD lists no object within about 14 pixels of that spot. The WISE window shows the exact point you clicked."); return; }
+    layer.add([obj]);
+    state.selected = { ra: obj.ra, dec: obj.dec };
+    const sepArcsec = Math.hypot((obj.ra - eq.ra) * Math.cos(eq.dec * D2R), obj.dec - eq.dec) * 3600;
+    if (sepArcsec > 3) wise.open({ ra: obj.ra, dec: obj.dec, name: Simbad.prettyName(obj.main_id), group: obj.group });
+    else wise.rename(Simbad.prettyName(obj.main_id));
+    UI.showInfo(obj, null);
+    attachWiki(obj, null);
+  } catch (e) {
+    if (seq !== lookupSeq) return;
+    console.error("SIMBAD lookup failed", e);
+    UI.showInfoMessage("Lookup failed", e.name === "AbortError" ? "SIMBAD did not answer within 15 seconds." : e.message);
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+async function onSkyClick(px, py) {
   const body = solar.pick(px, py, 16);
-  if (body) { state.tile = null; UI.showSolarInfo(body); return; }
-  const eq = altAzVecToEq(view.dirFromPixel(px, py), state.lat, lst());
+  if (body) { state.selected = { ra: body.ra, dec: body.dec }; state.tile = null; UI.showSolarInfo(body); return; }
+  const hit = layer.pick(px, py, 14);
+  if (hit) { state.tile = null; showDetails(hit, hit.name); return; }
   if (state.tiles) {
+    const eq = altAzVecToEq(view.dirFromPixel(px, py), state.lat, lst());
     const t = tiles.tileAt(eq.ra, eq.dec);
-    state.tile = t;
+    state.tile = t; state.selected = null;
     wise.open({ ra: eq.ra, dec: eq.dec, name: "Tile " + t.name });
     UI.showTileCard(t, {
-      onInspect: () => inspector.open({ ra: t.ra, dec: t.dec, title: "Tile " + t.name })
+      onInspect: () => inspector.open({ ra: t.ra, dec: t.dec, title: "Tile " + t.name }),
+      onLookup: () => { state.tile = null; lookupSpot(px, py); }
     });
     return;
   }
   state.tile = null;
-  wise.open({ ra: eq.ra, dec: eq.dec, name: "Sky position" });
+  lookupSpot(px, py);
+}
+
+async function searchObject(text) {
+  if (!text.trim()) return;
+  UI.setBusy("search", "Searching SIMBAD for " + text.trim());
+  try {
+    const obj = await Simbad.resolveName(text);
+    if (!obj) { UI.say("SIMBAD does not know \"" + text.trim() + "\". Try another name, like M31 or Sirius.", 4000); return; }
+    const v = eqToAltAzVec(obj.ra, obj.dec, state.lat, lst());
+    view.lookAtVec(v);
+    view.fov = Math.min(view.fov, 25 * D2R);
+    view.clamp();
+    layer.add([obj]);
+    markInteract();
+    if (v[2] < 0) UI.say("That object is below your horizon right now. Switch off Ground or change the time to see it.", 5000);
+    showDetails(obj, null);
+  } catch (e) {
+    UI.say("Search failed (" + e.message + ").", 5000);
+  } finally {
+    UI.setBusy("search", "");
+  }
 }
 
 // ---------- controls ----------
@@ -141,9 +253,15 @@ $("dirs").addEventListener("change", (e) => { state.directions = e.target.checke
 $("flip").addEventListener("change", (e) => { state.flip = e.target.checked; });
 $("expo").addEventListener("input", (e) => { state.expo = parseFloat(e.target.value); });
 $("gam").addEventListener("input", (e) => { state.gam = parseFloat(e.target.value); });
+for (const g of Object.keys(state.groups)) {
+  $("lbl-" + g).checked = state.groups[g];
+  $("lbl-" + g).addEventListener("change", (e) => { state.groups[g] = e.target.checked; });
+}
+$("search").addEventListener("keydown", (e) => { if (e.key === "Enter") searchObject(e.target.value); });
+$("searchBtn").addEventListener("click", () => searchObject($("search").value));
 initDock();
 if (CONFIG.simulate) {
-  document.title = "SPHEREx Atlas (simulated sky) · Sferavis";
+  document.title = "InfraSphere (simulated sky)";
 }
 
 $("file").addEventListener("change", async (e) => {
@@ -172,10 +290,15 @@ function tick(now) {
   stars.draw(ctx, view, state.lat, L, { hideBelow: state.ground, horizon });
   if (state.tiles) tiles.draw(ctx, view, state.lat, L, { selected: state.tile });
   if (state.directions) drawDirections(ctx, view);
+  layer.draw(ctx, view, state.lat, L, {
+    groups: state.groups, showLabels: true, hideBelow: state.ground, horizon,
+    maxDrawn: CONFIG.labels.maxDrawn, selected: state.selected, starDots: stars.enabled
+  });
   solar.update(state.simMs, { asteroids: state.asteroids, neo: state.neo });
   solar.draw(ctx, view, state.lat, L, { asteroids: state.asteroids, neo: state.neo, hideBelow: state.ground, horizon });
 
   sky.maybeSharpen({ now, idle: isIdle(now, CONFIG.patch.idleMs), enabled: state.sharpen, flip: state.flip, view, centerEq: eq });
+  feed.maybeUpdate({ now, idle: isIdle(now, CONFIG.labels.idleMs), enabled: true, view, centerEq: eq });
 
   if (frame++ % 8 === 0) {
     const az = ((view.az * R2D) % 360 + 360) % 360;

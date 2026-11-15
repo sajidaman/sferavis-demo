@@ -1,5 +1,5 @@
 // WISE time-series view: when a spot of the sky is clicked, show the WiseView (byw.tools) blink of unWISE / NEOWISE
-// epochs for that exact target.
+// epochs for that exact target. It sits in the same card as the SIMBAD info (see #side in index.html).
 // Only the image part of the WiseView page is shown: the page is loaded in a frame that is larger than the visible
 // area and shifted, so the settings sidebar is cropped away (CONFIG.wise.crop).
 
@@ -99,7 +99,7 @@ export class WisePanel {
 
   /** Show the WISE epochs for a target: { ra, dec (deg), name?, group? }. A new frame is made every time,
    *  because WiseView only reads its address when the page loads. */
-  /** Never throws: a problem here must not interrupt sky interaction. */
+  /** Never throws: a problem here must not stop the SIMBAD lookup that called it. */
   open(target) {
     try { this._open(target); }
     catch (e) { console.error("WISE panel failed", e); try { this.root.classList.add("hidden"); } catch (_) { /* nothing */ } }
