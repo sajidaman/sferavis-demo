@@ -29,9 +29,6 @@ export const ArchivePage: React.FC<ArchivePageProps> = ({ onNavigate }) => (
     <section className="border-b border-zinc-200 bg-transparent pb-12 pt-12 dark:border-slate-800">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <header className="mx-auto max-w-3xl text-center">
-          <p className="mb-4 inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.22em] text-[#a30000]">
-            <Archive size={13} /> Infraredium · Scientific Data
-          </p>
           <h1 className="text-4xl font-semibold tracking-[-0.055em] text-[#171b22] sm:text-6xl lg:text-7xl dark:text-white">
             Archive<span className="text-[#a30000]">.</span>
           </h1>
