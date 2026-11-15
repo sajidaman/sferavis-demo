@@ -47,31 +47,31 @@ export function setActiveBand(id) {
 
 // ---------- spectral channel picker ----------
 const TOTAL_CHANNELS = BANDS.length * CHANNELS_PER_BAND;      // 102
-/**
- * Fill the channel list for a band: "whole band" first, then its 17 channels, numbered 1 to 102 across all six bands.
- * `enabled` is false when channels cannot be shown: the colour composite mixes six bands, and the real SPHEREx maps
- * (?real=1) exist only per band.
- */
+/** Fill one global picker with the whole-band option and all 102 channels grouped by detector. */
 export function setChannelOptions(bandId, selected, enabled) {
   const sel = $("chan");
-  const chans = channelList(bandId);
-  const usable = enabled && chans.length > 0;
   sel.innerHTML = "";
   const whole = document.createElement("option");
   whole.value = "0";
   whole.textContent = bandId === "color" ? "All six bands (composite)" : "Whole band (average)";
   sel.appendChild(whole);
-  for (const c of chans) {
-    const o = document.createElement("option");
-    o.value = String(c.n);
-    o.textContent = `${c.number} / ${TOTAL_CHANNELS} · ${c.lam.toFixed(3)} µm`;
-    sel.appendChild(o);
+  for (const band of BANDS) {
+    const meta = CONFIG.bands.find((item) => item.id === band.id);
+    const group = document.createElement("optgroup");
+    group.label = `${band.id} · ${meta ? meta.range : ""}`;
+    for (const channel of channelList(band.id)) {
+      const option = document.createElement("option");
+      option.value = channel.id;
+      option.textContent = `${channel.number} / ${TOTAL_CHANNELS} · ${channel.lam.toFixed(3)} µm`;
+      group.appendChild(option);
+    }
+    sel.appendChild(group);
   }
-  sel.value = usable ? String(selected || 0) : "0";
-  sel.disabled = !usable;
+  sel.value = enabled && selected > 0 ? `${bandId}.${selected}` : "0";
+  sel.disabled = !enabled;
   $("chanNote").textContent = !enabled
     ? "Channel maps need the simulated sky; the real SPHEREx maps are per band."
-    : bandId === "color" ? "Pick one band to look at its channels." : "Each band has 17 spectral channels, 102 in all.";
+    : "All 102 channels are listed by detector; selecting one switches to that detector band.";
 }
 
 // ---------- time input ----------
