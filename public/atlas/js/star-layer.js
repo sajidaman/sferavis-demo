@@ -9,7 +9,7 @@
 // same place whatever the zoom, and the epoch inspector sees the same stars. No DOM at import time, so it can be tested.
 
 import { D2R, R2D, angSepDeg } from "./astro.js";
-import { BANDS, parseBandId, gatherStars, starLimit, starRatio } from "./sim-sky.js";
+import { BANDS, bandIndex, gatherStars, starLimit, starRatio } from "./sim-sky.js";
 
 export const STAR_BUDGET = 12000;      // most stars drawn at once (in the Galactic plane; elsewhere there are fewer)
 export const STAR_FLOOR = 1e-4;        // faintest star ever generated, Jy at 1.37 um (about 21st magnitude in H)
@@ -24,7 +24,7 @@ export function viewLimit(fovRad, aspect, budget = STAR_BUDGET) {
 }
 
 /**
- * Returns project(ux, uy, uz, out): a star's unit vector in the equatorial frame (J2000) -> out = [x, y, up], where x and
+ * Returns project(ux, uy, uz, out): a star's unit vector in the equatorial frame (J2000) -> out = [x, y, up, north, east], where x and
  * y are CSS pixels (the same as View.project) and up is the height above the horizon (-1 .. 1). It returns false when
  * the star cannot be shown. Written without trigonometry so that thousands of stars cost little.
  */
@@ -46,7 +46,7 @@ export function makeProjector(view, latDeg, lst) {
       if (c <= 0.05) return false;
       out[0] = W / 2 + (vx / c) * k; out[1] = H / 2 - (vy / c) * k;
     }
-    out[2] = up;
+    out[2] = up; out[3] = n; out[4] = e;
     return true;
   };
 }
@@ -57,7 +57,7 @@ const tempOf = (i) => T_LO * Math.pow(T_HI / T_LO, i / (N_TEMP - 1));
 const tempIndex = (T) => Math.max(0, Math.min(N_TEMP - 1, Math.round(Math.log(T / T_LO) / Math.log(T_HI / T_LO) * (N_TEMP - 1))));
 const COMPOSITE = [[4, 2.2], [2, 1.1], [0, 1.0]];        // the colour composite: D5 red, D3 green, D1 blue, and their gains
 
-/** Brightness in the shown band (or channel), relative to the star's 1.37 um flux, for each temperature bin; and the colour of each. */
+/** Brightness in the shown band, relative to the star's 1.37 um flux, for each temperature bin; and the colour of each. */
 function bandTables(id) {
   const ratio = new Float32Array(N_TEMP), rgb = [];
   for (let i = 0; i < N_TEMP; i++) {
@@ -68,8 +68,7 @@ function bandTables(id) {
       ratio[i] = m;
       rgb.push(ch.map((v) => Math.round(255 * (0.4 + 0.6 * v / m))));           // keep the hue, but never fully saturated
     } else {
-      const { k, ch } = parseBandId(id);            // "D2" is a whole band, "D2.9" one channel of it
-      ratio[i] = starRatio(T, ch >= 0 ? BANDS[k].ch[ch] : BANDS[Math.max(0, k)].c);
+      ratio[i] = starRatio(T, BANDS[Math.max(0, bandIndex(id))].c);
       rgb.push([255, 250, 244]);
     }
   }
@@ -84,7 +83,7 @@ export class StarLayer {
     this.drawn = 0;                  // stars drawn last frame
     this.lastGen = -1e9;
     this.band = "color";
-    this._out = [0, 0, 0];
+    this._out = [0, 0, 0, 0, 0];
     this._buckets = Array.from({ length: N_TEMP * N_ALPHA }, () => []);
     this._glow = [];
     this.setBand("color");
@@ -149,7 +148,7 @@ export class StarLayer {
       if (!project(ux[i], uy[i], uz[i], out)) continue;
       const x = out[0], y = out[1];
       if (x < -8 || x > W + 8 || y < -8 || y > H + 8) continue;
-      if (opts.hideBelow && out[2] < -0.004) continue;
+      if (opts.hideBelow && out[2] < (opts.horizon ? opts.horizon(out[3], out[4]) : -0.004)) continue;
       const m = Math.log10(F / sMin);                              // decades above the faintest star shown
       const r = Math.min(6.5, 0.55 + 0.9 * m);
       const a = Math.min(N_ALPHA - 1, Math.floor(2 + m * 9));

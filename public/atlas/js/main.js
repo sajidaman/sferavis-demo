@@ -1,18 +1,20 @@
-// InfraSphere: wires the SPHEREx sky renderer and interactive controls together.
+// InfraSphere: wires the sky renderer, SPHEREx data and the page together.
 
 import { CONFIG } from "./config.js";
 import { R2D, lstRad, altAzVecToEq, hms, dms, compass } from "./astro.js";
 import { View } from "./view.js";
 import { SkyRenderer } from "./sky-renderer.js";
 import { SkyData } from "./sky-data.js";
-import { drawDirections, drawReferencePoints } from "./labels.js";
+import { drawDirections } from "./labels.js";
 import { attachControls } from "./controls.js";
 import * as UI from "./ui.js";
 import { TileGrid } from "./tiles.js";
 import { SolarSystem } from "./solar-system.js";
 import { Inspector } from "./inspector.js";
 import { StarLayer } from "./star-layer.js";
-import { BANDS, parseBandId } from "./sim-sky.js";
+import { WisePanel } from "./wise.js";
+import { initDock } from "./dock.js";
+import { horizonSin } from "./landscape.js";
 
 const $ = UI.$;
 
@@ -20,12 +22,11 @@ const $ = UI.$;
 const state = {
   lat: CONFIG.location.lat, lon: CONFIG.location.lon,
   simMs: Date.now(), speed: 1,
-  ground: false, grid: true, eqGrid: false, galGrid: false, eclGrid: false, directions: true, flip: false, referencePoints: { ncp:false, scp:false, ngp:false, sgp:false, nep:false, sep:false },
+  ground: true, grid: false, eqGrid: false, galGrid: false, directions: true, flip: false,
   tiles: false, asteroids: false, neo: false,
   expo: 1.0, gam: 1.0,
   quality: 2, sharpen: true,
   band: "color",
-  chan: 0,                // 0 = the whole band; 1 to 17 = one spectral channel of that band (simulated sky only)
   tile: null              // { order, pix } of the clicked tile
 };
 
@@ -46,7 +47,7 @@ const solar = new SolarSystem(UI.ui);
 const stars = new StarLayer();
 stars.enabled = CONFIG.simulate;
 const inspector = new Inspector(UI.ui);
-UI.setInspectHandler((ra, dec, title) => inspector.open({ ra, dec, title }));
+const wise = new WisePanel(UI.ui);
 
 let lastInteract = 0;
 const markInteract = () => { lastInteract = performance.now(); };
@@ -66,16 +67,21 @@ window.addEventListener("resize", resize);
 const lst = () => lstRad(state.simMs, state.lon);
 const centerEq = () => altAzVecToEq(view.basis().f, state.lat, lst());
 
-// ---------- sky interaction ----------
 function onSkyClick(px, py) {
   const body = solar.pick(px, py, 16);
   if (body) { state.tile = null; UI.showSolarInfo(body); return; }
+  const eq = altAzVecToEq(view.dirFromPixel(px, py), state.lat, lst());
   if (state.tiles) {
-    const eq = altAzVecToEq(view.dirFromPixel(px, py), state.lat, lst());
     const t = tiles.tileAt(eq.ra, eq.dec);
     state.tile = t;
-    UI.showTileCard(t, { onInspect: () => inspector.open({ ra: t.ra, dec: t.dec, title: "Tile " + t.name }) });
+    wise.open({ ra: eq.ra, dec: eq.dec, name: "Tile " + t.name });
+    UI.showTileCard(t, {
+      onInspect: () => inspector.open({ ra: t.ra, dec: t.dec, title: "Tile " + t.name })
+    });
+    return;
   }
+  state.tile = null;
+  wise.open({ ra: eq.ra, dec: eq.dec, name: "Sky position" });
 }
 
 // ---------- controls ----------
@@ -92,32 +98,15 @@ const controls = attachControls($("sky"), view, {
 });
 
 // ---------- panel wiring ----------
-// What the sky image shows: a band ("D2"), the colour composite ("color") or one channel of a band ("D2.9").
-const mapId = () => (state.chan > 0 && state.band !== "color" ? state.band + "." + state.chan : state.band);
-function loadMap() { const id = mapId(); stars.setBand(id); sky.loadBand(id, state.quality); }
-UI.buildBandButtons((id) => { state.band = id; state.chan = 0; UI.setActiveBand(id); UI.setChannelOptions(id, 0, CONFIG.simulate); loadMap(); });
-$("chan").addEventListener("change", (e) => {
-  const value = e.target.value;
-  if (value === "0") {
-    state.chan = 0;
-  } else {
-    const { k, ch } = parseBandId(value);
-    if (k < 0 || ch < 0) return;
-    state.band = BANDS[k].id;
-    state.chan = ch + 1;
-  }
-  UI.setActiveBand(state.band);
-  UI.setChannelOptions(state.band, state.chan, CONFIG.simulate);
-  loadMap();
-});
-$("quality").addEventListener("change", (e) => { state.quality = parseInt(e.target.value, 10); sky.loadBand(mapId(), state.quality); });
+UI.buildBandButtons((id) => { state.band = id; UI.setActiveBand(id); stars.setBand(id); sky.loadBand(id, state.quality); });
+$("quality").addEventListener("change", (e) => { state.quality = parseInt(e.target.value, 10); sky.loadBand(state.band, state.quality); });
 // Background light components of the simulated sky (zodiacal, diffuse Galactic, extragalactic, stars and sources)
 const BG = { zl: "bg-zl", dgl: "bg-dgl", ebl: "bg-ebl", stars: "bg-stars" };
 for (const [comp, id] of Object.entries(BG)) {
   $(id).addEventListener("change", () => {
     const comps = Object.fromEntries(Object.entries(BG).map(([c, i]) => [c, $(i).checked]));
     stars.enabled = CONFIG.simulate && comps.stars;
-    if (sky.setComps(comps)) sky.loadBand(mapId(), state.quality);
+    if (sky.setComps(comps)) sky.loadBand(state.band, state.quality);
   });
 }
 if (CONFIG.simulate === false) for (const id of Object.values(BG)) { $(id).disabled = true; }
@@ -144,7 +133,7 @@ $("proj").addEventListener("change", (e) => { view.proj = parseInt(e.target.valu
 $("ground").addEventListener("change", (e) => { state.ground = e.target.checked; });
 $("grid").addEventListener("change", (e) => { state.grid = e.target.checked; });
 $("eqgrid").addEventListener("change", (e) => { state.eqGrid = e.target.checked; });
-$("galgrid").addEventListener("change", (e) => { state.galGrid = e.target.checked; }); $("eclgrid").addEventListener("change", e => { state.eclGrid = e.target.checked; }); for (const point of ["ncp","scp","ngp","sgp","nep","sep"]) $("pt-"+point).addEventListener("change", e => { state.referencePoints[point] = e.target.checked; });
+$("galgrid").addEventListener("change", (e) => { state.galGrid = e.target.checked; });
 $("tilegrid").addEventListener("change", (e) => { state.tiles = e.target.checked; if (!state.tiles) state.tile = null; });
 $("asteroids").addEventListener("change", (e) => { state.asteroids = e.target.checked; });
 $("neo").addEventListener("change", (e) => { state.neo = e.target.checked; });
@@ -152,22 +141,9 @@ $("dirs").addEventListener("change", (e) => { state.directions = e.target.checke
 $("flip").addEventListener("change", (e) => { state.flip = e.target.checked; });
 $("expo").addEventListener("input", (e) => { state.expo = parseFloat(e.target.value); });
 $("gam").addEventListener("input", (e) => { state.gam = parseFloat(e.target.value); });
-const panel = $("panel"); const desiredSections = ["Infrared Bands","View","Background light","Solar system","Where you stand","When","Looking at"]; for (const heading of desiredSections) { const sec=[...panel.querySelectorAll("section")].find(x=>x.querySelector("h2")?.textContent.trim()===heading); if(sec) panel.appendChild(sec); }
-const panelToggle = $("toggle");
-function setPanelOpen(open) {
-  panel.classList.toggle("hidden", !open);
-  document.body.classList.toggle("panel-collapsed", !open);
-  panelToggle.setAttribute("aria-expanded", String(open));
-  panelToggle.setAttribute("aria-label", open ? "Close side panel" : "Open side panel");
-  panelToggle.title = open ? "Close side panel" : "Open side panel";
-  panelToggle.querySelector("span").textContent = open ? "‹" : "›";
-}
-panelToggle.addEventListener("click", () => setPanelOpen(panel.classList.contains("hidden")));
-$("zoom-in").addEventListener("click", () => { view.fov /= 1.25; view.clamp(); markInteract(); });
-$("zoom-out").addEventListener("click", () => { view.fov *= 1.25; view.clamp(); markInteract(); });
+initDock();
 if (CONFIG.simulate) {
-  $("credits").textContent = "SIMULATED sky (magma colour scale, build 2): a procedural model after the SPHEREx Sky Simulator (Crill et al. 2025, ApJS 281, 10), not real survey data. Add ?real=1 to the address for NASA/JPL-Caltech data.";
-  document.title = "SPHEREx Atlas (simulated sky)";
+  document.title = "SPHEREx Atlas (simulated sky) · Sferavis";
 }
 
 $("file").addEventListener("change", async (e) => {
@@ -192,11 +168,12 @@ function tick(now) {
   ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
   ctx.clearRect(0, 0, view.W, view.H);
   stars.update(view, eq, now);
-  stars.draw(ctx, view, state.lat, L, { hideBelow: state.ground });
+  const horizon = state.ground ? horizonSin : null;        // hills hide whatever lies behind them
+  stars.draw(ctx, view, state.lat, L, { hideBelow: state.ground, horizon });
   if (state.tiles) tiles.draw(ctx, view, state.lat, L, { selected: state.tile });
-  if (state.directions) drawDirections(ctx, view); drawReferencePoints(ctx, view, state.lat, L, state.referencePoints);
+  if (state.directions) drawDirections(ctx, view);
   solar.update(state.simMs, { asteroids: state.asteroids, neo: state.neo });
-  solar.draw(ctx, view, state.lat, L, { asteroids: state.asteroids, neo: state.neo, hideBelow: state.ground });
+  solar.draw(ctx, view, state.lat, L, { asteroids: state.asteroids, neo: state.neo, hideBelow: state.ground, horizon });
 
   sky.maybeSharpen({ now, idle: isIdle(now, CONFIG.patch.idleMs), enabled: state.sharpen, flip: state.flip, view, centerEq: eq });
 
@@ -213,6 +190,5 @@ function tick(now) {
 
 resize();
 UI.setTimeInput(state.simMs);
-UI.setChannelOptions(state.band, state.chan, CONFIG.simulate);
-sky.loadBand(mapId(), state.quality);
+sky.loadBand(state.band, state.quality);
 requestAnimationFrame(tick);
