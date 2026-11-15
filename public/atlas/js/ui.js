@@ -3,6 +3,7 @@
 import { CONFIG } from "./config.js";
 import { hms, dms } from "./astro.js";
 import { prettyName, typeLabel, simbadUrl } from "./simbad.js";
+import { BANDS, SPECTRAL_CHANNELS } from "./sim-sky.js";
 
 export const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -39,6 +40,19 @@ export function buildBandButtons(onSelect) {
     btn.addEventListener("click", () => onSelect(b.id));
     wrap.appendChild(btn);
   });
+}
+export function buildChannelOptions() {
+  const select = $("channel");
+  for (const band of BANDS) {
+    const group = document.createElement("optgroup");
+    group.label = `${band.id} · ${band.name}`;
+    for (const channel of SPECTRAL_CHANNELS.filter((item) => item.bandId === band.id)) {
+      const option = new Option(`Ch ${String(channel.index + 1).padStart(2, "0")} · ${channel.wavelength.toFixed(3)} µm`, channel.id);
+      group.appendChild(option);
+    }
+    select.appendChild(group);
+  }
+  select.disabled = !CONFIG.simulate;
 }
 export function setActiveBand(id) {
   document.querySelectorAll(".band").forEach((el) => el.classList.toggle("active", el.dataset.id === id));

@@ -58,7 +58,7 @@ const tempIndex = (T) => Math.max(0, Math.min(N_TEMP - 1, Math.round(Math.log(T 
 const COMPOSITE = [[4, 2.2], [2, 1.1], [0, 1.0]];        // the colour composite: D5 red, D3 green, D1 blue, and their gains
 
 /** Brightness in the shown band, relative to the star's 1.37 um flux, for each temperature bin; and the colour of each. */
-function bandTables(id) {
+function bandTables(id, wavelength) {
   const ratio = new Float32Array(N_TEMP), rgb = [];
   for (let i = 0; i < N_TEMP; i++) {
     const T = tempOf(i);
@@ -68,7 +68,7 @@ function bandTables(id) {
       ratio[i] = m;
       rgb.push(ch.map((v) => Math.round(255 * (0.4 + 0.6 * v / m))));           // keep the hue, but never fully saturated
     } else {
-      ratio[i] = starRatio(T, BANDS[Math.max(0, bandIndex(id))].c);
+      ratio[i] = starRatio(T, wavelength || BANDS[Math.max(0, bandIndex(id))].c);
       rgb.push([255, 250, 244]);
     }
   }
@@ -89,9 +89,9 @@ export class StarLayer {
     this.setBand("color");
   }
 
-  setBand(id) {
+  setBand(id, wavelength) {
     this.band = id;
-    this.tables = bandTables(id);
+    this.tables = bandTables(id, wavelength);
     this.styles = this.tables.rgb.map(([r, g, b]) => Array.from({ length: N_ALPHA }, (_, a) => `rgba(${r},${g},${b},${(0.35 + 0.65 * a / (N_ALPHA - 1)).toFixed(3)})`));
     if (this.cache) this._shade(this.cache);
   }

@@ -201,9 +201,9 @@ const surveyCache = new Map();
 
 /** Build (once per set of wavelengths) the survey-geometry zodiacal map.
  *  Resolves to { at(eclLonRad, eclLatRad, k) } with k the index into lams. */
-export function zodiacalSurveyMap(lams, { signal, tick } = {}) {
+export function zodiacalSurveyMap(lams, { signal, tick, cache = true } = {}) {
   const key = lams.join(",");
-  if (surveyCache.has(key)) return surveyCache.get(key);
+  if (cache && surveyCache.has(key)) return surveyCache.get(key);
   const nb = BETA_NODES.length, K = lams.length;
   const grid = new Float32Array(nb * GRID_LON * K);
   const los = new Los(96), P = Math.PI / 2;
@@ -238,8 +238,10 @@ export function zodiacalSurveyMap(lams, { signal, tick } = {}) {
       }
     };
   })();
-  surveyCache.set(key, promise);
-  promise.catch(() => surveyCache.delete(key));
+  if (cache) {
+    surveyCache.set(key, promise);
+    promise.catch(() => surveyCache.delete(key));
+  }
   return promise;
 }
 

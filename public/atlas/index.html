@@ -35,6 +35,13 @@
   <section>
     <h2>Infrared band</h2>
     <div class="bands" id="bands"></div>
+    <div class="row channel-row">
+      <label for="channel">Spectral channel</label>
+      <select id="channel" aria-label="Spectral channel">
+        <option value="">Band average</option>
+      </select>
+    </div>
+    <p class="note channel-note">102 wavelength channels, grouped by detector. Channel previews are simulated; real maps are available by band.</p>
     <div class="row" style="margin-top:8px">
       <label for="quality">Map detail</label>
       <select id="quality">

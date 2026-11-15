@@ -24,6 +24,13 @@ export const BANDS = [
   { id: "D5", lo: 3.79, hi: 4.44, c: 4.12, fwhm: 5.2, g: 2.05, cds: 13.9, ch: [3.825, 3.859, 3.893, 3.927, 3.962, 3.997, 4.032, 4.068, 4.104, 4.140, 4.176, 4.213, 4.250, 4.286, 4.324, 4.361, 4.398] },
   { id: "D6", lo: 4.39, hi: 5.02, c: 4.70, fwhm: 5.5, g: 1.68, cds: 11.6, ch: [4.426, 4.459, 4.492, 4.525, 4.558, 4.592, 4.627, 4.661, 4.696, 4.731, 4.766, 4.801, 4.836, 4.871, 4.908, 4.944, 4.981] }
 ];
+export const SPECTRAL_CHANNELS = BANDS.flatMap((band) => band.ch.map((wavelength, index) => ({
+  id: `${band.id}-${String(index + 1).padStart(2, "0")}`,
+  bandId: band.id,
+  index,
+  wavelength
+})));
+export const CHANNEL_BY_ID = new Map(SPECTRAL_CHANNELS.map((channel) => [channel.id, channel]));
 export const bandIndex = (id) => BANDS.findIndex((b) => b.id === id);
 
 // Display: the scale of the paper's Fig. 2 (see PAPER_RANGE and magma below). `soft` (MJy/sr) only picks how far the
@@ -216,6 +223,37 @@ export function restValue(k, comps = ALL_COMPONENTS) {
   return v;
 }
 
+const spectralValue = (values, wavelength) => {
+  if (wavelength <= C[0]) return values[0];
+  for (let i = 1; i < C.length; i++) {
+    if (wavelength <= C[i]) {
+      const t = (wavelength - C[i - 1]) / (C[i] - C[i - 1]);
+      return values[i - 1] + (values[i] - values[i - 1]) * t;
+    }
+  }
+  return values[values.length - 1];
+};
+
+const channelSpectrum = (wavelength) => ({
+  dgl: dglPerFir(wavelength),
+  ebl: eblMean(wavelength),
+  glow: spectralValue(GLOW, wavelength),
+  tau: 9 * Math.pow(0.55 / wavelength, 1.7),
+  objects: OBJS.map((obj) => spectralValue(obj.amp, wavelength))
+});
+
+/** Everything except zodiacal light at one channel wavelength, in MJy/sr. */
+function restValueAt(spectrum, comps) {
+  let v = 0;
+  if (comps.dgl) v += spectrum.dgl * FIELD.fir;
+  if (comps.ebl) v += spectrum.ebl * FIELD.ebl;
+  if (comps.stars) {
+    v += spectrum.glow * FIELD.glow * Math.exp(-0.8 * spectrum.tau * FIELD.dust);
+    for (let o = 0; o < OBJS.length; o++) if (EXT[o] > 0) v += spectrum.objects[o] * EXT[o];
+  }
+  return v;
+}
+
 // ---------- stars ----------
 const DENS1 = 79057 / 41253;                 // stars per deg^2 brighter than 1 Jy at 1.37 um (all-sky mean)
 const planck = (lam, T) => Math.pow(lam, -3) / (Math.exp(14388 / (lam * T)) - 1);
@@ -376,24 +414,33 @@ function upsample(src, sw, sh, dw, dh, wrapX) {
  * Render one geometry into RGBA bytes, in the colours of the paper's Fig. 2: log10(MJy/sr) on the magma colour map, with
  * the range of that band's colour bar. bandId "D2" is one band; "color" averages all six bands, each on its own range.
  */
-async function renderGeom(geom, bandId, { signal, mjd, comps = ALL_COMPONENTS, points = true } = {}) {
+async function renderGeom(geom, bandId, { signal, mjd, comps = ALL_COMPONENTS, points = true, channelId } = {}) {
+  const channel = CHANNEL_BY_ID.get(channelId);
+  if (channel) bandId = channel.bandId;
   const composite = bandId === "color";
   const ks = composite ? [0, 1, 2, 3, 4, 5] : [Math.max(0, bandIndex(bandId))];
+  const wavelength = channel ? channel.wavelength : null;
+  const spectrum = channel ? channelSpectrum(wavelength) : null;
   const { W, H } = geom;
   const dw = Math.min(W, geom.wrapX ? 2048 : 384), dh = Math.max(2, Math.min(H, Math.round(H * dw / W)));
   const pixD = geom.pixRad * W / dw;
   const oct = Math.max(2, Math.min(10, Math.floor(Math.log2(0.5 / (pixD * 12))) + 1));
   const dif = ks.map(() => new Float32Array(dw * dh));
-  // Zodiacal light: the survey-geometry map from the Kelsall-model integration (built once, then reused).
-  // No abort signal is passed: the map is shared by every render, so one render's cancel must not break the others.
-  const zlMap = comps.zl ? await zodiacalSurveyMap(BAND_LAMS, { tick }) : null;
+  // The six-band zodiacal map is cached; channel previews use their exact wavelength without retaining another map.
+  // No abort signal is passed: shared maps must not be cancelled by one render.
+  const zlMap = comps.zl
+    ? await zodiacalSurveyMap(wavelength === null ? BAND_LAMS : [wavelength], { tick, cache: wavelength === null })
+    : null;
   aborted(signal);
   const v = [0, 0, 0];
   for (let j = 0; j < dh; j++) {
     for (let i = 0; i < dw; i++) {
       geom.dirUV((i + 0.5) / dw, (j + 0.5) / dh, v);
       fieldAt(v[0], v[1], v[2], oct);
-      for (let c = 0; c < ks.length; c++) dif[c][j * dw + i] = (zlMap ? zlMap.at(FIELD.elon, FIELD.elat, ks[c]) : 0) + restValue(ks[c], comps);
+      for (let c = 0; c < ks.length; c++) {
+        const zl = zlMap ? zlMap.at(FIELD.elon, FIELD.elat, wavelength === null ? ks[c] : 0) : 0;
+        dif[c][j * dw + i] = zl + (spectrum ? restValueAt(spectrum, comps) : restValue(ks[c], comps));
+      }
     }
     if ((j & 15) === 15) { await tick(); aborted(signal); }
   }
@@ -409,7 +456,7 @@ async function renderGeom(geom, bandId, { signal, mjd, comps = ALL_COMPONENTS, p
   const shift = Math.log10(SIM.soft / stretchSoft(comps));        // 0 whenever the zodiacal light is on
   const acc = new Float32Array(W * H);                            // sum over the bands of the position on each band's colour bar
   for (let c = 0; c < ks.length; c++) {
-    const k = ks[c], lam = BANDS[k].c, buf = upsample(dif[c], dw, dh, W, H, geom.wrapX);
+    const k = ks[c], lam = wavelength === null ? BANDS[k].c : wavelength, buf = upsample(dif[c], dw, dh, W, H, geom.wrapX);
     const psf = (BANDS[k].fwhm / 2.355) / 206265 / geom.pixRad;
     for (let s = 0; s < stars.n; s++) {
       if (!geom.starPos(stars.ra[s], stars.dec[s])) continue;
@@ -439,7 +486,7 @@ export async function renderFromParams(params, opts = {}) {
   const band = String(p.get("hips") || "color").replace(/\/+$/, "").split("/").pop();
   const proj = (p.get("projection") || "TAN").toUpperCase();
   const geom = proj === "CAR" ? carGeom(W, H) : tanGeom(parseFloat(p.get("ra")), parseFloat(p.get("dec")), parseFloat(p.get("fov")), W, H);
-  return renderGeom(geom, band, { comps: parseComps(p.get("comp")), points: p.get("pts") !== "0", ...opts });
+  return renderGeom(geom, band, { comps: parseComps(p.get("comp")), points: p.get("pts") !== "0", channelId: p.get("chan"), ...opts });
 }
 
 /** ImageBitmap, ready for renderer.setBase / setPatch. */

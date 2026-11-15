@@ -14,6 +14,7 @@ import { TileGrid } from "./tiles.js";
 import { SolarSystem } from "./solar-system.js";
 import { Inspector } from "./inspector.js";
 import { StarLayer } from "./star-layer.js";
+import { CHANNEL_BY_ID } from "./sim-sky.js";
 
 const $ = UI.$;
 
@@ -26,6 +27,7 @@ const state = {
   expo: 1.0, gam: 1.0,
   quality: 2, sharpen: true,
   band: "color",
+  channel: null,
   groups: { star: true, galaxy: true, cluster: true, nebula: true, other: false },
   selected: null,         // { ra, dec } of the clicked object
   tile: null              // { order, pix } of the clicked tile
@@ -155,15 +157,31 @@ const controls = attachControls($("sky"), view, {
 });
 
 // ---------- panel wiring ----------
-UI.buildBandButtons((id) => { state.band = id; UI.setActiveBand(id); stars.setBand(id); sky.loadBand(id, state.quality); });
-$("quality").addEventListener("change", (e) => { state.quality = parseInt(e.target.value, 10); sky.loadBand(state.band, state.quality); });
+UI.buildBandButtons((id) => {
+  state.band = id;
+  state.channel = null;
+  $("channel").value = "";
+  UI.setActiveBand(id);
+  stars.setBand(id);
+  sky.loadBand(id, state.quality);
+});
+UI.buildChannelOptions();
+$("channel").addEventListener("change", (e) => {
+  state.channel = e.target.value || null;
+  const channel = CHANNEL_BY_ID.get(state.channel);
+  if (channel) state.band = channel.bandId;
+  UI.setActiveBand(state.band);
+  stars.setBand(state.band, channel && channel.wavelength);
+  sky.loadBand(state.band, state.quality, state.channel);
+});
+$("quality").addEventListener("change", (e) => { state.quality = parseInt(e.target.value, 10); sky.loadBand(state.band, state.quality, state.channel); });
 // Background light components of the simulated sky (zodiacal, diffuse Galactic, extragalactic, stars and sources)
 const BG = { zl: "bg-zl", dgl: "bg-dgl", ebl: "bg-ebl", stars: "bg-stars" };
 for (const [comp, id] of Object.entries(BG)) {
   $(id).addEventListener("change", () => {
     const comps = Object.fromEntries(Object.entries(BG).map(([c, i]) => [c, $(i).checked]));
     stars.enabled = CONFIG.simulate && comps.stars;
-    if (sky.setComps(comps)) sky.loadBand(state.band, state.quality);
+    if (sky.setComps(comps)) sky.loadBand(state.band, state.quality, state.channel);
   });
 }
 if (CONFIG.simulate === false) for (const id of Object.values(BG)) { $(id).disabled = true; }

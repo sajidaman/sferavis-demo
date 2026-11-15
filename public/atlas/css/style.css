@@ -53,6 +53,9 @@ input[type=range] { width: 100%; accent-color: var(--accent); }
 }
 .band small { color: var(--muted); font-size: 12px; }
 .band.active { border-color: var(--accent); background: #2a1219; }
+.channel-row { margin-top: 8px; }
+.channel-row select { flex: 1; }
+.channel-note { margin: 6px 0 0; }
 
 .readout { font-variant-numeric: tabular-nums; font-size: 13px; color: var(--muted); line-height: 1.7; }
 .readout b, #hover b { color: var(--text); font-weight: 600; }
