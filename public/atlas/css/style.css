@@ -43,6 +43,7 @@ input[type=text], input[type=number], input[type=datetime-local], select {
   background: #120b0f; border: 1px solid var(--line); border-radius: 6px; padding: 6px 8px; min-width: 0;
 }
 input[type=text] { flex: 1; }
+#chan { flex: 1; }
 input[type=number] { width: 96px; }
 input[type=range] { width: 100%; accent-color: var(--accent); }
 

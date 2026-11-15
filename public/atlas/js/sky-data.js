@@ -29,7 +29,7 @@ export class SkyData {
     return createImageBitmap(await res.blob());
   }
 
-  _label(id) { return id === "color" ? "color composite" : id; }
+  _label(id) { return id === "color" ? "color composite" : id.replace(/^(D\d)\.(\d+)$/, "$1 channel $2"); }
 
   /** Turn background components on or off (simulated sky only). Returns true if anything changed. */
   setComps(comps) {
