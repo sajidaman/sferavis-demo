@@ -13,7 +13,7 @@ precision highp float;
 uniform vec2 uRes;
 uniform float uFov, uAz, uAlt, uLat, uLst, uExpo, uGam;
 uniform int uProj;
-uniform bool uGround, uGrid, uEqGrid, uGalGrid, uHasSky, uFlip, uHasPatch;
+uniform bool uGround, uGrid, uEqGrid, uGalGrid, uEclGrid, uHasSky, uFlip, uHasPatch;
 uniform vec3 uPatchInfo;
 uniform sampler2D uSky;
 uniform sampler2D uPatch;
@@ -114,7 +114,7 @@ void main() {
     sky = mix(sky, vec3(0.98, 0.65, 0.25), max(line * 0.30, planeLine * 0.55));
   }
 
-  vec3 col = sky;
+  if (uEclGrid) { float eps=23.4392911*PI/180.0; float elon=atan(sin(raU)*cos(eps)+tan(dec)*sin(eps),cos(raU)); float elat=asin(clamp(sin(dec)*cos(eps)-cos(dec)*sin(eps)*sin(raU),-1.0,1.0)); float line=gridLines(degrees(elon),degrees(elat),30.0,15.0,pw); float plane=1.0-smoothstep(0.0,1.6*pw,abs(degrees(elat))); sky=mix(sky,vec3(0.75,0.55,1.0),max(line*0.30,plane*0.55)); }\n  vec3 col = sky;
   if (uGround) {
     float k = smoothstep(-0.0025, 0.0025, d.z);
     float depth = clamp(-d.z, 0.0, 1.0);
@@ -213,7 +213,7 @@ export class SkyRenderer {
     gl.uniform1i(U.uGround, opts.ground);
     gl.uniform1i(U.uGrid, opts.grid);
     gl.uniform1i(U.uEqGrid, opts.eqGrid);
-    gl.uniform1i(U.uGalGrid, opts.galGrid);
+    gl.uniform1i(U.uGalGrid, opts.galGrid); gl.uniform1i(U.uEclGrid, opts.eclGrid);
     gl.uniform1i(U.uHasSky, this.hasSky);
     gl.uniform1i(U.uFlip, opts.flip);
     gl.uniform1i(U.uHasPatch, this.hasPatch && !opts.flip);
