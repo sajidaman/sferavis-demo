@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { X } from 'lucide-react';
 import { Logo } from './Logo';
-import { AladinSkyViewer } from './AladinSkyViewer';
+import { NativeSkyViewer } from './NativeSkyViewer';
 
 interface LaunchSferavisModalProps {
   isOpen: boolean;
@@ -75,7 +75,7 @@ export const LaunchSferavisModal: React.FC<LaunchSferavisModalProps> = ({
           </div>
         </header>
         <div className="relative min-h-0 flex-1 overflow-hidden">
-          <AladinSkyViewer
+          <NativeSkyViewer
             className="h-full"
             isDark={isDark}
             isFullscreen={isFullscreen}

@@ -18,7 +18,6 @@ export const SPHEREX_BAND_DESCRIPTIONS: Record<SpherexBand, { range: string; des
   D6: { range: '4.435 – 4.988 μm', desc: 'Mid-IR long wavelength boundary (17 channels)' },
 };
 
-// Raw authoritative wavelength array from IRSA HiPS data_cube_crval3_arr (102 entries)
 const RAW_CRVAL3: number[] = [
   0.753, 0.771, 0.790, 0.809, 0.828, 0.848, 0.868, 0.889, 0.910, 0.932, 0.955, 0.978, 1.001, 1.025, 1.050, 1.075, 1.102,
   1.113, 1.139, 1.167, 1.195, 1.224, 1.254, 1.284, 1.315, 1.346, 1.378, 1.412, 1.446, 1.481, 1.517, 1.554, 1.592, 1.631,
@@ -33,14 +32,7 @@ export const SPHEREX_CHANNELS: readonly SpherexChannel[] = RAW_CRVAL3.map((wavel
   const bandIndex = Math.floor(index / 17);
   const band = SPHEREX_BANDS[bandIndex];
   const channel = (index % 17) + 1;
-  // Official obs_description: Frames 50 and 51 (band 3 channel 17, band 4 channel 1) are blank dichroic channels
   const isBlank = frame === 50 || frame === 51;
 
-  return {
-    frame,
-    band,
-    channel,
-    wavelength,
-    isBlank,
-  };
+  return { frame, band, channel, wavelength, isBlank };
 });

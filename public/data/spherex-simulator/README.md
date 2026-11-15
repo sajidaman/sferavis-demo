@@ -22,6 +22,11 @@ coverage (MOC sky fraction = 1.0).
   per pixel). This provides full all-sky coverage, but zooming into sub-arcminute
   scales hits the native resolution boundary of this cube. The Atlas preserves
   observation-derived data without AI interpolation or fake detail.
+- **Progressive observed exposure detail**:
+  At zooms of 0.4° or smaller, the Atlas can fetch a real DR1 spectral exposure
+  cutout at 6.15 arcsec per detector pixel. This is one exposure, not a
+  coadded mosaic; its pixels span a range of wavelengths across the detector
+  and are not an exact single-channel cube slice.
 - **Display color mapping**:
   The Atlas renders true pixel intensities in grayscale by default and offers a
   magma/purple-gold display mapping option. The purple coloring seen in
@@ -30,6 +35,14 @@ coverage (MOC sky fraction = 1.0).
 - **Separate reference surveys**:
   2MASS and DSS2 are kept as separate reference layers and are never blended or
   substituted for SPHEREx observations.
+
+The DR1 all-sky cube is separate from the simulator outputs described in Crill
+et al. (2025). The simulator FITS cutouts below are small single-exposure
+examples, not part of that all-sky cube.
+
+Source: [SPHEREx DR1 all-sky cube](https://doi.org/10.26131/IRSA679), served as
+a [HiPS cube by IRSA](https://irsa.ipac.caltech.edu/data/hips/SPHEREx/spherex_allsky_cube).
+Reference: [2MASS at IRSA](https://irsa.ipac.caltech.edu/Missions/2mass.html).
 
 ## Simulator cutouts
 
@@ -41,8 +54,8 @@ pixel values:
 - `high-latitude-cutout.fits` — from `level2_2025W17_2A_0089_4D1_simu_HighLat.fits`
 - `galactic-plane-cutout.fits` — from `level2_2025W17_1A_0001_3D1_GalPlane.fits`
 
-These are representative single-exposure image cutouts for testing FITS/WCS
-rendering in Aladin Lite. They are **not** an all-sky map or a complete
+These are representative single-exposure image cutouts for testing the Atlas's
+native FITS/WCS renderer. They are **not** an all-sky map or a complete
 102-channel SPHEREx data cube. The source paper describes the simulator and its
 models; these example products do not reproduce the full simulated survey.
 

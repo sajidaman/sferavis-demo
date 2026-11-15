@@ -28,4 +28,4 @@ If applicable, add screenshots to help explain your problem.
  - Version: [e.g. 124.0]
 
 **Additional context**
-Add any other context about the problem here (e.g., Aladin Lite WASM, WebGL 2.0 status, FITS cubes).
+Add any other context about the problem here (e.g., browser canvas support, HiPS tile loading, FITS cubes).

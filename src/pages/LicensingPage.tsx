@@ -72,17 +72,8 @@ export const LicensingPage: React.FC = () => (
         </Section>
 
         <Section number="02" title="Third-party software">
-          <LicenceCard title="Aladin Lite" licence="LGPL-3.0-or-later" href="https://www.gnu.org/licenses/lgpl-3.0.html" scope="Integrated astronomical viewer">
-            <p>Sferavis integrates Aladin Lite, developed by the Centre de Données astronomiques de Strasbourg (CDS). Aladin Lite is not relicensed under Apache 2.0; it remains under its own GNU Lesser General Public License, version 3.0 or later.</p>
-            <ul className="list-disc space-y-2 pl-5 marker:text-[#A30000]">
-              <li>Retain the upstream copyright and licence notices.</li>
-              <li>When distributing the library, provide the applicable LGPL licence and comply with its source, relinking, and modification requirements.</li>
-              <li>Modifications to the LGPL-covered library remain subject to the LGPL when distributed.</li>
-              <li>The rest of the Sferavis application is not automatically relicensed under the LGPL merely because it uses Aladin Lite.</li>
-            </ul>
-            <p>See the <ExternalLink href="https://github.com/cds-astro/aladin-lite">Aladin Lite upstream repository</ExternalLink> for its current licence and notices.</p>
-          </LicenceCard>
-          <p className="mt-4">Other third-party packages and assets remain subject to their respective licences. See <a className="font-semibold text-[#A30000] underline underline-offset-4" href="https://github.com/sajidaman/sferavis-demo/blob/main/THIRD_PARTY_NOTICES.md" target="_blank" rel="noopener noreferrer">THIRD_PARTY_NOTICES.md</a> for component-specific notices.</p>
+          <p>The Atlas uses Sferavis's original canvas rendering code to display third-party HiPS imagery. Astronomical data products remain subject to their providers' terms and attribution requirements.</p>
+          <p className="mt-4">Third-party packages and assets remain subject to their respective licences. See <a className="font-semibold text-[#A30000] underline underline-offset-4" href="https://github.com/sajidaman/sferavis-demo/blob/main/THIRD_PARTY_NOTICES.md" target="_blank" rel="noopener noreferrer">THIRD_PARTY_NOTICES.md</a> for component-specific notices.</p>
         </Section>
 
         <Section number="03" title="Research publications">

@@ -62,7 +62,7 @@ export const TermsPage: React.FC = () => (
         <Section number="05" title="Intellectual property and attribution">
           <p>Unless a page or accompanying notice states otherwise, the Website’s original text, visual identity, logos, interface design, and original materials are owned by or used with permission by Sferavis and are protected by applicable intellectual-property laws. These terms do not transfer ownership to you.</p>
           <p>You may quote or refer to publicly available Sferavis materials for lawful educational, research, commentary, or non-commercial purposes, provided you do not misrepresent the source, remove applicable notices, or imply endorsement by Sferavis. Reproduction, redistribution, or commercial use of substantial portions of original Website content or branding requires prior permission unless permitted by law.</p>
-          <p>Some datasets, imagery, software, libraries, and other materials are owned by third parties and remain subject to their own licences, terms, and attribution requirements. In particular, NASA, SPHEREx, CDS, Aladin Lite, and other referenced resources retain their respective ownership and usage conditions. Acknowledging a source does not itself grant rights beyond the source’s licence.</p>
+          <p>Some datasets, imagery, software, and other materials are owned by third parties and remain subject to their own licences, terms, and attribution requirements. In particular, NASA, SPHEREx, IRSA, CDS, and other referenced resources retain their respective ownership and usage conditions. Acknowledging a source does not itself grant rights beyond the source’s licence.</p>
         </Section>
 
         <Section number="06" title="User submissions and communications">

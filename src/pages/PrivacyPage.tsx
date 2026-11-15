@@ -83,7 +83,7 @@ export const PrivacyPage: React.FC = () => (
             <li><strong className="text-[#303944] dark:text-zinc-200">Google Gemini API</strong> — AI processing for Redium. See Google’s <ExternalLink href="https://ai.google.dev/gemini-api/terms">Gemini API terms</ExternalLink>.</li>
             <li><strong className="text-[#303944] dark:text-zinc-200">Google (Gmail)</strong> — processing and storage of messages delivered to our Sferavis contact mailbox. See Google’s <ExternalLink href="https://policies.google.com/privacy">Privacy Policy</ExternalLink>.</li>
             <li><strong className="text-[#303944] dark:text-zinc-200">Google Fonts</strong> — delivery of the typefaces used on the website. See the <ExternalLink href="https://fonts.google.com/faq">Google Fonts FAQ</ExternalLink>.</li>
-            <li><strong className="text-[#303944] dark:text-zinc-200">CDS / Strasbourg astronomical data services</strong> — delivery of HiPS sky-survey imagery used by the Aladin Lite viewer, including SPHEREx and reference-sky layers. See the <ExternalLink href="https://aladin.cds.unistra.fr/">Aladin service website</ExternalLink>.</li>
+            <li><strong className="text-[#303944] dark:text-zinc-200">NASA/IPAC IRSA</strong> — delivery of SPHEREx and reference-survey HiPS tiles, plus observed SPHEREx exposure cutouts requested when the Atlas is zoomed in. See the <ExternalLink href="https://irsa.ipac.caltech.edu/">IRSA website</ExternalLink>.</li>
           </ul>
           <p>When you follow an external link, such as a social-media, research, or partner link, you leave the Sferavis website. The destination service handles your information under its own policies. We do not control the privacy practices of external providers.</p>
         </Section>
