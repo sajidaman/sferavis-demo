@@ -12,10 +12,6 @@
     {
       "source": "/proxy/jpl/:path*",
       "destination": "https://ssd-api.jpl.nasa.gov/:path*"
-    },
-    {
-      "source": "/proxy/simbad/:path*",
-      "destination": "https://simbad.cfa.harvard.edu/:path*"
     }
   ]
 }
