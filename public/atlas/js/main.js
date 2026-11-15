@@ -152,10 +152,6 @@ $("dirs").addEventListener("change", (e) => { state.directions = e.target.checke
 $("flip").addEventListener("change", (e) => { state.flip = e.target.checked; });
 $("expo").addEventListener("input", (e) => { state.expo = parseFloat(e.target.value); });
 $("gam").addEventListener("input", (e) => { state.gam = parseFloat(e.target.value); });
-for (const g of Object.keys(state.groups)) {
-  $("lbl-" + g).checked = state.groups[g];
-  $("lbl-" + g).addEventListener("change", (e) => { state.groups[g] = e.target.checked; });
-}
 const panel = $("panel"); const desiredSections = ["Infrared Bands","View","Background light","Solar system","Where you stand","When","Looking at"]; for (const heading of desiredSections) { const sec=[...panel.querySelectorAll("section")].find(x=>x.querySelector("h2")?.textContent.trim()===heading); if(sec) panel.appendChild(sec); }
 const panelToggle = $("toggle");
 function setPanelOpen(open) {

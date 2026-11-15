@@ -22,12 +22,13 @@ export const ui = { setBusy, say };
 
 export function buildBandButtons(onSelect) {
   const wrap = $("bands");
-  CONFIG.bands.forEach((b, i) => {
-    const btn = document.createElement("button");
-    btn.className = "band" + (i === 0 ? " active" : ""); btn.dataset.id = b.id;
-    btn.innerHTML = `<span>${esc(b.name)}</span><small>${esc(b.range)}</small>`;
-    btn.addEventListener("click", () => onSelect(b.id)); wrap.appendChild(btn);
+  CONFIG.bands.forEach((band) => {
+    const option = document.createElement("option");
+    option.value = band.id;
+    option.textContent = `${band.name} (${band.range})`;
+    wrap.appendChild(option);
   });
+  wrap.addEventListener("change", () => onSelect(wrap.value));
 }
 export function setActiveBand(id) { $("bands").value = id; }
 const TOTAL_CHANNELS = BANDS.length * CHANNELS_PER_BAND;
