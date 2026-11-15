@@ -5,7 +5,7 @@ import { D2R, R2D, lstRad, eqToAltAzVec, altAzVecToEq, hms, dms, compass } from 
 import { View } from "./view.js";
 import { SkyRenderer } from "./sky-renderer.js";
 import { SkyData } from "./sky-data.js";
-import { LabelLayer, drawDirections } from "./labels.js";
+import { LabelLayer, drawDirections, drawReferencePoints } from "./labels.js";
 import { LabelFeed } from "./label-feed.js";
 import { attachControls } from "./controls.js";
 import * as Simbad from "./simbad.js";
@@ -21,7 +21,7 @@ const $ = UI.$;
 const state = {
   lat: CONFIG.location.lat, lon: CONFIG.location.lon,
   simMs: Date.now(), speed: 1,
-  ground: false, grid: true, eqGrid: false, galGrid: false, directions: true, flip: false,
+  ground: false, grid: true, eqGrid: false, galGrid: false, eclGrid: false, directions: true, flip: false, referencePoints: { ncp:false, scp:false, ngp:false, sgp:false, nep:false, sep:false },
   tiles: false, asteroids: false, neo: false,
   expo: 1.0, gam: 1.0,
   quality: 2, sharpen: true,
@@ -195,7 +195,7 @@ $("proj").addEventListener("change", (e) => { view.proj = parseInt(e.target.valu
 $("ground").addEventListener("change", (e) => { state.ground = e.target.checked; });
 $("grid").addEventListener("change", (e) => { state.grid = e.target.checked; });
 $("eqgrid").addEventListener("change", (e) => { state.eqGrid = e.target.checked; });
-$("galgrid").addEventListener("change", (e) => { state.galGrid = e.target.checked; });
+$("galgrid").addEventListener("change", (e) => { state.galGrid = e.target.checked; }); $("eclgrid").addEventListener("change", e => { state.eclGrid = e.target.checked; }); for (const point of ["ncp","scp","ngp","sgp","nep","sep"]) $("pt-"+point).addEventListener("change", e => { state.referencePoints[point] = e.target.checked; });
 $("tilegrid").addEventListener("change", (e) => { state.tiles = e.target.checked; if (!state.tiles) state.tile = null; });
 $("asteroids").addEventListener("change", (e) => { state.asteroids = e.target.checked; });
 $("neo").addEventListener("change", (e) => { state.neo = e.target.checked; });
@@ -251,7 +251,7 @@ function tick(now) {
   stars.update(view, eq, now);
   stars.draw(ctx, view, state.lat, L, { hideBelow: state.ground });
   if (state.tiles) tiles.draw(ctx, view, state.lat, L, { selected: state.tile });
-  if (state.directions) drawDirections(ctx, view);
+  if (state.directions) drawDirections(ctx, view); drawReferencePoints(ctx, view, state.lat, L, state.referencePoints);
   layer.draw(ctx, view, state.lat, L, {
     groups: state.groups, showLabels: true, hideBelow: state.ground,
     maxDrawn: CONFIG.labels.maxDrawn, selected: state.selected, starDots: stars.enabled
