@@ -21,7 +21,7 @@ const $ = UI.$;
 const state = {
   lat: CONFIG.location.lat, lon: CONFIG.location.lon,
   simMs: Date.now(), speed: 1,
-  ground: true, grid: true, eqGrid: false, galGrid: false, directions: true, flip: false,
+  ground: false, grid: true, eqGrid: false, galGrid: false, directions: true, flip: false,
   tiles: false, asteroids: false, neo: false,
   expo: 1.0, gam: 1.0,
   quality: 2, sharpen: true,
