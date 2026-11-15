@@ -88,11 +88,6 @@ export default defineConfig(() => {
           changeOrigin: true,
           rewrite: (path) => path.replace(/^\/proxy\/jpl/, ''),
         },
-        '/proxy/simbad': {
-          target: 'https://simbad.cfa.harvard.edu',
-          changeOrigin: true,
-          rewrite: (path) => path.replace(/^\/proxy\/simbad/, ''),
-        },
       },
       // HMR is disabled in AI Studio via DISABLE_HMR env var.
       hmr: process.env.DISABLE_HMR !== 'true',
