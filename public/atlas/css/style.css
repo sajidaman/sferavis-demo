@@ -83,7 +83,7 @@ details summary { cursor: pointer; font-size: 13px; color: var(--muted); }
 .links a { color: var(--accent); }
 
 @media (max-width: 700px) {
-  #panel { width: calc(100% - 24px); max-height: 60%; }
+  #panel { width: calc(100% - 24px); max-height: calc(100% - 24px); }
   #info { top: auto; bottom: 56px; width: calc(100% - 24px); max-height: 45%; }
   #credits { display: none; }
 }
