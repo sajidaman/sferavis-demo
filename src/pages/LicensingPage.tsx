@@ -72,6 +72,7 @@ export const LicensingPage: React.FC = () => (
         </Section>
 
         <Section number="02" title="Third-party software">
+          <p>The Sferavis Atlas includes the InfraSphere application, an independent WebGL sky viewer distributed under the MIT License. Its source and complete licence are included in <code>public/atlas/</code>; see the <ExternalLink href="https://github.com/Radit-Raian/InfraSphere">upstream repository</ExternalLink> and <ExternalLink href="https://github.com/Radit-Raian/InfraSphere/blob/main/LICENSE">MIT License</ExternalLink>. SPHEREx data, SIMBAD results, and other astronomical products remain subject to their providers' terms and attribution requirements.</p>
           <p className="mt-4">Third-party packages and assets remain subject to their respective licences. See <a className="font-semibold text-[#A30000] underline underline-offset-4" href="https://github.com/sajidaman/sferavis-demo/blob/main/THIRD_PARTY_NOTICES.md" target="_blank" rel="noopener noreferrer">THIRD_PARTY_NOTICES.md</a> for component-specific notices.</p>
         </Section>
 

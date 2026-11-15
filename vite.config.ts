@@ -77,6 +77,23 @@ export default defineConfig(() => {
     server: {
       port: 3000,
       host: '0.0.0.0',
+      proxy: {
+        '/proxy/irsa': {
+          target: 'https://irsa.ipac.caltech.edu',
+          changeOrigin: true,
+          rewrite: (path) => path.replace(/^\/proxy\/irsa/, ''),
+        },
+        '/proxy/jpl': {
+          target: 'https://ssd-api.jpl.nasa.gov',
+          changeOrigin: true,
+          rewrite: (path) => path.replace(/^\/proxy\/jpl/, ''),
+        },
+        '/proxy/simbad': {
+          target: 'https://simbad.cds.unistra.fr',
+          changeOrigin: true,
+          rewrite: (path) => path.replace(/^\/proxy\/simbad/, ''),
+        },
+      },
       // HMR is disabled in AI Studio via DISABLE_HMR env var.
       hmr: process.env.DISABLE_HMR !== 'true',
       watch: process.env.DISABLE_HMR === 'true' ? null : {},

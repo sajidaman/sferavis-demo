@@ -11,3 +11,7 @@ The Apache 2.0 licence does not grant rights to Sferavis names, logos, or tradem
 ## Other dependencies
 
 Other packages and assets are governed by their respective upstream licences. Consult each dependency's licence and notice files before redistributing it. The presence of a dependency in this repository does not mean Sferavis owns or relicenses it.
+
+## InfraSphere Atlas application
+
+The standalone Atlas application served from `public/atlas/` is bundled from [Radit-Raian/InfraSphere](https://github.com/Radit-Raian/InfraSphere), upstream commit `3fc62c50a84a3397d13cdf292f02e783f4807ec8`. Its source and complete MIT license are included in `public/atlas/`; the application remains Copyright (c) 2026 InfraSphere contributors and is distributed under that MIT License.

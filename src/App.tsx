@@ -14,6 +14,7 @@ import { ArchivePage } from './pages/ArchivePage';
 import { PrivacyPage } from './pages/PrivacyPage';
 import { TermsPage } from './pages/TermsPage';
 import { LicensingPage } from './pages/LicensingPage';
+import { LaunchSferavisModal } from './components/LaunchSferavisModal';
 import { AccessibilityControls } from './components/AccessibilityControls';
 import { RediumChat } from './components/RediumChat';
 
@@ -22,6 +23,7 @@ import { AstroBackground } from './components/AstroBackground';
 export default function App() {
   const [currentPage, setCurrentPage] = useState<PageId>('home');
   const [isDark, setIsDark] = useState<boolean>(() => localStorage.getItem('sferavis-theme') === 'dark');
+  const [isLaunchModalOpen, setIsLaunchModalOpen] = useState(false);
 
   // Remember each visitor's theme preference on this device/browser.
   useEffect(() => {
@@ -74,6 +76,7 @@ export default function App() {
         onNavigate={handleNavigate}
         isDark={isDark}
         onToggleTheme={toggleTheme}
+        onLaunchSferavis={() => setIsLaunchModalOpen(true)}
       />
 
       {/* Main Page View with Animated Cross-Dissolve Transitions */}
@@ -88,7 +91,10 @@ export default function App() {
             className="w-full"
           >
             {currentPage === 'home' && (
-              <HomePage onNavigate={handleNavigate} />
+              <HomePage
+                onNavigate={handleNavigate}
+                onLaunchSferavis={() => setIsLaunchModalOpen(true)}
+              />
             )}
             {currentPage === 'spherex' && (
               <SpherexPage onNavigate={handleNavigate} />
@@ -110,6 +116,13 @@ export default function App() {
 
       {/* Apple-style Quiet Footer */}
       <Footer onNavigate={handleNavigate} />
+
+      {/* Interactive Launch Sferavis Modal */}
+      <LaunchSferavisModal
+        isOpen={isLaunchModalOpen}
+        onClose={() => setIsLaunchModalOpen(false)}
+        isDark={isDark}
+      />
 
       <RediumChat />
       <AccessibilityControls isDark={isDark} onSetDark={setIsDark} />
