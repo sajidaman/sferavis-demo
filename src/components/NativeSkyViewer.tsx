@@ -89,48 +89,70 @@ function normalizedRa(ra: number): number {
   return ((ra % 360) + 360) % 360;
 }
 
-function localToSky(view: SkyView, center: number, east: number, north: number): [number, number] {
+function createScreenToSky(view: SkyView, width: number, height: number) {
+  const aspect = width / Math.max(1, height);
   const ra0 = toRadians(view.ra);
   const dec0 = toRadians(view.dec);
-  const cosDec = Math.cos(dec0);
-  const sinDec = Math.sin(dec0);
-  const x = center * cosDec * Math.cos(ra0) - east * Math.sin(ra0) - north * sinDec * Math.cos(ra0);
-  const y = center * cosDec * Math.sin(ra0) + east * Math.cos(ra0) - north * sinDec * Math.sin(ra0);
-  const z = center * sinDec + north * cosDec;
-  return [normalizedRa(toDegrees(Math.atan2(y, x))), toDegrees(Math.asin(clamp(z, -1, 1)))];
+  const cosRa0 = Math.cos(ra0);
+  const sinRa0 = Math.sin(ra0);
+  const cosDec0 = Math.cos(dec0);
+  const sinDec0 = Math.sin(dec0);
+  const tanHalfHeight = Math.tan(toRadians(clamp(view.fov, 0.02, 170)) / 2);
+  const carHorizontalFov = Math.min(360, view.fov * aspect);
+  const aitHorizontalFov = Math.min(360, view.fov * Math.max(2, aspect * 2));
+  const aitHalfHeight = clamp(view.fov, 0.02, 180);
+
+  return (x: number, y: number): [number, number] | null => {
+    const nx = (0.5 - x / width) * 2;
+    const ny = (0.5 - y / height) * 2;
+    let center: number;
+    let east: number;
+    let north: number;
+
+    if (view.projection === 'TAN') {
+      east = nx * aspect * tanHalfHeight;
+      north = ny * tanHalfHeight;
+      const norm = Math.hypot(1, east, north);
+      center = 1 / norm;
+      east /= norm;
+      north /= norm;
+    } else if (view.projection === 'CAR') {
+      const longitude = nx * toRadians(carHorizontalFov / 2);
+      const latitude = ny * toRadians(clamp(view.fov, 0.02, 180) / 2);
+      const cosLatitude = Math.cos(latitude);
+      center = cosLatitude * Math.cos(longitude);
+      east = cosLatitude * Math.sin(longitude);
+      north = Math.sin(latitude);
+    } else {
+      const mapX = nx * 2 * Math.SQRT2 * aitHorizontalFov / 360;
+      const mapY = ny * Math.SQRT2 * aitHalfHeight / 180;
+      const zSquared = 1 - mapX * mapX / 16 - mapY * mapY / 4;
+      if (zSquared < 0) return null;
+      const z = Math.sqrt(zSquared);
+      const longitudeA = z * mapX;
+      const longitudeB = 2 * (2 * z * z - 1);
+      const longitudeNorm = longitudeA * longitudeA + longitudeB * longitudeB;
+      const cosLongitude = longitudeNorm > 0
+        ? (longitudeB * longitudeB - longitudeA * longitudeA) / longitudeNorm
+        : 1;
+      const sinLongitude = longitudeNorm > 0
+        ? 2 * longitudeA * longitudeB / longitudeNorm
+        : 0;
+      north = clamp(z * mapY, -1, 1);
+      const cosLatitude = Math.sqrt(1 - north * north);
+      center = cosLatitude * cosLongitude;
+      east = cosLatitude * sinLongitude;
+    }
+
+    const x3 = center * cosDec0 * cosRa0 - east * sinRa0 - north * sinDec0 * cosRa0;
+    const y3 = center * cosDec0 * sinRa0 + east * cosRa0 - north * sinDec0 * sinRa0;
+    const z3 = center * sinDec0 + north * cosDec0;
+    return [normalizedRa(toDegrees(Math.atan2(y3, x3))), toDegrees(Math.asin(clamp(z3, -1, 1)))];
+  };
 }
 
 function screenToSky(view: SkyView, x: number, y: number, width: number, height: number): [number, number] | null {
-  const aspect = width / Math.max(1, height);
-  const nx = (0.5 - x / width) * 2;
-  const ny = (0.5 - y / height) * 2;
-
-  if (view.projection === 'TAN') {
-    const halfHeight = Math.tan(toRadians(clamp(view.fov, 0.02, 170)) / 2);
-    const east = nx * aspect * halfHeight;
-    const north = ny * halfHeight;
-    const norm = Math.hypot(1, east, north);
-    return localToSky(view, 1 / norm, east / norm, north / norm);
-  }
-
-  if (view.projection === 'CAR') {
-    const horizontalFov = Math.min(360, view.fov * aspect);
-    const longitude = nx * toRadians(horizontalFov / 2);
-    const latitude = ny * toRadians(clamp(view.fov, 0.02, 180) / 2);
-    const cosLatitude = Math.cos(latitude);
-    return localToSky(view, cosLatitude * Math.cos(longitude), cosLatitude * Math.sin(longitude), Math.sin(latitude));
-  }
-
-  const horizontalFov = Math.min(360, view.fov * Math.max(2, aspect * 2));
-  const mapX = nx * 2 * Math.SQRT2 * horizontalFov / 360;
-  const mapY = ny * Math.SQRT2 * clamp(view.fov, 0.02, 180) / 180;
-  const zSquared = 1 - mapX * mapX / 16 - mapY * mapY / 4;
-  if (zSquared < 0) return null;
-  const z = Math.sqrt(zSquared);
-  const longitude = 2 * Math.atan2(z * mapX, 2 * (2 * z * z - 1));
-  const latitude = Math.asin(clamp(z * mapY, -1, 1));
-  const cosLatitude = Math.cos(latitude);
-  return localToSky(view, cosLatitude * Math.cos(longitude), cosLatitude * Math.sin(longitude), Math.sin(latitude));
+  return createScreenToSky(view, width, height)(x, y);
 }
 
 function skyToScreen(view: SkyView, ra: number, dec: number, width: number, height: number): [number, number] | null {
@@ -201,7 +223,19 @@ export const NativeSkyViewer: React.FC<NativeSkyViewerProps> = ({
   const detailRef = useRef<{ image: FitsImage; range: [number, number] } | null>(null);
   const simulatorImageRef = useRef<{ image: FitsImage; range: [number, number] } | null>(null);
   const generationRef = useRef(0);
-  const dragRef = useRef<{ pointerId: number; x: number; y: number; startX: number; startY: number; moved: boolean } | null>(null);
+  const dragRef = useRef<{
+    pointerId: number;
+    startX: number;
+    startY: number;
+    startView: SkyView;
+    view: SkyView;
+    moved: boolean;
+  } | null>(null);
+  const renderGenerationRef = useRef(0);
+  const renderFrameRef = useRef<number | null>(null);
+  const isInteractingRef = useRef(false);
+  const interactionTimerRef = useRef<number | null>(null);
+  const zoomScaleRef = useRef(1);
   const [view, setView] = useState<SkyView>(DEFAULT_VIEW);
   const [survey, setSurvey] = useState<Survey>('spherex');
   const [frame, setFrame] = useState(43);
@@ -240,6 +274,40 @@ export const NativeSkyViewer: React.FC<NativeSkyViewerProps> = ({
     viewRef.current = nextView;
     setView(nextView);
   }, []);
+
+  const beginInteraction = useCallback(() => {
+    if (interactionTimerRef.current !== null) {
+      window.clearTimeout(interactionTimerRef.current);
+      interactionTimerRef.current = null;
+    }
+    if (isInteractingRef.current) return;
+    isInteractingRef.current = true;
+    renderGenerationRef.current += 1;
+    if (renderFrameRef.current !== null) {
+      window.cancelAnimationFrame(renderFrameRef.current);
+      renderFrameRef.current = null;
+    }
+    const canvas = canvasRef.current;
+    if (canvas) {
+      canvas.style.willChange = 'transform';
+      canvas.style.transformOrigin = 'center';
+    }
+  }, []);
+
+  const finishInteraction = useCallback(() => {
+    if (interactionTimerRef.current !== null) {
+      window.clearTimeout(interactionTimerRef.current);
+      interactionTimerRef.current = null;
+    }
+    isInteractingRef.current = false;
+    zoomScaleRef.current = 1;
+    const canvas = canvasRef.current;
+    if (canvas) {
+      canvas.style.transform = '';
+      canvas.style.willChange = '';
+    }
+    requestRender();
+  }, [requestRender]);
 
   useEffect(() => {
     setAnalysisError(null);
@@ -386,9 +454,10 @@ export const NativeSkyViewer: React.FC<NativeSkyViewerProps> = ({
   const visibleTiles = useCallback((width: number, height: number, currentView: SkyView, currentSurvey: Survey, currentFrame: number) => {
     const order = selectHiPSOrder(currentView.fov, height, currentSurvey === 'spherex' ? TILE_ORDER : 8);
     const keys = new Map<number, Set<number>>();
+    const pixelToSky = createScreenToSky(currentView, width, height);
     for (let y = -24; y <= height + 24; y += 24) {
       for (let x = -24; x <= width + 24; x += 24) {
-        const position = screenToSky(currentView, x, y, width, height);
+        const position = pixelToSky(x, y);
         if (!position) continue;
         const nestedPixel = healpixNested(order + TILE_BITS, position[0], position[1]);
         for (let tileOrder = 0; tileOrder <= order; tileOrder += 1) {
@@ -550,6 +619,9 @@ export const NativeSkyViewer: React.FC<NativeSkyViewerProps> = ({
     generationRef.current += 1;
     tileAbortRef.current?.abort();
     detailAbortRef.current?.abort();
+    renderGenerationRef.current += 1;
+    if (renderFrameRef.current !== null) window.cancelAnimationFrame(renderFrameRef.current);
+    if (interactionTimerRef.current !== null) window.clearTimeout(interactionTimerRef.current);
   }, []);
 
   useEffect(() => {
@@ -613,13 +685,18 @@ export const NativeSkyViewer: React.FC<NativeSkyViewerProps> = ({
   }, [frame, requestRender, selectedChannel.band, selectedChannel.wavelength, survey, view.dec, view.fov, view.ra]);
 
   useEffect(() => {
+    const renderGeneration = ++renderGenerationRef.current;
+    if (renderFrameRef.current !== null) {
+      window.cancelAnimationFrame(renderFrameRef.current);
+      renderFrameRef.current = null;
+    }
     const canvas = canvasRef.current;
     const context = canvas?.getContext('2d', { willReadFrequently: true });
-    if (!canvas || !context) return;
+    if (!canvas || !context || isInteractingRef.current) return;
     const bounds = canvas.getBoundingClientRect();
-    const pixelRatio = Math.min(window.devicePixelRatio || 1, 2);
-    const width = Math.max(1, Math.min(2048, Math.round(bounds.width * pixelRatio)));
-    const height = Math.max(1, Math.min(1536, Math.round(bounds.height * pixelRatio)));
+    const pixelRatio = Math.min(window.devicePixelRatio || 1, 1.25);
+    const width = Math.max(1, Math.min(1024, Math.round(bounds.width * pixelRatio)));
+    const height = Math.max(1, Math.min(768, Math.round(bounds.height * pixelRatio)));
     if (canvas.width !== width || canvas.height !== height) {
       canvas.width = width;
       canvas.height = height;
@@ -632,60 +709,88 @@ export const NativeSkyViewer: React.FC<NativeSkyViewerProps> = ({
     const detail = survey === 'spherex' ? detailRef.current : simulatorImageRef.current;
     const detailWcs = detail?.image;
     const detailRange = detail?.range;
+    const pixelToSky = createScreenToSky(view, width, height);
+    const frameIndex = survey === 'spherex' ? frame - 1 : 0;
+    const tilePrefix = `${survey}:${frameIndex}:`;
+    const tilesByOrder = new Map<number, Map<number, TilePixels>>();
+    for (const [key, tile] of cacheRef.current) {
+      if (!key.startsWith(tilePrefix)) continue;
+      const parts = key.slice(tilePrefix.length).split(':');
+      const order = Number(parts[0]);
+      const pixel = Number(parts[1]);
+      const orderTiles = tilesByOrder.get(order) ?? new Map<number, TilePixels>();
+      orderTiles.set(pixel, tile);
+      tilesByOrder.set(order, orderTiles);
+    }
 
-    for (let y = 0; y < height; y += 1) {
-      for (let x = 0; x < width; x += 1) {
-        const destination = (y * width + x) * 4;
-        const sky = screenToSky(view, x + 0.5, y + 0.5, width, height);
-        if (!sky) {
-          image.data[destination + 3] = 255;
-          continue;
-        }
+    const usedTiles = new Set<TilePixels>();
+    let row = 0;
+    const renderChunk = () => {
+      if (renderGeneration !== renderGenerationRef.current || isInteractingRef.current) return;
+      const firstRow = row;
+      const endRow = Math.min(height, firstRow + 8);
+      for (let y = firstRow; y < endRow; y += 1) {
+        for (let x = 0; x < width; x += 1) {
+          const destination = (y * width + x) * 4;
+          const sky = pixelToSky(x + 0.5, y + 0.5);
+          if (!sky) {
+            image.data[destination + 3] = 255;
+            continue;
+          }
 
-        const nestedPixel = healpixNested(maxNestedOrder, sky[0], sky[1]);
-        let tile: TilePixels | undefined;
-        let sourceX = 0;
-        let sourceY = 0;
-        for (let order = maxOrder; order >= 0; order -= 1) {
-          const orderPixel = Math.floor(nestedPixel / 2 ** (2 * (maxOrder - order)));
-          const located = locateNestedTile(orderPixel);
-          const candidate = cacheRef.current.get(tileKey(survey, survey === 'spherex' ? frame - 1 : 0, order, located.pixel));
-          if (!candidate) continue;
-          tile = candidate;
-          sourceX = Math.min(candidate.width - 1, Math.floor(located.x * candidate.width / 512));
-          sourceY = Math.min(candidate.height - 1, Math.floor(located.y * candidate.height / 512));
-          candidate.lastUsed = Date.now();
-          break;
-        }
+          const nestedPixel = healpixNested(maxNestedOrder, sky[0], sky[1]);
+          let tile: TilePixels | undefined;
+          let sourceX = 0;
+          let sourceY = 0;
+          const finestLocation = locateNestedTile(nestedPixel);
+          for (let order = maxOrder; order >= 0; order -= 1) {
+            const orderPixel = Math.floor(nestedPixel / 2 ** (2 * (maxOrder - order)));
+            const located = order === maxOrder ? finestLocation : locateNestedTile(orderPixel);
+            const candidate = tilesByOrder.get(order)?.get(located.pixel);
+            if (!candidate) continue;
+            tile = candidate;
+            sourceX = Math.min(candidate.width - 1, Math.floor(located.x * candidate.width / 512));
+            sourceY = Math.min(candidate.height - 1, Math.floor(located.y * candidate.height / 512));
+            usedTiles.add(candidate);
+            break;
+          }
 
-        if (tile) {
-          const source = (sourceY * tile.width + sourceX) * 4;
-          const intensity = Math.round((tile.pixels[source] + tile.pixels[source + 1] + tile.pixels[source + 2]) / 3);
-          image.data[destination] = survey === 'spherex' ? lookup[intensity * 3] : tile.pixels[source];
-          image.data[destination + 1] = survey === 'spherex' ? lookup[intensity * 3 + 1] : tile.pixels[source + 1];
-          image.data[destination + 2] = survey === 'spherex' ? lookup[intensity * 3 + 2] : tile.pixels[source + 2];
-          image.data[destination + 3] = tile.pixels[source + 3];
-        } else {
-          image.data[destination + 3] = 255;
-        }
+          if (tile) {
+            const source = (sourceY * tile.width + sourceX) * 4;
+            const intensity = Math.round((tile.pixels[source] + tile.pixels[source + 1] + tile.pixels[source + 2]) / 3);
+            image.data[destination] = survey === 'spherex' ? lookup[intensity * 3] : tile.pixels[source];
+            image.data[destination + 1] = survey === 'spherex' ? lookup[intensity * 3 + 1] : tile.pixels[source + 1];
+            image.data[destination + 2] = survey === 'spherex' ? lookup[intensity * 3 + 2] : tile.pixels[source + 2];
+            image.data[destination + 3] = tile.pixels[source + 3];
+          } else {
+            image.data[destination + 3] = 255;
+          }
 
-        if (detailWcs && detailRange) {
-          const pixel = fitsPixelAtSky(detailWcs, sky[0], sky[1]);
-          if (pixel && pixel[0] >= 0 && pixel[1] >= 0 && pixel[0] < detailWcs.width && pixel[1] < detailWcs.height) {
-            const value = detailWcs.values[Math.floor(pixel[1]) * detailWcs.width + Math.floor(pixel[0])];
-            if (Number.isFinite(value)) {
-              const intensity = Math.round(clamp((value - detailRange[0]) / (detailRange[1] - detailRange[0]), 0, 1) * 255);
-              image.data[destination] = lookup[intensity * 3];
-              image.data[destination + 1] = lookup[intensity * 3 + 1];
-              image.data[destination + 2] = lookup[intensity * 3 + 2];
-              image.data[destination + 3] = 235;
+          if (detailWcs && detailRange) {
+            const pixel = fitsPixelAtSky(detailWcs, sky[0], sky[1]);
+            if (pixel && pixel[0] >= 0 && pixel[1] >= 0 && pixel[0] < detailWcs.width && pixel[1] < detailWcs.height) {
+              const value = detailWcs.values[Math.floor(pixel[1]) * detailWcs.width + Math.floor(pixel[0])];
+              if (Number.isFinite(value)) {
+                const intensity = Math.round(clamp((value - detailRange[0]) / (detailRange[1] - detailRange[0]), 0, 1) * 255);
+                image.data[destination] = lookup[intensity * 3];
+                image.data[destination + 1] = lookup[intensity * 3 + 1];
+                image.data[destination + 2] = lookup[intensity * 3 + 2];
+                image.data[destination + 3] = 235;
+              }
             }
           }
         }
       }
-    }
 
-    context.putImageData(image, 0, 0);
+      context.putImageData(image, 0, 0, 0, firstRow, width, endRow - firstRow);
+      row = endRow;
+      if (row < height) {
+        renderFrameRef.current = window.requestAnimationFrame(renderChunk);
+        return;
+      }
+      const lastUsed = Date.now();
+      for (const tile of usedTiles) tile.lastUsed = lastUsed;
+
     const mapWidth = width;
     const mapHeight = height;
     context.save();
@@ -767,22 +872,45 @@ export const NativeSkyViewer: React.FC<NativeSkyViewerProps> = ({
       context.stroke();
     }
     context.restore();
+    };
+
+    renderFrameRef.current = window.requestAnimationFrame(renderChunk);
+    return () => {
+      if (renderGenerationRef.current === renderGeneration) renderGenerationRef.current += 1;
+      if (renderFrameRef.current !== null) {
+        window.cancelAnimationFrame(renderFrameRef.current);
+        renderFrameRef.current = null;
+      }
+    };
   }, [colormap, frame, isDark, renderVersion, selectedTrackletId, showGrid, showReticle, survey, tracklets, view]);
 
-  const resetView = () => updateView(DEFAULT_VIEW);
-  const zoomBy = (factor: number) => updateView({
-    ...viewRef.current,
-    fov: clamp(viewRef.current.fov * factor, 0.02, viewRef.current.projection === 'TAN' ? 170 : 180),
-  });
+  const resetView = () => {
+    finishInteraction();
+    updateView(DEFAULT_VIEW);
+  };
+  const zoomBy = (factor: number) => {
+    const current = viewRef.current;
+    const next = {
+      ...current,
+      fov: clamp(current.fov * factor, 0.02, current.projection === 'TAN' ? 170 : 180),
+    };
+    if (next.fov === current.fov) return;
+    beginInteraction();
+    zoomScaleRef.current *= current.fov / next.fov;
+    const canvas = canvasRef.current;
+    if (canvas) canvas.style.transform = `scale(${zoomScaleRef.current})`;
+    updateView(next);
+    interactionTimerRef.current = window.setTimeout(finishInteraction, 120);
+  };
 
   const handlePointerDown = (event: React.PointerEvent<HTMLCanvasElement>) => {
     if (event.button !== 0) return;
     dragRef.current = {
       pointerId: event.pointerId,
-      x: event.clientX,
-      y: event.clientY,
       startX: event.clientX,
       startY: event.clientY,
+      startView: viewRef.current,
+      view: viewRef.current,
       moved: false,
     };
     event.currentTarget.setPointerCapture(event.pointerId);
@@ -792,18 +920,18 @@ export const NativeSkyViewer: React.FC<NativeSkyViewerProps> = ({
     const drag = dragRef.current;
     if (!drag || drag.pointerId !== event.pointerId) return;
     const bounds = event.currentTarget.getBoundingClientRect();
-    const dx = event.clientX - drag.x;
-    const dy = event.clientY - drag.y;
-    if (Math.hypot(event.clientX - drag.startX, event.clientY - drag.startY) > 3) drag.moved = true;
-    const current = viewRef.current;
-    const aspect = bounds.width / Math.max(1, bounds.height);
-    updateView({
-      ...current,
-      ra: normalizedRa(current.ra + dx * current.fov * aspect / bounds.width),
-      dec: clamp(current.dec + dy * current.fov / bounds.height, -89.9, 89.9),
-    });
-    drag.x = event.clientX;
-    drag.y = event.clientY;
+    const dx = event.clientX - drag.startX;
+    const dy = event.clientY - drag.startY;
+    if (Math.hypot(dx, dy) > 3) {
+      drag.moved = true;
+      beginInteraction();
+      drag.view = {
+        ...drag.startView,
+        ra: normalizedRa(drag.startView.ra + dx * drag.startView.fov / Math.max(1, bounds.height)),
+        dec: clamp(drag.startView.dec + dy * drag.startView.fov / Math.max(1, bounds.height), -89.9, 89.9),
+      };
+      event.currentTarget.style.transform = `translate3d(${dx}px, ${dy}px, 0)`;
+    }
   };
 
   const handlePointerUp = (event: React.PointerEvent<HTMLCanvasElement>) => {
@@ -811,7 +939,10 @@ export const NativeSkyViewer: React.FC<NativeSkyViewerProps> = ({
     if (!drag || drag.pointerId !== event.pointerId) return;
     dragRef.current = null;
     if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
-    if (!drag.moved) {
+    if (drag.moved) {
+      finishInteraction();
+      updateView(drag.view);
+    } else {
       const bounds = event.currentTarget.getBoundingClientRect();
       const clickX = event.clientX - bounds.left;
       const clickY = event.clientY - bounds.top;
