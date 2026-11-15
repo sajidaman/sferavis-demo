@@ -9,10 +9,6 @@ export const CONFIG = {
   hipsRoot: "https://alasky.cds.unistra.fr/SPHEREx/",
   hips2fits: "https://alasky.cds.unistra.fr/hips-image-services/hips2fits",
 
-  // SIMBAD's Strasbourg service is currently unavailable. Use the official CfA mirror.
-  simbadTap: "https://simbad.cfa.harvard.edu/simbad/sim-tap/sync",
-  simbadPage: "https://simbad.cfa.harvard.edu/simbad/sim-id?Ident=",
-
   irsaPage: "https://irsa.ipac.caltech.edu/Missions/spherex.html",
 
   // IRSA: TAP lists every SPHEREx exposure that covers a position; the cutout service returns a small
@@ -21,7 +17,7 @@ export const CONFIG = {
   sbdbApi: "https://ssd-api.jpl.nasa.gov/sbdb_query.api",
   // If the browser blocks a direct request (CORS), retry through same-origin paths.
   // Sferavis forwards these in Vite development and through Vercel rewrites in production.
-  proxy: { irsa: "/proxy/irsa", jpl: "/proxy/jpl", simbad: "/proxy/simbad" },
+  proxy: { irsa: "/proxy/irsa", jpl: "/proxy/jpl" },
 
   // Where the observer stands at start-up (editable in the page).
   location: { lat: 23.81, lon: 90.41 },
@@ -46,6 +42,4 @@ export const CONFIG = {
   // Detailed patch fetched when the view is zoomed in and still.
   patch: { size: 1536, maxFovDeg: 80, idleMs: 450, recheckMs: 600 },
 
-  // SIMBAD label feed.
-  labels: { idleMs: 600, recheckMs: 700, backoffMs: 20000, maxDrawn: 140, topStars: 500, topDeepSky: 150, maxStored: 3000 }
 };
