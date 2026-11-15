@@ -42,7 +42,7 @@ export function buildBandButtons(onSelect) {
   });
 }
 export function setActiveBand(id) {
-  document.querySelectorAll(".band").forEach((el) => el.classList.toggle("active", el.dataset.id === id));
+  $("bands").value = id;
 }
 
 // ---------- spectral channel picker ----------

@@ -131,7 +131,7 @@ export class LabelLayer {
   }
 }
 
-/** N, NE, E ... marks along the horizon. */
+export function drawReferencePoints(ctx,view,latDeg,lst,enabled){const pts={ncp:["NCP",0,90],scp:["SCP",0,-90],ngp:["NGP",192.85948,27.12825],sgp:["SGP",12.85948,-27.12825],nep:["NEP",270,66.5607],sep:["SEP",90,-66.5607]};ctx.save();ctx.font="600 12px system-ui";ctx.textAlign="left";ctx.textBaseline="middle";for(const [k,[nm,ra,dec]] of Object.entries(pts)){if(!enabled[k])continue;const p=view.project(eqToAltAzVec(ra,dec,latDeg,lst));if(!p||p[0]<-30||p[0]>view.W+30||p[1]<-30||p[1]>view.H+30)continue;ctx.strokeStyle="#f6c85f";ctx.fillStyle="#f6c85f";ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(p[0],p[1],5,0,2*Math.PI);ctx.stroke();ctx.beginPath();ctx.moveTo(p[0]-8,p[1]);ctx.lineTo(p[0]+8,p[1]);ctx.moveTo(p[0],p[1]-8);ctx.lineTo(p[0],p[1]+8);ctx.stroke();ctx.fillText(nm,p[0]+8,p[1]-8);}ctx.restore();}\n/** N, NE, E ... marks along the horizon. */
 export function drawDirections(ctx, view) {
   ctx.font = "600 15px 'Segoe UI', system-ui, sans-serif";
   ctx.textAlign = "center";
