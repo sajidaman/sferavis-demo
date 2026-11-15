@@ -5,7 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>InfraSphere: the infrared sky · Sferavis</title>
 <meta name="description" content="A Stellarium-style planetarium that paints the sky with NASA SPHEREx infrared data and labels it with SIMBAD.">
-<script>document.documentElement.dataset.theme = new URLSearchParams(location.search).get("theme") === "light" ? "light" : "dark";</script>\n<link rel="stylesheet" href="css/style.css">
+<script>document.documentElement.dataset.theme = new URLSearchParams(location.search).get("theme") === "light" ? "light" : "dark";</script>
+<link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 <canvas id="sky" aria-label="Interactive view of the sky"></canvas>
@@ -35,13 +36,11 @@
   <section>
     <h2>Infrared band</h2>
     <div class="bands" id="bands"></div>
-    <div class="row channel-row">
-      <label for="channel">Spectral channel</label>
-      <select id="channel" aria-label="Spectral channel">
-        <option value="">Band average</option>
-      </select>
+    <div class="row" style="margin-top:8px">
+      <label for="chan">Channel</label>
+      <select id="chan" aria-describedby="chanNote"><option value="0">Whole band (average)</option></select>
     </div>
-    <p class="note channel-note">102 wavelength channels, grouped by detector. Channel previews are simulated; real maps are available by band.</p>
+    <p class="note" id="chanNote" style="margin:4px 0 0"></p>
     <div class="row" style="margin-top:8px">
       <label for="quality">Map detail</label>
       <select id="quality">
@@ -122,7 +121,7 @@
       </select>
     </div>
     <div class="row">
-      <label class="check"><input type="checkbox" id="ground" checked> Ground</label>
+      <label class="check"><input type="checkbox" id="ground"> Ground</label>
       <label class="check"><input type="checkbox" id="grid" checked> Alt-az grid</label>
       <label class="check"><input type="checkbox" id="eqgrid"> Equatorial grid</label>
       <label class="check"><input type="checkbox" id="galgrid"> Galactic grid</label>

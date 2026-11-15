@@ -14,7 +14,6 @@ import { TileGrid } from "./tiles.js";
 import { SolarSystem } from "./solar-system.js";
 import { Inspector } from "./inspector.js";
 import { StarLayer } from "./star-layer.js";
-import { CHANNEL_BY_ID } from "./sim-sky.js";
 
 const $ = UI.$;
 
@@ -22,12 +21,12 @@ const $ = UI.$;
 const state = {
   lat: CONFIG.location.lat, lon: CONFIG.location.lon,
   simMs: Date.now(), speed: 1,
-  ground: true, grid: true, eqGrid: false, galGrid: false, directions: true, flip: false,
+  ground: false, grid: true, eqGrid: false, galGrid: false, directions: true, flip: false,
   tiles: false, asteroids: false, neo: false,
   expo: 1.0, gam: 1.0,
   quality: 2, sharpen: true,
   band: "color",
-  channel: null,
+  chan: 0,                // 0 = the whole band; 1 to 17 = one spectral channel of that band (simulated sky only)
   groups: { star: true, galaxy: true, cluster: true, nebula: true, other: false },
   selected: null,         // { ra, dec } of the clicked object
   tile: null              // { order, pix } of the clicked tile
@@ -157,31 +156,19 @@ const controls = attachControls($("sky"), view, {
 });
 
 // ---------- panel wiring ----------
-UI.buildBandButtons((id) => {
-  state.band = id;
-  state.channel = null;
-  $("channel").value = "";
-  UI.setActiveBand(id);
-  stars.setBand(id);
-  sky.loadBand(id, state.quality);
-});
-UI.buildChannelOptions();
-$("channel").addEventListener("change", (e) => {
-  state.channel = e.target.value || null;
-  const channel = CHANNEL_BY_ID.get(state.channel);
-  if (channel) state.band = channel.bandId;
-  UI.setActiveBand(state.band);
-  stars.setBand(state.band, channel && channel.wavelength);
-  sky.loadBand(state.band, state.quality, state.channel);
-});
-$("quality").addEventListener("change", (e) => { state.quality = parseInt(e.target.value, 10); sky.loadBand(state.band, state.quality, state.channel); });
+// What the sky image shows: a band ("D2"), the colour composite ("color") or one channel of a band ("D2.9").
+const mapId = () => (state.chan > 0 && state.band !== "color" ? state.band + "." + state.chan : state.band);
+function loadMap() { const id = mapId(); stars.setBand(id); sky.loadBand(id, state.quality); }
+UI.buildBandButtons((id) => { state.band = id; state.chan = 0; UI.setActiveBand(id); UI.setChannelOptions(id, 0, CONFIG.simulate); loadMap(); });
+$("chan").addEventListener("change", (e) => { state.chan = parseInt(e.target.value, 10) || 0; loadMap(); });
+$("quality").addEventListener("change", (e) => { state.quality = parseInt(e.target.value, 10); sky.loadBand(mapId(), state.quality); });
 // Background light components of the simulated sky (zodiacal, diffuse Galactic, extragalactic, stars and sources)
 const BG = { zl: "bg-zl", dgl: "bg-dgl", ebl: "bg-ebl", stars: "bg-stars" };
 for (const [comp, id] of Object.entries(BG)) {
   $(id).addEventListener("change", () => {
     const comps = Object.fromEntries(Object.entries(BG).map(([c, i]) => [c, $(i).checked]));
     stars.enabled = CONFIG.simulate && comps.stars;
-    if (sky.setComps(comps)) sky.loadBand(state.band, state.quality, state.channel);
+    if (sky.setComps(comps)) sky.loadBand(mapId(), state.quality);
   });
 }
 if (CONFIG.simulate === false) for (const id of Object.values(BG)) { $(id).disabled = true; }
@@ -276,5 +263,6 @@ function tick(now) {
 
 resize();
 UI.setTimeInput(state.simMs);
-sky.loadBand(state.band, state.quality);
+UI.setChannelOptions(state.band, state.chan, CONFIG.simulate);
+sky.loadBand(mapId(), state.quality);
 requestAnimationFrame(tick);

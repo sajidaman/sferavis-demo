@@ -9,7 +9,7 @@
 // same place whatever the zoom, and the epoch inspector sees the same stars. No DOM at import time, so it can be tested.
 
 import { D2R, R2D, angSepDeg } from "./astro.js";
-import { BANDS, bandIndex, gatherStars, starLimit, starRatio } from "./sim-sky.js";
+import { BANDS, parseBandId, gatherStars, starLimit, starRatio } from "./sim-sky.js";
 
 export const STAR_BUDGET = 12000;      // most stars drawn at once (in the Galactic plane; elsewhere there are fewer)
 export const STAR_FLOOR = 1e-4;        // faintest star ever generated, Jy at 1.37 um (about 21st magnitude in H)
@@ -57,8 +57,8 @@ const tempOf = (i) => T_LO * Math.pow(T_HI / T_LO, i / (N_TEMP - 1));
 const tempIndex = (T) => Math.max(0, Math.min(N_TEMP - 1, Math.round(Math.log(T / T_LO) / Math.log(T_HI / T_LO) * (N_TEMP - 1))));
 const COMPOSITE = [[4, 2.2], [2, 1.1], [0, 1.0]];        // the colour composite: D5 red, D3 green, D1 blue, and their gains
 
-/** Brightness in the shown band, relative to the star's 1.37 um flux, for each temperature bin; and the colour of each. */
-function bandTables(id, wavelength) {
+/** Brightness in the shown band (or channel), relative to the star's 1.37 um flux, for each temperature bin; and the colour of each. */
+function bandTables(id) {
   const ratio = new Float32Array(N_TEMP), rgb = [];
   for (let i = 0; i < N_TEMP; i++) {
     const T = tempOf(i);
@@ -68,7 +68,8 @@ function bandTables(id, wavelength) {
       ratio[i] = m;
       rgb.push(ch.map((v) => Math.round(255 * (0.4 + 0.6 * v / m))));           // keep the hue, but never fully saturated
     } else {
-      ratio[i] = starRatio(T, wavelength || BANDS[Math.max(0, bandIndex(id))].c);
+      const { k, ch } = parseBandId(id);            // "D2" is a whole band, "D2.9" one channel of it
+      ratio[i] = starRatio(T, ch >= 0 ? BANDS[k].ch[ch] : BANDS[Math.max(0, k)].c);
       rgb.push([255, 250, 244]);
     }
   }
@@ -89,9 +90,9 @@ export class StarLayer {
     this.setBand("color");
   }
 
-  setBand(id, wavelength) {
+  setBand(id) {
     this.band = id;
-    this.tables = bandTables(id, wavelength);
+    this.tables = bandTables(id);
     this.styles = this.tables.rgb.map(([r, g, b]) => Array.from({ length: N_ALPHA }, (_, a) => `rgba(${r},${g},${b},${(0.35 + 0.65 * a / (N_ALPHA - 1)).toFixed(3)})`));
     if (this.cache) this._shade(this.cache);
   }

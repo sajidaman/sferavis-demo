@@ -60,6 +60,7 @@ input[type=text], input[type=number], input[type=datetime-local], select {
   background: var(--surface-muted); border: 1px solid var(--line); border-radius: 6px; padding: 6px 8px; min-width: 0;
 }
 input[type=text] { flex: 1; }
+#chan { flex: 1; }
 input[type=number] { width: 96px; }
 input[type=range] { width: 100%; accent-color: var(--accent); }
 
@@ -70,10 +71,6 @@ input[type=range] { width: 100%; accent-color: var(--accent); }
 }
 .band small { color: var(--muted); font-size: 12px; }
 .band.active { border-color: var(--accent); background: var(--active-bg); }
-.channel-row { margin-top: 8px; }
-.channel-row select { flex: 1; }
-.channel-note { margin: 6px 0 0; }
-
 .readout { font-variant-numeric: tabular-nums; font-size: 13px; color: var(--muted); line-height: 1.7; }
 .readout b, #hover b { color: var(--text); font-weight: 600; }
 details summary { cursor: pointer; font-size: 13px; color: var(--muted); }

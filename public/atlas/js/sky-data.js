@@ -5,7 +5,7 @@
 
 import { CONFIG } from "./config.js";
 import { angSepDeg } from "./astro.js";
-import { renderSimImage, ALL_COMPONENTS, CHANNEL_BY_ID, compsToString } from "./sim-sky.js";
+import { renderSimImage, ALL_COMPONENTS, compsToString } from "./sim-sky.js";
 
 const MAX_CACHED_MAPS = 4;
 
@@ -14,7 +14,6 @@ export class SkyData {
     this.renderer = renderer;
     this.ui = ui;
     this.band = "color";
-    this.channel = null;
     this.comps = { ...ALL_COMPONENTS };      // which background components the simulated sky includes
     this.cache = new Map();
     this.token = 0;
@@ -32,11 +31,7 @@ export class SkyData {
     return createImageBitmap(await res.blob());
   }
 
-  _label(id, channel) {
-    const selected = CHANNEL_BY_ID.get(channel);
-    if (selected) return `${id} channel ${selected.index + 1} (${selected.wavelength.toFixed(3)} µm)`;
-    return id === "color" ? "color composite" : id;
-  }
+  _label(id) { return id === "color" ? "color composite" : id.replace(/^(D\d)\.(\d+)$/, "$1 channel $2"); }
 
   /** Turn background components on or off (simulated sky only). Returns true if anything changed. */
   setComps(comps) {
@@ -47,18 +42,10 @@ export class SkyData {
   }
 
   // pts=0: the sky image holds only the smooth diffuse light; the stars are drawn live by js/star-layer.js, so they stay sharp.
-  _withComps(params) {
-    if (CONFIG.simulate) {
-      params.set("comp", compsToString(this.comps));
-      params.set("pts", "0");
-      if (this.channel) params.set("chan", this.channel);
-    }
-    return params;
-  }
+  _withComps(params) { if (CONFIG.simulate) { params.set("comp", compsToString(this.comps)); params.set("pts", "0"); } return params; }
 
-  async loadBand(id, level, channel = null) {
+  async loadBand(id, level) {
     this.band = id;
-    this.channel = channel;
     if (this.ctl) this.ctl.abort();
     if (this.patchCtl) this.patchCtl.abort();
     this.renderer.clearPatch();
@@ -67,10 +54,10 @@ export class SkyData {
     const sizes = (CONFIG.baseLevels[level] || CONFIG.baseLevels[2]).filter((w) => w <= this.renderer.maxTex);
     try {
       for (let i = 0; i < sizes.length; i++) {
-        const width = sizes[i], key = id + ":" + (channel || "") + ":" + width + ":" + compsToString(this.comps);
+        const width = sizes[i], key = id + ":" + width + ":" + compsToString(this.comps);
         let bmp = this.cache.get(key);
         if (!bmp) {
-          this.ui.setBusy("sky", (CONFIG.simulate ? "Building simulated " : "Loading ") + this._label(id, channel) + " sky (" + width + " px)" + (i > 0 ? ", sharpening" : ""));
+          this.ui.setBusy("sky", (CONFIG.simulate ? "Building simulated " : "Loading ") + this._label(id) + " sky (" + width + " px)" + (i > 0 ? ", sharpening" : ""));
           bmp = await this._fetchImage(this._withComps(new URLSearchParams({
             hips: CONFIG.hipsRoot + id, width: String(width), height: String(width / 2),
             fov: "360", projection: "CAR", coordsys: "icrs", ra: "0", dec: "0", format: "jpg"
@@ -108,7 +95,7 @@ export class SkyData {
     }
 
     const fovDeg = Math.max(need, 2);
-    const bandAtStart = this.band, channelAtStart = this.channel;
+    const bandAtStart = this.band;
     this.patchBusy = true;
     this.patchCtl = new AbortController();
     this.ui.setBusy("patch", "Sharpening this part of the sky");
@@ -118,7 +105,7 @@ export class SkyData {
         fov: fovDeg.toFixed(3), projection: "TAN", coordsys: "icrs",
         ra: centerEq.ra.toFixed(5), dec: centerEq.dec.toFixed(5), format: "jpg"
       })), this.patchCtl.signal);
-      if (bandAtStart === this.band && channelAtStart === this.channel) {
+      if (bandAtStart === this.band) {
         this.patch = { ra: centerEq.ra, dec: centerEq.dec, fov: fovDeg };
         this.renderer.setPatch(bmp, this.patch);
       }
