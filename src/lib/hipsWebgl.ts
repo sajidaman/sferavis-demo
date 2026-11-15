@@ -200,8 +200,8 @@ void main() {
         vec2 uv = vec2(0.5 - xi / patchSize, 0.5 - eta / patchSize);
         float edge = min(min(uv.x, 1.0 - uv.x), min(uv.y, 1.0 - uv.y));
         if (edge > 0.0) {
-          vec4 patch = texture(uPatch, uv);
-          color = mix(color, patch.rgb, smoothstep(0.0, 0.04, edge) * patch.a);
+          vec4 patchSample = texture(uPatch, uv);
+          color = mix(color, patchSample.rgb, smoothstep(0.0, 0.04, edge) * patchSample.a);
         }
       }
     }
