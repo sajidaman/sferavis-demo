@@ -1,30 +1,34 @@
 import { colorMapLookup, fitsPixelAtSky, type FitsImage } from './hipsSky';
 
+// Adapted from Radit-Raian/InfraSphere's WebGL2 sky renderer.
+
 const TILE_SIZE = 512;
 const TILE_MAP_SIZE = 1024;
 const TILE_MAP_WIDTH = 256;
 const MAX_ATLAS_COLUMNS = 8;
 
-const VERTEX_SHADER = `#version 300 es
+const VS = `#version 300 es
 void main() {
   vec2 p = vec2((gl_VertexID << 1) & 2, gl_VertexID & 2);
   gl_Position = vec4(p * 2.0 - 1.0, 0.0, 1.0);
 }`;
 
-const FRAGMENT_SHADER = `#version 300 es
+const FS = `#version 300 es
 precision highp float;
 precision highp int;
 precision highp usampler2D;
 
-uniform vec2 uResolution;
+uniform vec2 uRes;
+uniform float uFov;
 uniform float uRa;
 uniform float uDec;
-uniform float uFov;
-uniform int uProjection;
+uniform int uProj;
 uniform int uMaxOrder;
 uniform int uSpherex;
-uniform int uHasSky;
-uniform int uHasPatch;
+uniform bool uHasSky;
+uniform bool uHasPatch;
+uniform float uExpo;
+uniform float uGam;
 uniform vec3 uPatchInfo;
 uniform int uAtlasSide;
 uniform int uAtlasColumns;
@@ -96,32 +100,28 @@ int findTile(int order, int pixel) {
   return -1;
 }
 
-vec3 toSky(float nx, float ny) {
-  float aspect = uResolution.x / max(1.0, uResolution.y);
-  float center;
-  float east;
-  float north;
+vec3 viewDirection(vec2 q) {
+  float cosRa = cos(uRa), sinRa = sin(uRa);
+  float cosDec = cos(uDec), sinDec = sin(uDec);
+  vec3 forward = vec3(cosDec * cosRa, cosDec * sinRa, sinDec);
+  vec3 right = vec3(sinRa, -cosRa, 0.0);
+  vec3 up = vec3(-sinDec * cosRa, -sinDec * sinRa, cosDec);
+  vec3 across = right * q.x + up * q.y;
 
-  if (uProjection == 1) {
-    float halfHeight = tan(clamp(uFov, 0.02, 170.0) * D2R * 0.5);
-    east = nx * aspect * halfHeight;
-    north = ny * halfHeight;
-    float norm = inversesqrt(1.0 + east * east + north * north);
-    center = norm;
-    east *= norm;
-    north *= norm;
-  } else if (uProjection == 2) {
-    float horizontalFov = min(360.0, uFov * aspect);
-    float longitude = nx * horizontalFov * D2R * 0.5;
-    float latitude = ny * clamp(uFov, 0.02, 180.0) * D2R * 0.5;
-    float cosLatitude = cos(latitude);
-    center = cosLatitude * cos(longitude);
-    east = cosLatitude * sin(longitude);
-    north = sin(latitude);
-  } else {
+  if (uProj == 3) {
+    float radius = length(q);
+    float angle = 2.0 * atan(radius * tan(uFov * D2R / 4.0));
+    vec3 radial = radius > 1e-6 ? across / radius : vec3(0.0);
+    return forward * cos(angle) + radial * sin(angle);
+  }
+  if (uProj == 1) return normalize(forward + across * tan(uFov * D2R * 0.5));
+
+  float aspect = uRes.x / max(1.0, uRes.y);
+  if (uProj == 0) {
+    float nx = -q.x / aspect;
     float horizontalFov = min(360.0, uFov * max(2.0, aspect * 2.0));
     float mapX = nx * 2.0 * sqrt(2.0) * horizontalFov / 360.0;
-    float mapY = ny * sqrt(2.0) * clamp(uFov, 0.02, 180.0) / 180.0;
+    float mapY = q.y * sqrt(2.0) * clamp(uFov, 0.02, 180.0) / 180.0;
     float zSquared = 1.0 - mapX * mapX / 16.0 - mapY * mapY / 4.0;
     if (zSquared < 0.0) return vec3(-2.0);
     float z = sqrt(zSquared);
@@ -134,78 +134,80 @@ vec3 toSky(float nx, float ny) {
     float sinLongitude = longitudeNorm > 0.0
       ? 2.0 * longitudeA * longitudeB / longitudeNorm
       : 0.0;
-    north = clamp(z * mapY, -1.0, 1.0);
+    float north = clamp(z * mapY, -1.0, 1.0);
     float cosLatitude = sqrt(1.0 - north * north);
-    center = cosLatitude * cosLongitude;
-    east = cosLatitude * sinLongitude;
+    return normalize(forward * (cosLatitude * cosLongitude)
+      + vec3(-sinRa, cosRa, 0.0) * (cosLatitude * sinLongitude) + up * north);
   }
 
-  float cosRa = cos(uRa), sinRa = sin(uRa);
-  float cosDec = cos(uDec), sinDec = sin(uDec);
-  return normalize(vec3(
-    center * cosDec * cosRa - east * sinRa - north * sinDec * cosRa,
-    center * cosDec * sinRa + east * cosRa - north * sinDec * sinRa,
-    center * sinDec + north * cosDec
-  ));
+  float horizontalFov = min(360.0, uFov * aspect);
+  float longitude = -q.x / aspect * horizontalFov * D2R * 0.5;
+  float latitude = q.y * uFov * D2R * 0.5;
+  return normalize(
+    forward * (cos(latitude) * cos(longitude))
+    + vec3(-sinRa, cosRa, 0.0) * (cos(latitude) * sin(longitude))
+    + up * sin(latitude)
+  );
+}
+
+vec3 sampleSky(float ra, float dec) {
+  ivec3 hp = healpixPosition(ra, dec);
+  int slot = -1;
+  int tileX = 0;
+  int tileY = 0;
+  for (int order = 8; order >= 0; order--) {
+    if (order > uMaxOrder) continue;
+    int scale = uMaxOrder - order;
+    int shift = scale + 9;
+    int x = hp.y >> shift;
+    int y = hp.z >> shift;
+    int pixel = hp.x * (1 << (2 * order)) + spreadBits(x, order) + 2 * spreadBits(y, order);
+    slot = findTile(order, pixel);
+    if (slot >= 0) {
+      tileX = (hp.y >> scale) & 511;
+      tileY = (hp.z >> scale) & 511;
+      break;
+    }
+  }
+  if (slot < 0) return vec3(0.02, 0.012, 0.03);
+
+  int col = slot % uAtlasColumns;
+  int row = slot / uAtlasColumns;
+  vec2 uv = (vec2(float(col * 512 + tileX), float(row * 512 + tileY)) + 0.5) / float(uAtlasSide);
+  vec3 color = texture(uAtlas, uv).rgb;
+  if (uSpherex == 1) {
+    float intensity = dot(color, vec3(0.3333333333));
+    color = texture(uColorMap, vec2(intensity, 0.5)).rgb;
+  }
+
+  if (uHasPatch) {
+    float ra0 = uPatchInfo.x, dec0 = uPatchInfo.y, patchSize = uPatchInfo.z;
+    float dra = ra - ra0;
+    float cosc = sin(dec0) * sin(dec) + cos(dec0) * cos(dec) * cos(dra);
+    if (cosc > 0.2) {
+      float xi = cos(dec) * sin(dra) / cosc;
+      float eta = (cos(dec0) * sin(dec) - sin(dec0) * cos(dec) * cos(dra)) / cosc;
+      vec2 patchUv = vec2(0.5 - xi / patchSize, 0.5 - eta / patchSize);
+      float edge = min(min(patchUv.x, 1.0 - patchUv.x), min(patchUv.y, 1.0 - patchUv.y));
+      if (edge > 0.0) {
+        vec4 patchSample = texture(uPatch, patchUv);
+        color = mix(color, patchSample.rgb, smoothstep(0.0, 0.04, edge) * patchSample.a);
+      }
+    }
+  }
+  return color;
 }
 
 void main() {
-  vec2 q = (gl_FragCoord.xy - 0.5 * uResolution) / (0.5 * uResolution.y);
-  vec3 direction = toSky(-q.x / (uResolution.x / max(1.0, uResolution.y)), q.y);
-  vec3 color = vec3(0.008, 0.012, 0.022);
-
+  vec2 q = (gl_FragCoord.xy - 0.5 * uRes) / (0.5 * uRes.y);
+  vec3 direction = viewDirection(q);
+  vec3 color = vec3(0.02, 0.012, 0.03);
   if (direction.z > -1.5) {
     float ra = atan(direction.y, direction.x);
     float dec = asin(clamp(direction.z, -1.0, 1.0));
-
-    if (uHasSky == 1) {
-      ivec3 hp = healpixPosition(ra, dec);
-      int slot = -1;
-      int tileX = 0;
-      int tileY = 0;
-      for (int order = 8; order >= 0; order--) {
-        if (order > uMaxOrder) continue;
-        int shift = 9 + uMaxOrder - order;
-        int x = hp.y >> shift;
-        int y = hp.z >> shift;
-        int pixel = hp.x * (1 << (2 * order)) + spreadBits(x, order) + 2 * spreadBits(y, order);
-        slot = findTile(order, pixel);
-        if (slot >= 0) {
-          tileX = hp.y & 511;
-          tileY = hp.z & 511;
-          break;
-        }
-      }
-
-      if (slot >= 0) {
-        int col = slot % uAtlasColumns;
-        int row = slot / uAtlasColumns;
-        vec2 uv = (vec2(float(col * 512 + tileX), float(row * 512 + tileY)) + 0.5) / float(uAtlasSide);
-        vec3 sampleColor = texture(uAtlas, uv).rgb;
-        if (uSpherex == 1) {
-          float intensity = dot(sampleColor, vec3(0.3333333333));
-          sampleColor = texture(uColorMap, vec2(intensity, 0.5)).rgb;
-        }
-        color = sampleColor;
-      }
-    }
-
-    if (uHasPatch == 1) {
-      float ra0 = uPatchInfo.x, dec0 = uPatchInfo.y, patchSize = uPatchInfo.z;
-      float dra = ra - ra0;
-      float cosc = sin(dec0) * sin(dec) + cos(dec0) * cos(dec) * cos(dra);
-      if (cosc > 0.2) {
-        float xi = cos(dec) * sin(dra) / cosc;
-        float eta = (cos(dec0) * sin(dec) - sin(dec0) * cos(dec) * cos(dra)) / cosc;
-        vec2 uv = vec2(0.5 - xi / patchSize, 0.5 - eta / patchSize);
-        float edge = min(min(uv.x, 1.0 - uv.x), min(uv.y, 1.0 - uv.y));
-        if (edge > 0.0) {
-          vec4 patchSample = texture(uPatch, uv);
-          color = mix(color, patchSample.rgb, smoothstep(0.0, 0.04, edge) * patchSample.a);
-        }
-      }
-    }
+    if (uHasSky) color = sampleSky(ra, dec);
   }
+  color = pow(max(color * uExpo, 0.0), vec3(1.0 / uGam));
   outColor = vec4(color, 1.0);
 }`;
 
@@ -229,7 +231,7 @@ export interface WebGLView {
   ra: number;
   dec: number;
   fov: number;
-  projection: 'AIT' | 'TAN' | 'CAR';
+  projection: 'AIT' | 'TAN' | 'CAR' | 'STEREO';
 }
 
 function shader(gl: WebGL2RenderingContext, type: number, source: string): WebGLShader {
@@ -245,7 +247,7 @@ function shader(gl: WebGL2RenderingContext, type: number, source: string): WebGL
   return result;
 }
 
-export class HipsWebGLRenderer {
+export class InfraSphereSkyRenderer {
   readonly capacity: number;
   private readonly gl: WebGL2RenderingContext;
   private readonly program: WebGLProgram;
@@ -276,8 +278,8 @@ export class HipsWebGLRenderer {
     this.capacity = columns * columns;
     for (let slot = this.capacity - 1; slot >= 0; slot -= 1) this.freeSlots.push(slot);
 
-    const vertex = shader(gl, gl.VERTEX_SHADER, VERTEX_SHADER);
-    const fragment = shader(gl, gl.FRAGMENT_SHADER, FRAGMENT_SHADER);
+    const vertex = shader(gl, gl.VERTEX_SHADER, VS);
+    const fragment = shader(gl, gl.FRAGMENT_SHADER, FS);
     const program = gl.createProgram();
     if (!program) throw new Error('The WebGL sky program could not be created.');
     gl.attachShader(program, vertex);
@@ -298,9 +300,9 @@ export class HipsWebGLRenderer {
     gl.bindVertexArray(vertexArray);
 
     const names = [
-      'uResolution', 'uRa', 'uDec', 'uFov', 'uProjection', 'uMaxOrder', 'uSpherex',
+      'uRes', 'uRa', 'uDec', 'uFov', 'uProj', 'uMaxOrder', 'uSpherex',
       'uHasSky', 'uHasPatch', 'uPatchInfo', 'uAtlasSide', 'uAtlasColumns',
-      'uAtlas', 'uTileMap', 'uColorMap', 'uPatch',
+      'uAtlas', 'uTileMap', 'uColorMap', 'uPatch', 'uExpo', 'uGam',
     ];
     for (const name of names) this.uniforms[name] = gl.getUniformLocation(program, name);
 
@@ -429,15 +431,22 @@ export class HipsWebGLRenderer {
   render(view: WebGLView, maxOrder: number, spherex: boolean): void {
     const gl = this.gl;
     gl.useProgram(this.program);
-    gl.uniform2f(this.uniforms.uResolution, this.canvas.width, this.canvas.height);
+    gl.uniform2f(this.uniforms.uRes, this.canvas.width, this.canvas.height);
     gl.uniform1f(this.uniforms.uRa, view.ra * Math.PI / 180);
     gl.uniform1f(this.uniforms.uDec, view.dec * Math.PI / 180);
     gl.uniform1f(this.uniforms.uFov, view.fov);
-    gl.uniform1i(this.uniforms.uProjection, view.projection === 'TAN' ? 1 : view.projection === 'CAR' ? 2 : 0);
+    gl.uniform1i(
+      this.uniforms.uProj,
+      view.projection === 'TAN' ? 1
+        : view.projection === 'CAR' ? 2
+          : view.projection === 'STEREO' ? 3 : 0,
+    );
     gl.uniform1i(this.uniforms.uMaxOrder, maxOrder);
     gl.uniform1i(this.uniforms.uSpherex, spherex ? 1 : 0);
     gl.uniform1i(this.uniforms.uHasSky, this.hasSky ? 1 : 0);
     gl.uniform1i(this.uniforms.uHasPatch, this.patch ? 1 : 0);
+    gl.uniform1f(this.uniforms.uExpo, 1.0);
+    gl.uniform1f(this.uniforms.uGam, 1.0);
     if (this.patch) {
       gl.uniform3f(
         this.uniforms.uPatchInfo,

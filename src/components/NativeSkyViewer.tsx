@@ -10,7 +10,7 @@ import {
   tilePath,
   type FitsImage,
 } from '../lib/hipsSky';
-import { HipsWebGLRenderer, makeWebGLPatch, type WebGLPatch } from '../lib/hipsWebgl';
+import { InfraSphereSkyRenderer, makeWebGLPatch, type WebGLPatch } from '../lib/infraSphereSkyRenderer';
 
 const SPHEREX_HIPS = 'https://irsa.ipac.caltech.edu/data/hips/SPHEREx/spherex_allsky_cube';
 const TWOMASS_HIPS = 'https://irsa.ipac.caltech.edu/data/hips/CDS/2MASS/Color';
@@ -29,6 +29,7 @@ const PROJECTIONS = [
   { value: 'AIT', label: 'All-sky (Aitoff)' },
   { value: 'TAN', label: 'Tangent plane' },
   { value: 'CAR', label: 'Equirectangular' },
+  { value: 'STEREO', label: 'Stereographic (InfraSphere)' },
 ] as const;
 type Projection = (typeof PROJECTIONS)[number]['value'];
 type Survey = 'spherex' | 'two-mass' | 'reference' | 'simulator-high-latitude' | 'simulator-galactic-plane';
@@ -120,6 +121,13 @@ function createScreenToSky(view: SkyView, width: number, height: number) {
       center = 1 / norm;
       east /= norm;
       north /= norm;
+    } else if (view.projection === 'STEREO') {
+      const radius = Math.hypot(nx * aspect, ny);
+      const angle = 2 * Math.atan(radius * Math.tan(toRadians(view.fov) / 4));
+      const scale = radius > 1e-9 ? Math.sin(angle) / radius : 0;
+      center = Math.cos(angle);
+      east = nx * aspect * scale;
+      north = ny * scale;
     } else if (view.projection === 'CAR') {
       const longitude = nx * toRadians(carHorizontalFov / 2);
       const latitude = ny * toRadians(clamp(view.fov, 0.02, 180) / 2);
@@ -182,6 +190,17 @@ function skyToScreen(view: SkyView, ra: number, dec: number, width: number, heig
     const halfHeight = Math.tan(toRadians(clamp(view.fov, 0.02, 170)) / 2);
     nx = -east / center / (aspect * halfHeight);
     ny = north / center / halfHeight;
+  } else if (view.projection === 'STEREO') {
+    const angle = Math.acos(clamp(center, -1, 1));
+    if (angle > Math.PI * 0.97) return null;
+    const radius = 2 * Math.tan(angle / 2);
+    const scale = height / (2 * Math.tan(toRadians(view.fov) / 4));
+    const tangent = Math.hypot(east, north);
+    if (tangent < 1e-9) return [width / 2, height / 2];
+    return [
+      width / 2 - east / tangent * radius * scale,
+      height / 2 - north / tangent * radius * scale,
+    ];
   } else {
     const longitude = Math.atan2(east, center);
     const latitude = Math.atan2(north, Math.hypot(center, east));
@@ -221,7 +240,7 @@ export const NativeSkyViewer: React.FC<NativeSkyViewerProps> = ({
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const skyCanvasRef = useRef<HTMLCanvasElement>(null);
-  const rendererRef = useRef<HipsWebGLRenderer | null>(null);
+  const rendererRef = useRef<InfraSphereSkyRenderer | null>(null);
   const viewRef = useRef<SkyView>(DEFAULT_VIEW);
   const cacheRef = useRef(new Map<string, TilePixels>());
   const tileAbortRef = useRef<AbortController | null>(null);
@@ -583,7 +602,7 @@ export const NativeSkyViewer: React.FC<NativeSkyViewerProps> = ({
     const canvas = skyCanvasRef.current;
     if (!canvas) return;
     try {
-      const renderer = new HipsWebGLRenderer(canvas);
+      const renderer = new InfraSphereSkyRenderer(canvas);
       rendererRef.current = renderer;
       setRendererError(null);
       requestRender();
@@ -851,7 +870,7 @@ export const NativeSkyViewer: React.FC<NativeSkyViewerProps> = ({
     const current = viewRef.current;
     const next = {
       ...current,
-      fov: clamp(current.fov * factor, 0.02, current.projection === 'TAN' ? 170 : 180),
+      fov: clamp(current.fov * factor, 0.02, current.projection === 'TAN' ? 170 : current.projection === 'STEREO' ? 150 : 180),
     };
     if (next.fov === current.fov) return;
     beginInteraction();
@@ -1007,7 +1026,7 @@ export const NativeSkyViewer: React.FC<NativeSkyViewerProps> = ({
             <header className={`mb-4 flex items-center justify-between border-b pb-3 ${isDark ? 'border-white/10' : 'border-slate-200'}`}>
               <div>
                 <h2 className="text-sm font-bold tracking-wide">Atlas</h2>
-                <p className={`mt-0.5 text-[10px] ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Native SPHEREx sky renderer</p>
+                <p className={`mt-0.5 text-[10px] ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>InfraSphere WebGL renderer · SPHEREx DR1</p>
               </div>
               <button type="button" onClick={() => setSidebarVisible(false)} className="inline-flex h-7 w-7 items-center justify-center" aria-label="Hide Atlas controls">
                 <PanelLeftClose className="h-4 w-4" />
@@ -1068,7 +1087,13 @@ export const NativeSkyViewer: React.FC<NativeSkyViewerProps> = ({
                 <label htmlFor="native-projection" className="mb-1.5 block text-[10px] font-semibold uppercase tracking-wider">Map projection</label>
                 <select id="native-projection" value={view.projection} onChange={(event) => {
                   const projection = event.currentTarget.value as Projection;
-                  updateView({ ...viewRef.current, projection, fov: projection === 'TAN' ? Math.min(viewRef.current.fov, 120) : viewRef.current.fov });
+                  updateView({
+                    ...viewRef.current,
+                    projection,
+                    fov: projection === 'TAN'
+                      ? Math.min(viewRef.current.fov, 120)
+                      : projection === 'STEREO' ? Math.min(viewRef.current.fov, 150) : viewRef.current.fov,
+                  });
                 }} className={`w-full rounded-lg border px-2.5 py-2 text-xs ${sidebarSelectClass}`}>
                   {PROJECTIONS.map((projection) => <option key={projection.value} value={projection.value}>{projection.label}</option>)}
                 </select>
