@@ -14,6 +14,7 @@ import { TileGrid } from "./tiles.js";
 import { SolarSystem } from "./solar-system.js";
 import { Inspector } from "./inspector.js";
 import { StarLayer } from "./star-layer.js";
+import { BANDS, parseBandId } from "./sim-sky.js";
 
 const $ = UI.$;
 
@@ -160,7 +161,20 @@ const controls = attachControls($("sky"), view, {
 const mapId = () => (state.chan > 0 && state.band !== "color" ? state.band + "." + state.chan : state.band);
 function loadMap() { const id = mapId(); stars.setBand(id); sky.loadBand(id, state.quality); }
 UI.buildBandButtons((id) => { state.band = id; state.chan = 0; UI.setActiveBand(id); UI.setChannelOptions(id, 0, CONFIG.simulate); loadMap(); });
-$("chan").addEventListener("change", (e) => { state.chan = parseInt(e.target.value, 10) || 0; loadMap(); });
+$("chan").addEventListener("change", (e) => {
+  const value = e.target.value;
+  if (value === "0") {
+    state.chan = 0;
+  } else {
+    const { k, ch } = parseBandId(value);
+    if (k < 0 || ch < 0) return;
+    state.band = BANDS[k].id;
+    state.chan = ch + 1;
+  }
+  UI.setActiveBand(state.band);
+  UI.setChannelOptions(state.band, state.chan, CONFIG.simulate);
+  loadMap();
+});
 $("quality").addEventListener("change", (e) => { state.quality = parseInt(e.target.value, 10); sky.loadBand(mapId(), state.quality); });
 // Background light components of the simulated sky (zodiacal, diffuse Galactic, extragalactic, stars and sources)
 const BG = { zl: "bg-zl", dgl: "bg-dgl", ebl: "bg-ebl", stars: "bg-stars" };
