@@ -209,10 +209,22 @@ for (const g of Object.keys(state.groups)) {
 }
 $("search").addEventListener("keydown", (e) => { if (e.key === "Enter") searchObject(e.target.value); });
 $("searchBtn").addEventListener("click", () => searchObject($("search").value));
-$("toggle").addEventListener("click", () => $("panel").classList.toggle("hidden"));
+const panel = $("panel");
+const panelToggle = $("toggle");
+function setPanelOpen(open) {
+  panel.classList.toggle("hidden", !open);
+  document.body.classList.toggle("panel-collapsed", !open);
+  panelToggle.setAttribute("aria-expanded", String(open));
+  panelToggle.setAttribute("aria-label", open ? "Close side panel" : "Open side panel");
+  panelToggle.title = open ? "Close side panel" : "Open side panel";
+  panelToggle.querySelector("span").textContent = open ? "‹" : "›";
+}
+panelToggle.addEventListener("click", () => setPanelOpen(panel.classList.contains("hidden")));
+$("zoom-in").addEventListener("click", () => { view.fov /= 1.25; view.clamp(); markInteract(); });
+$("zoom-out").addEventListener("click", () => { view.fov *= 1.25; view.clamp(); markInteract(); });
 if (CONFIG.simulate) {
   $("credits").textContent = "SIMULATED sky (magma colour scale, build 2): a procedural model after the SPHEREx Sky Simulator (Crill et al. 2025, ApJS 281, 10), not real survey data. Add ?real=1 to the address for NASA/JPL-Caltech data. Object data: SIMBAD, CDS.";
-  document.title = "InfraSphere (simulated sky)";
+  document.title = "SPHEREx Atlas (simulated sky)";
 }
 
 $("file").addEventListener("change", async (e) => {

@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>InfraSphere: the infrared sky · Sferavis</title>
-<meta name="description" content="A Stellarium-style planetarium that paints the sky with NASA SPHEREx infrared data and labels it with SIMBAD.">
+<title>SPHEREx Atlas · Sferavis</title>
+<meta name="description" content="An interactive sky atlas using NASA SPHEREx infrared data and SIMBAD object labels.">
 <script>document.documentElement.dataset.theme = new URLSearchParams(location.search).get("theme") === "light" ? "light" : "dark";</script>
 <link rel="stylesheet" href="css/style.css">
 </head>
@@ -14,13 +14,13 @@
 <div id="hover"></div>
 <div id="status" role="status"></div>
 
-<button class="btn" id="toggle" aria-label="Show or hide controls">Controls</button>
+<button class="btn panel-chevron" id="toggle" aria-label="Close side panel" aria-expanded="true" aria-controls="panel"><span aria-hidden="true">‹</span></button>\n<div id="zoom-controls" aria-label="Sky zoom controls"><button class="btn" id="zoom-in" aria-label="Zoom in" title="Zoom in">+</button><button class="btn" id="zoom-out" aria-label="Zoom out" title="Zoom out">−</button></div>
 <aside id="info" class="hidden" aria-live="polite"></aside>
 <div id="inspector" class="hidden" role="dialog" aria-label="SPHEREx epoch inspector"></div>
 
 <div id="panel">
   <div>
-    <h1>InfraSphere</h1>
+    <h1>SPHEREx Atlas</h1>
     <p class="sub">Stand on the ground and look up. The sky is painted with NASA SPHEREx infrared data and every name comes from SIMBAD.</p>
   </div>
 
@@ -82,7 +82,7 @@
       <label class="check"><input type="checkbox" id="asteroids"> Asteroids</label>
       <label class="check"><input type="checkbox" id="neo"> Near-Earth asteroids</label>
     </div>
-    <p class="note" style="margin:6px 0 0">Switch on <b>InfraSphere tile grid</b> under View, then tap a tile to inspect its SPHEREx exposures from every date.</p>
+    <p class="note" style="margin:6px 0 0">Switch on <b>SPHEREx tile grid</b> under View, then tap a tile to inspect its SPHEREx exposures from every date.</p>
   </section>
 
   <section>
@@ -159,7 +159,7 @@
   SPHEREx data: NASA/JPL-Caltech, via IRSA and CDS. Object data: SIMBAD, CDS, Strasbourg, France.
 </footer>
 
-<noscript><p style="position:absolute;top:40%;width:100%;text-align:center">InfraSphere needs JavaScript.</p></noscript>
+<noscript><p style="position:absolute;top:40%;width:100%;text-align:center">SPHEREx Atlas needs JavaScript.</p></noscript>
 <script type="module" src="js/main.js"></script>
 </body>
 </html>
