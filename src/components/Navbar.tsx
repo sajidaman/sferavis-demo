@@ -34,8 +34,6 @@ export const Navbar: React.FC<NavbarProps> = ({
   return (
     <header className="sferavis-cursor-area sticky top-0 z-50 w-full backdrop-blur-xl bg-white/90 dark:bg-[#070b14]/90 border-b border-zinc-200 dark:border-slate-800 transition-colors duration-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-18 flex items-center justify-between gap-8">
-        
-        {/* Zone 1: Big prominent text Logo without icon */}
         <button
           type="button"
           onClick={() => {
@@ -48,7 +46,6 @@ export const Navbar: React.FC<NavbarProps> = ({
           <Logo size="md" />
         </button>
 
-        {/* Zone 2: 5 clean single-line nav links using Lexend */}
         <nav aria-label="Primary navigation" className="hidden md:flex items-center gap-7 font-lexend uppercase text-xs tracking-widest">
           {navItems.map((item) => {
             const isActive = currentPage === item.id;
@@ -71,21 +68,8 @@ export const Navbar: React.FC<NavbarProps> = ({
               </button>
             );
           })}
-          <a
-            href="/resume.pdf"
-            target="_blank"
-            rel="noopener noreferrer"
-            className={`inline-flex items-center justify-center rounded-md px-4 py-2 text-xs font-bold tracking-widest transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#A30000] ${
-              isDark
-                ? 'bg-white text-black hover:bg-zinc-200'
-                : 'bg-black text-white hover:bg-zinc-800'
-            }`}
-          >
-            Resume
-          </a>
         </nav>
 
-        {/* Launch action, theme toggle and mobile navigation */}
         <div className="flex items-center gap-4 shrink-0">
           <button
             type="button"
@@ -104,8 +88,6 @@ export const Navbar: React.FC<NavbarProps> = ({
             {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
           </button>
 
-
-          {/* Mobile hamburger button */}
           <button
             type="button"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -119,7 +101,6 @@ export const Navbar: React.FC<NavbarProps> = ({
         </div>
       </div>
 
-      {/* Mobile Drawer */}
       {mobileMenuOpen && (
         <nav id="sferavis-mobile-navigation" aria-label="Mobile navigation" className="md:hidden border-t border-zinc-200 dark:border-zinc-800 bg-white/95 dark:bg-[#0d0d12]/95 backdrop-blur-2xl px-5 py-4 space-y-2">
           {navItems.map((item) => {
@@ -143,18 +124,6 @@ export const Navbar: React.FC<NavbarProps> = ({
               </button>
             );
           })}
-          <a
-            href="/resume.pdf"
-            target="_blank"
-            rel="noopener noreferrer"
-            className={`mt-3 flex w-full items-center justify-center rounded-md px-4 py-3 text-xs font-lexend uppercase font-bold tracking-widest transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#A30000] ${
-              isDark
-                ? 'bg-white text-black hover:bg-zinc-200'
-                : 'bg-black text-white hover:bg-zinc-800'
-            }`}
-          >
-            Resume
-          </a>
           <button
             type="button"
             onClick={() => {
