@@ -71,6 +71,18 @@ export const Navbar: React.FC<NavbarProps> = ({
               </button>
             );
           })}
+          <a
+            href="/resume.pdf"
+            target="_blank"
+            rel="noopener noreferrer"
+            className={`inline-flex items-center justify-center rounded-md px-4 py-2 text-xs font-bold tracking-widest transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#A30000] ${
+              isDark
+                ? 'bg-white text-black hover:bg-zinc-200'
+                : 'bg-black text-white hover:bg-zinc-800'
+            }`}
+          >
+            Resume
+          </a>
         </nav>
 
         {/* Launch action, theme toggle and mobile navigation */}
@@ -131,6 +143,18 @@ export const Navbar: React.FC<NavbarProps> = ({
               </button>
             );
           })}
+          <a
+            href="/resume.pdf"
+            target="_blank"
+            rel="noopener noreferrer"
+            className={`mt-3 flex w-full items-center justify-center rounded-md px-4 py-3 text-xs font-lexend uppercase font-bold tracking-widest transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#A30000] ${
+              isDark
+                ? 'bg-white text-black hover:bg-zinc-200'
+                : 'bg-black text-white hover:bg-zinc-800'
+            }`}
+          >
+            Resume
+          </a>
           <button
             type="button"
             onClick={() => {
